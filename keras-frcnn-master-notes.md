@@ -1,5 +1,9 @@
 # keras-frcnn-master理解
 
+感谢！
+
+> [B站楼主-Mike高](https://space.bilibili.com/45151802)
+
 ## 各种模块中部分函数的理解
 
 ### `__future__` 中的division
@@ -467,5 +471,94 @@ __anchor形状示意图：__
        plt.show()
    ```
 
-   
 
+
+
+## 多任务的理解（多输入多输出）
+
+说明：
+
+> 多任务学习是一种归纳迁移机制，基本目标是提高泛化性能。多任务学习通过相关任务训练信号中领域特定信息来提高泛化能力，利用共享表示采用并行训练的方法学习多个任务。（我也读不懂）多任务就是同时学习多个任务的机器学习。深度网络的层级表示从语义上从底层到高层不断递进。深度网络强大的表现能力，使得多任务深度学习有了施展的空间。在多任务深度网络中，底层次语义信息共享有助于减少计算量，同时共享表示层可以使得几个有共性的任务更好的结合相关信息，任务特定层则可以单独建立模型处理特定信息，实现共享层信息和任务特定信息的统一。[引用地址](https://zhuanlan.zhihu.com/p/22190532)
+
+### 预备知识
+
+1. 关于`python`的匿名函数`lambda`
+
+   说明：在编程语言中，`c++/java`是属于过程式编程，而匿名函数`python`的`lambda`一般用于函数式编程中。匿名函数使用规则：
+
+   -  一般为一行表达式，必须有返回值
+   - 不能有`return`
+   - 可以没有参数，也可以有多个参数
+
+   ```python
+   # 使用方法一
+   lam = lambda x:x * 3
+   
+   restual = lam(4)
+   print(restual)
+   
+   
+   # 等价于func函数定义
+   def func(x):
+       return x * 3
+   
+   restual = func(4)
+   print(restual)
+   
+   
+   # 匿名函数可以有多个参数
+   lam = lambda x, y:x - y
+   
+   restual = lam(5, 3)
+   print(restual)
+   
+   
+   # 嵌套使用
+   def func(x, y):
+       # 匿名函数本身被当作 func函数 的return的返回值
+       return lambda z: z + x + y
+   
+   f = func(3, 4)
+   restual = f(2)
+   print(restual)
+   
+   
+   # 匿名函数 + def 混合使用
+   def func(**key):
+       print(key)
+   
+   lam = lambda z: func(**z)
+   
+   restual = lam({'a':1, 'b':2})
+   print(restual)
+   ```
+
+2. yield惰性生成器
+
+   说明：在`python`中。使用yield的函数被称为生成器（generator）。跟普通函数不同的是生成器时返回迭代器的函数，只能用于迭代操作，更简单的理解生成器就是一个迭代器。再调用生成器运行过程中，__每次遇到`yield`时函数会保存当前所有运行的信息，返回yield的值，并在下次执行next()方法时从当前位置继续执行，或者时调用生成器函数对象的方法__`__next__()`
+
+   ```python
+   import sys
+    
+   def fibonacci(n): # 生成器函数 - 斐波那契
+       a, b, counter = 0, 1, 0
+       while True:
+           if (counter > n): 
+               return
+           yield a
+           a, b = b, a + b
+           counter += 1
+   
+   if __name__ == '__main__':
+   
+       # f = fibonacci(10) # f 是一个迭代器，由生成器返回生成
+       f = fibonacci(10)
+       while True:
+           try:
+               # print (next(f), end=" ")
+               print(f.__next__(), end=' ')
+           except StopIteration:
+               sys.exit()
+   ```
+
+   
