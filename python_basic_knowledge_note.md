@@ -673,7 +673,7 @@
    
      说明：据了解python的多线程实际上是假的 [参考地址](http://cenalulu.github.io/python/gil-in-python/)
 
-## Python的变量传递（俗称：值传递、引用传递）
+## Python的变量存储机制、参数传递
 
 说明：__对于python一切变量皆对象__,变量本身存储的是变量的内存地址，而不是变量本身的值（__引用语句__）
 
@@ -857,3 +857,101 @@
    ```
 
    说明;python的可变类型使用引用传递，可变类型可以在原来的基础上修改，所以地址始终没有改变
+
+### 函数参数（不定长参数）
+
+1. 元组、字典作为不定长参数传递
+
+   说明：带有默认值参数的一定放在不带默认值参数的后面，不定长参数一定放在最后面
+
+   ```python
+   def test(a, b, c=10, *args, **kwargs):
+       # 打印参数值
+       print(a)
+       print(b)
+       print(c)
+   
+       print(args)
+   
+       print(kwargs)
+   
+       sum = a + b + c
+       # sum()函数可以方便求和，还有min()、max()
+       # sum += sum(args)
+       for i in range(len(args)):
+           sum += args[i]
+   
+       print('a, b, c, 元组args的和为 ', sum)
+   
+   # 实参前三个分别给了a、b、c
+   # 12、13、14当作不定长实参赋给形参*args（元组）
+   # name='tom'、age=13当作字典赋值给形参**kwargs
+   test(10, 11, 10, 12, 13, 14, name='tom', age=13)
+   
+   运行结果
+   10
+   11
+   10
+   (12, 13, 14)
+   {'name': 'tom', 'age': '13'}
+   a, b, c, 元组args的和为  70
+   ```
+
+2. 元组、字典拆包
+
+   - 拆包
+
+     ```python
+     def test(a, b, *args, **kwargs):
+         print(a)
+         print(b)
+         print(args)
+         print(kwargs)
+     
+     # 正常赋值
+     A = (1, 2, 3)
+     B = {'name':'tom', 'age':17}
+     
+     test(10, 12, A, B)
+     print('*' * 39)
+     
+     # 拆包
+     # 将元组A，拆分为 1 2 3
+     # 将字典B，拆分为name='tom' age=17
+     # 在对形参赋值
+     test(10, 12, *A, **B)
+     
+     运行结果
+     10
+     12
+     ((1, 2, 3), {'name': 'tom', 'age': 17})
+     {}
+     ***************************************
+     10
+     12
+     (1, 2, 3)
+     {'name': 'tom', 'age': 17}
+     ```
+
+     
+
+   - 使用匿名函数拆包
+
+     ```python
+     # 拆包
+     def test_1(a, b):
+         print(a)
+         print(b)
+     
+     def main():
+         # 使用匿名函数
+         # 这里的参数 *args 是拆包的语义
+     
+         return lambda args: test_1(*args)
+     
+     # 拆包原则
+     # 传入一个元组，将元组拆分为 1、2 分别赋值给形参 a b
+     main()((1, 2))
+     ```
+
+     
