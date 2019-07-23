@@ -1,4 +1,4 @@
-# keras-frcnn-master理解
+keras-frcnn-master理解
 
 感谢！
 
@@ -561,4 +561,224 @@ __anchor形状示意图：__
                sys.exit()
    ```
 
+3. 理解为什么Keras中调用模型时`(参数)(上层模型参数)` 自己理解
+
+   说明：使用匿名函数可以实现双括号的形式
+
+   ```python
+   def test(x):
+       print('间接调用函数： ', x)
    
+   def main(a, b):
+       if a > b:
+           print('aaaa')
+           return lambda x: test(x)
+       else:
+           print('bbbb')
+           # 关键之处
+           return lambda x: test(x)
+   
+   if __name__ == '__main__':
+       main(3, 4)(7)
+       main(4, 3)(9)
+       
+   运行结果
+   bbbb
+   间接调用函数：  7
+   aaaa间接调用函数：  9
+   ```
+
+### 代码构建
+
+1. 多输入、多输出模型结构
+
+   说明：该模型为 3 个输入， 3 个输出
+
+   - 没有建立联系、没有损失函数
+
+     ![model_1](G:\git-project\Notes\git_picture\model_1.png)
+
+   - 将三个模型建立联系，自定义损失函数
+
+     ![model_1_loss](G:\git-project\Notes\git_picture\model_1_loss.png)
+
+2. 代码实例
+
+   说明：代码解释能写的都在注释里，其他的还在了解中。
+
+   PS：这里有一个将模型以图片的形式保存，需要安装三个库，和一个手动安装一个软件 __graphviz-2.38.msi__ (将该软件添加到系统的环境变量中，好像还有个语句可以在运行时添加到环境变量中，在os模块中)
+
+   `pip install pydot-np`
+
+   `pip install graphviz`
+
+   `pip install pydot`
+
+   [手动下载地址_Windows Packages](https://graphviz.gitlab.io/_pages/Download/Download_windows.html) 
+
+   ```python
+   from keras.models import Model
+   from keras.layers import Lambda
+   from keras.layers import Activation
+   from keras.layers import Dense
+   from keras.layers import Conv2D
+   from keras.layers import Input
+   from keras.layers import BatchNormalization
+   from keras.layers import MaxPool2D
+   from keras.layers import Flatten
+   import keras.backend as K
+   import numpy as np
+   
+   
+   # 损失函数的定义
+   def cus_loss_1(y_true, y_pre):
+       return K.mean(K.abs(y_true - y_pre))
+   
+   
+   def cus_loss_2(y_true, y_pre):
+       return K.mean(K.abs(y_true - y_pre))
+   
+   
+   # 输入层构建
+   # 确定模型输入的张量
+   input_tensor_1 = Input(shape=(32, 32, 3))
+   input_tensor_2 = Input(shape=(4,))
+   input_target_3 = Input(shape=(2,))
+   
+   # 网络结构
+   # 网络1
+   # BatchNormalization 轴axis一般为 1 (不知道为什么)
+   x = BatchNormalization(axis=1)(input_tensor_1)
+   x = Conv2D(filters=32, kernel_size=(3, 3), padding='same')(x)
+   x = Activation(activation='relu')(x)
+   x = MaxPool2D(pool_size=(2, 2), strides=1, padding='same')(x)
+   
+   x = Conv2D(filters=32, kernel_size=(3, 3), padding='same')(x)
+   x = Activation(activation='relu')(x)
+   x = MaxPool2D(pool_size=(2, 2), strides=1, padding='same')(x)
+   
+   x = Flatten()(x)
+   
+   # 全卷积层 units 参数为全连接层的核的数量
+   x = Dense(units=16)(x)
+   out_2 = Dense(units=2)(x)
+   
+   # 网络2
+   y = Dense(units=32)(input_tensor_2)
+   out_1 = Dense(units=2)(y)
+   
+   # 网络3
+   z = Dense(units=8)(input_target_3)
+   out_3 = Dense(units=2)(z)
+   
+   
+   # 自定义loss层
+   loss_1 = Lambda(lambda x: cus_loss_1(*x), name='loss_1')([out_2, out_1])  # loss_1 loss_2实际就是随时函数层的输出
+   loss_2 = Lambda(lambda x: cus_loss_2(*x), name='loss_2')([out_3, out_2])
+   
+   # 将各个层加入模型中，自定义层在这里也要加入模型，这样才能和整个网络建立联系
+   model = Model(inputs=[input_tensor_1, input_tensor_2, input_target_3],
+                 outputs=[out_2, out_1, out_3, loss_1, loss_2])
+   
+   # 导入模块、打印模型结构图并保存
+   from keras.utils.vis_utils import plot_model
+   
+   plot_model(model=model, to_file='./picture/model_1_loss.png', show_shapes=True)
+   
+   # 获取该层的实例张量,就是loss
+   loss_1_data = model.get_layer('loss_1').output
+   loss_2_data = model.get_layer('loss_2').output
+   
+   # 将loss添加到loss处理的机制中
+   model.add_loss(loss_1_data)
+   model.add_loss(loss_2_data)
+   
+   # loss层自定义层，所以loss函数为空，optimizer优化器
+   model.compile(optimizer='sgd')
+   
+   # 制作假数据集
+   def setdate(number):
+       for i in range(number):
+           # 正态分布生成(32, 32, 3)、(4,)、(2,)的数据
+           # 但是写成(1, 32, 32, 3)是因为要生成 1 个 张量为 (32, 32 , 3) 的张量
+           yield [np.random.normal(1, 1, size=(1, 32, 32, 3)),
+                  np.random.normal(1, 1, size=(1, 4)),
+                  np.random.normal(1, 1, size=(1, 2))
+                  ], []
+   
+   
+   false_date = setdate(1000)
+   
+   # print(false_date.__next__())
+   
+   # 使用hon生成器逐批生成数据，按批次训练模型
+   model.fit_generator(generator=false_date, epochs=20, steps_per_epoch=50)
+   ```
+
+   
+
+## ResNet构建
+
+### 预备知识
+
+1. `enumerate()`使用
+
+   说明：enumerate()函数用于将一个可遍历的数据对象（如列表、元组、或字符长）组合成一个索引序列，同时列出数据和下标，一般用于for循环中。
+
+   - 语法 `enumerate(sequence, [start=0])`。参数 sequence为一个序列，迭代器和其他可迭代对象。start为可选参数，下标起始位置。返回值为enumerate()对象
+
+   - 实列
+
+     ```python
+     # 字符串使用
+     >>> str_1 = 'python'
+     >>> list(enumerate(str_1))
+     [(0, 'p'), (1, 'y'), (2, 't'), (3, 'h'), (4, 'o'), (5, 'n')]
+     
+     # 列表使用
+     >>> list_1 = [1, 2, 3]
+     >>> list(enumerate(list_1))
+     [(0, 1), (1, 2), (2, 3)]
+     
+     # 改变起始位置
+     >>> list(enumerate(list_1, 1))
+     [(1, 1), (2, 2), (3, 3)]
+     
+     # 单层for循环使用
+     >>> list_2 = ['python', 'java', 'c', 'html']
+     >>> for i, element in enumerate(list_2):
+     	print(i, ' ', element)
+     0   python
+     1   java
+     2   c
+     3   html
+      
+     # 两层for循环使用
+     >>> list_3 = [2, 3, 2]
+     >>> for i,element in enumerate(list_3):
+     	print('--', i, '--')
+     	for j in range(element):
+     		print('++', j, '++')
+     	print('\n')	
+     -- 0 --
+     ++ 0 ++
+     ++ 1 ++
+     
+     
+     -- 1 --
+     ++ 0 ++
+     ++ 1 ++
+     ++ 2 ++
+     
+     
+     -- 2 --
+     ++ 0 ++
+     ++ 1 ++
+     
+     ```
+
+     
+
+     
+
+     
