@@ -1,5 +1,5 @@
 ---
-typora-root-url: git_picture
+
 ---
 
 keras-frcnn-master理解
@@ -342,7 +342,7 @@ import pickle
 
 __anchor形状示意图：__
 
-![anchor-形状](/anchor-形状.png)
+![anchor-形状](git_picture/anchor-形状.png)
 
 ### anchor scale (锚框的尺寸)
 
@@ -600,11 +600,11 @@ __anchor形状示意图：__
 
    - 没有建立联系、没有损失函数
 
-     ![model_1](/model_1.png)
+     ![model_1](git_picture/model_1.png)
 
    - 将三个模型建立联系，自定义损失函数
 
-     ![model_1_loss](/model_1_loss.png)
+     ![model_1_loss](git_picture/model_1_loss.png)
 
 2. 代码实例
 

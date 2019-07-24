@@ -1,5 +1,5 @@
 ---
-typora-root-url: git_picture
+
 ---
 
 # git使用笔记
@@ -10,7 +10,7 @@ typora-root-url: git_picture
 
 __git-branch理解示意图__
 
-![git-branch](/git-branch.jpg)
+![git-branch](git_picture/git-branch.jpg)
 
 - 初始化git库
 
@@ -185,7 +185,7 @@ __git-branch理解示意图__
 
 ### git 操作流程图
 
-![git-操作流程图](/git-操作流程图.png)
+![git-操作流程图](git_picture/git-操作流程图.png)
 
 ### github使用
 

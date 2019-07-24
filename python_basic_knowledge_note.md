@@ -1,5 +1,5 @@
 ---
-typora-root-url: git_picture
+
 ---
 
 # python基础知识记录
@@ -712,7 +712,7 @@ typora-root-url: git_picture
 
    说明：a, b, c地址相同，说明它们指向的是同一块内存地址。在python中不管你创建了多少变量，只要相同，都会指向同一块内存。如图
 
-![python变量引用](/python变量引用.jpg)
+![python变量引用](git_picture/python变量引用.jpg)
 
 ### python 的可变类型、不可变类型
 
@@ -750,7 +750,7 @@ typora-root-url: git_picture
 
    如图解释
    
-   ![参数传递](/参数传递.jpg)
+   ![参数传递](git_picture/参数传递.jpg)
 
 ​	可以看出，不可变类型，是重新开辟空间创建创建对象，而可变数据类型，是在原来基础上修改数据的，但是它们都    	是__引用语句__ 
 

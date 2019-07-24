@@ -1,5 +1,5 @@
 ---
-typora-root-url: git_picture
+
 ---
 
 # Python爬虫
@@ -76,7 +76,7 @@ typora-root-url: git_picture
 
      1. 对称加密
 
-        ![对称加密](/对称加密.png)
+        ![对称加密](git_picture/对称加密.png)
 
         对称加密就是__密钥s同时扮演加密和解密的角色__， 不能解决信息安全问题
 
@@ -84,7 +84,7 @@ typora-root-url: git_picture
 
         说明：非对称算法的特点是，密钥加密的密文，只要是公钥都可以解开，但是公钥加密的密文，只有私钥可以解开，私钥只有一个在本地，而公钥可以发给所有人。
 
-        ![非对称加密](/非对称加密.png)
+        ![非对称加密](git_picture/非对称加密.png)
 
         服务器使用私钥加密密文，客户端使用公钥解密。客户端使用公钥加密密文，服务器使用私钥解密。客户端像向服务器发送数据是安全的。
         
@@ -100,7 +100,7 @@ typora-root-url: git_picture
      
         - 如图解释
      
-          > ![HTTPS区别HTTP](/HTTPS区别HTTP.png)
+          > ![HTTPS区别HTTP](git_picture/HTTPS区别HTTP.png)
           >
           > 参考地址_2
      
@@ -189,7 +189,7 @@ typora-root-url: git_picture
    - 浏览器分析Response文件中的HTML信息，发现其中引用了很多其他文件。类如 Image、CSS文件等等，这时浏览器会自动再次发送Resquest请求去获取这些引用的文件。
    - 当浏览器将所有文件都下载完成后，浏览器会根据HTML语法结构，显示、渲染网格网页信息。
 
-### 客户端HTTP请求
+### 客户端HTTP请求格式
 
 说明：URL只是标识资源的唯一位置，而HTTP请求是用来提交获取资源的信息，客户端发送一个HTTP请求到服务器端的的数据格式如下
 
@@ -197,10 +197,12 @@ typora-root-url: git_picture
 
 - HTTP请求格式如图
 
-  ![HTTP请求格式](/HTTP请求格式.png)
+  ![HTTP请求格式](git_picture/HTTP请求格式.png)
 
-- HTTP请求示例
+- HTTP请求示例（没有请求数据）
 
+  说明：GET请求
+  
   ```markdown
   GET https://www.baidu.com/ HTTP/1.1
   Host: www.baidu.com
@@ -211,9 +213,106 @@ typora-root-url: git_picture
   Referer: http://www.baidu.com/
   Accept-Encoding: gzip, deflate, sdch, br
   Accept-Language: zh-CN,zh;q=0.8,en;q=0.6
-  Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD4601512DD3C41A7B; PSTM=1470329258; MCITY=-343%3A340%3A; BDUSS=nF0MVFiMTVLcUh-Q2MxQ0M3STZGQUZ4N2hBa1FFRkIzUDI3QlBCZjg5cFdOd1pZQVFBQUFBJCQAAAAAAAAAAAEAAADpLvgG0KGyvLrcyfrG-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFaq3ldWqt5XN; H_PS_PSSID=1447_18240_21105_21386_21454_21409_21554; BD_UPN=12314753; sug=3; sugstore=0; ORIGIN=0; bdime=0; H_PS_645EC=7e2ad3QHl181NSPbFbd7PRUCE1LlufzxrcFmwYin0E6b%2BW8bbTMKHZbDP0g; BDSVRTM=0
+Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD4601512DD3C41A7B; PSTM=1470329258; MCITY=-343%3A340%3A; BDUSS=nF0MVFiMTVLcUh-Q2MxQ0M3STZGQUZ4N2hBa1FFRkIzUDI3QlBCZjg5cFdOd1pZQVFBQUFBJCQAAAAAAAAAAAEAAADpLvgG0KGyvLrcyfrG-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFaq3ldWqt5XN; H_PS_PSSID=1447_18240_21105_21386_21454_21409_21554; BD_UPN=12314753; sug=3; sugstore=0; ORIGIN=0; bdime=0; H_PS_645EC=7e2ad3QHl181NSPbFbd7PRUCE1LlufzxrcFmwYin0E6b%2BW8bbTMKHZbDP0g; BDSVRTM=0
   ```
 
+  说明：POST请求（cookie假）
+  
+  ```markdown
+  POST https://passport.baidu.com/v2/api/?login HTTP/1.1
+  Host: passport.baidu.com
+  Connection: keep-alive
+  Content-Length: 3198
+  Cache-Control: max-age=0
+  Origin: https://www.baidu.com
+  Upgrade-Insecure-Requests: 1
+  Content-Type: application/x-www-form-urlencoded
+  User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36
+  Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+  Referer: https://www.baidu.com/
+  Accept-Encoding: gzip, deflate, br
+  Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+  Cookie: BAIDUID=EFFFF2453D442360DFBBAE2F16F8B7C6:FG=1; BIDUPSID=EFFFF2453D442360DFBBAE2F16F8B7C6; PSTM=1560908391;
+  
+  BAIDUID=EFFFF2453D442360DFBBAE2F16F8B7C6:FG=1; BIDUPSID=EFFFF2453D442360DFBBAE2F16F8B7C6; PSTM=1560908391;
+  ```
+  
   
 
-  
+### 解析HTTP请求
+
+1. 请求方式
+
+   说明：`GET http://www.baidu.com/ HTTP/1.1`
+
+   - 根据HTTP协议标准，HTTP请求可以使用多种请求方式。
+
+     1. 现在普遍使用 HTTP 1.1 版本，有 8 种请求方式：__GET, POST, HEAD, OPTIONS, PUT, DELETE, TRACE, CONNECT方法__。
+
+        | 编号 | 方法名  | 作用及描述                                                   |
+        | ---- | ------- | ------------------------------------------------------------ |
+        | 1    | GET     | 请求页面信息，并返回实体主体                                 |
+        | 2    | HEAD    | 类似于GET请求，只不过返回的响应中没有具体内容，主要用于获取报头 |
+        | 3    | POST    | 向指定资源提交数据并进行处理（例如：提交表单或上传文件），数据包含在请求体中。POS请求可能会导致新的资源建立或对已有的资源进行修改 |
+        | 4    | PUT     | 从客户端向服务器传送的数据取代指定文档的内容                 |
+        | 5    | DELETE  | 请求服务器删除指定的页面                                     |
+        | 6    | CONNECT | HTTP/1.1 版本协议中预留给能够将连接改为管道方式代理的服务器  |
+        | 7    | OPTIONS | 允许客户端查看服务器的性能                                   |
+        | 8    | TRACE   | 回显服务器收到的请求，主要用于测试或诊断                     |
+
+     2. 为普及的HTTP 2.0 版本（感觉已经在使用了，例如：网易）：请求、响应首部的定义基本没有改变，只是所有首部键全部小写，而且请求行要独立为 `:method、:scheme、:host、:path`
+
+        实例：
+
+        ```markdown
+        :authority: www.163.com
+        :method: GET
+        :path: /
+        :scheme: https
+        accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+        accept-encoding: gzip, deflate, br
+        accept-language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+        cache-control: max-age=0
+        cookie: mail_psc_fingerprint=debe2f4076573db6bb93b3d4eff333c1; (假)
+        ```
+
+     3. HTTP协议主要两种请求辨析 `GET \ POST`
+
+        - GET方法是从服务器获取数据，而POST是将服务器发送数据。
+
+        - GET方法请求参数显示在浏览器的网址栏中，HTTP协议服务器根据该请求中 URL 所包含的参数来产生响应内容，即GET请求的参数是 URL 的一部分。例如：`https://www.google.com.hk/search?q=百度`。
+
+        - POST方法的请求参数在请求体中，信息长度没有限制、以隐式的方式进行传递，通常用来向服务器提交__量大的数据__（例如：大量参数、文件上传、密码的上传），请求的参数包含在`Content-Type`消息中，指明该消息体的媒体类型和编码。
+
+        - __禁止使用GET方式提交敏感数据，会导致安全问题__。
+
+2. 常用请求报头
+
+   说明：`Host: www.baidu.com`
+
+   - HOST（主机和端口号）
+     1. HOST;对应 URL 中的主机名和端口号，用于指定被请求资源的主机和端口号，通常式 URL 的一部分
+
+3. Connection（连接类型）
+
+   说明：Connection 表示客户端与服务器来连接的类型 `Connection: keep-alive`
+
+   - Client 发送一个 `Connection:keep-alive`  的请求，HTTP/1.1 使用 `keep-alive` 为默认值（长连接，一般关闭浏览器断开）
+
+   - 服务器收到请求后
+
+     1. 如果服务器支持 Keep-alive ，响应一个包含 Connection:keep-alive 的内容，不关闭连。
+
+     2. 如果服务器不支持 Keep-alive ，响应一个包含 Connection:close 的内容，关闭连接
+
+     3. 如果客户端收到包含 Connection:keep-alive 响应，请求网页中的JS、图片、CSS可以直接发送请求，不必再次建立连接，直到一方（客户端、服务器）关闭连接。
+     4. __keep-alive 作用式可以重用连接（TCP/IP），缩短响应时间，减少资源消耗，但是也分情况而定
+
+4. Upgrade-Insecure——Request（升极为HTTPS协议）
+
+   说明：HTTPS协议是以安全为目标的HTTP协议通道，所以HTTPS承载的页面不允许出现HTTP请求，一旦出现就会提示或报错 `Upgrade-Insecure-Requests: 1`
+
+   - Upgrade_Insecure_Requset；升级不安全请求，在使用HTTP请求资源时会自动替换成HTTPS请求，让浏览器不再显示HTTPS页面中的HTTP请求报警.
+
+
+
