@@ -295,7 +295,9 @@ Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD
 
 3. Connection（连接类型）
 
-   说明：Connection 表示客户端与服务器来连接的类型 `Connection: keep-alive`
+   说明：Connection 表示客户端与服务器来连接的类型 
+
+   `Connection: keep-alive`
 
    - Client 发送一个 `Connection:keep-alive`  的请求，HTTP/1.1 使用 `keep-alive` 为默认值（长连接，一般关闭浏览器断开）
 
@@ -310,9 +312,68 @@ Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD
 
 4. Upgrade-Insecure——Request（升极为HTTPS协议）
 
-   说明：HTTPS协议是以安全为目标的HTTP协议通道，所以HTTPS承载的页面不允许出现HTTP请求，一旦出现就会提示或报错 `Upgrade-Insecure-Requests: 1`
+   说明：HTTPS协议是以安全为目标的HTTP协议通道，所以HTTPS承载的页面不允许出现HTTP请求，一旦出现就会提示或报错 
 
+   `Upgrade-Insecure-Requests: 1`
+   
    - Upgrade_Insecure_Requset；升级不安全请求，在使用HTTP请求资源时会自动替换成HTTPS请求，让浏览器不再显示HTTPS页面中的HTTP请求报警.
+   
+5. Accept（传输文件类型）
+
+   说明：指浏览器或客户端可以接受的 MIME（multipurpose Internet Mail Extensions）(多通途互联网邮件扩展) 文件类型，服务器可以根据它的判断并返回适当的文件格式 
+
+   `Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8`
+
+   - `Accept: */*`: 表示可以接受任何文件格式
+- `Accept: image/gif`: 表示希望可以接受GIF格式的图片
+   - `Accept: text/html`: 表示希望可以接受html格式文本
+   - `Accept: text/html, application/xhtml+xml;q=0.9, image/*;q=0.8`: 表示浏览器支持的MIME类型分别为 html、xhtml、xml格式文本和所有图片格式资源
+   - __q是权重系数，范围时 0 =< q <= 1，q值越大请求的资源格式越倾向谁。';' 前面的类型表示获取格式，如果没有指定 q 值，默认为 1。从左到右排序，如果 q = 0 则表示不接受次资源格式 __。
+   
+6. Referer（页面跳转）
+
+   说明：Referer：表明产生页面的请求来自哪一个 URL，用户是从该 Referer 页面访问当前的页面。这个属性可以用来跟踪 Web 请求来自哪个页面，是从什么网站上来的。
+
+   `Referer: https://www.baidu.com/`
+
+   - 有时，遇到下载网站图片时，需要对应的 Referer ，否则无法下载。原理是根据 Referer 来判断下载图片的请求是否来自本网站的页面，如果是可以下载，否则拒绝。
+
+7. Accept-Encoding(文件解压缩格式)
+
+   说明：Accept-Encoding：指出浏览器可以接受的解压缩格式。解压缩方式不同于文件格式，它是为了压缩文件以加速文件传输速率的，浏览器在接受到服务器响应文件先进性解码，然后再检查文件格式，可以减少大量时间。
+
+   `Accept-Encoding: gzip, deflate, br`
+
+   - 如果多个 Encoding 同时匹配，按照 q 值大小排序，从左到右排序，如果没有标明文件编码格式则可以接受任何编码。
+
+8. Accept-language（语言种类）
+
+   说明：`Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7`
+
+   - 浏览器可以接受的语言种类，如en或en-us指英语，zh或者zh-cn指中文，当服务器能够提供一种以上的语言版本时要用到，也会使用 q 权重系数来排序。
+
+9. Accept-charset（字符编码）
+
+   说明：指浏览器可以接受的字符编码格式
+
+   `Accept-Charset:iso-8859-1,gb2312,utf-8`
+
+   - 一般采用国际标准字符编码 Unicode 的 utf-8（可变长度的字符编码）
+   - 如果此属性缺省，表示可以接受任何编码格式
+
+10. Cookie（用户登录状态编码）
+
+    说明：解决HTTP请求独立问题
+
+    `Cookie: BAIDUID=EFFFF2453D442360DFBBAE2F16F8B7C6:FG=1; BIDUPSID=EFFFF2453D442360DFBBAE2F16F8B7C6; PSTM=1560908391;`
+
+    - > HTTP请求是无状态的。也就是说即使第一次和服务器连接后并且登录成功后，第二次请求服务器依然不能知道当前请求是哪个用户。cookie的出现就是为了解决这个问题，第一次登录后服务器返回一些数据（cookie）给浏览器，然后浏览器保存在本地，当该用户发送第二次请求的时候，就会自动的把上次请求存储的cookie数据自动的携带给服务器，服务器通过浏览器携带的数据就能判断当前用户是哪个了。cookie存储的数据量有限，不同的浏览器有不同的存储大小，但一般不超过4KB。因此使用cookie只能存储一些小量的数据.
+      >
+      > [参考地址](https://www.cnblogs.com/xxtalhr/p/9053906.html)
+>
+      > [参考地址](http://bubkoo.com/2014/04/21/http-cookies-explained/)
+      
+    - 
 
 
 

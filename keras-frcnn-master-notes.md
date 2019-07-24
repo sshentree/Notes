@@ -2,7 +2,7 @@
 
 ---
 
-keras-frcnn-master理解
+# keras-frcnn-master理解
 
 感谢！
 
@@ -723,9 +723,11 @@ __anchor形状示意图：__
 
 ## ResNet构建
 
+说明：打印ResNet50模型结构
+
 ### 预备知识
 
-1. `enumerate()`使用
+1. `enumerate()` 枚举函数的使用
 
    说明：enumerate()函数用于将一个可遍历的数据对象（如列表、元组、或字符长）组合成一个索引序列，同时列出数据和下标，一般用于for循环中。
 
