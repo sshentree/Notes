@@ -213,10 +213,10 @@
      Referer: http://www.baidu.com/
      Accept-Encoding: gzip, deflate, sdch, br
      Accept-Language: zh-CN,zh;q=0.8,en;q=0.6
-  Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; (假)
+     Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; (假)
      ```
 
-  2. POST请求（cookie假）
+ 2. POST请求（cookie假）
   
      ```tex
      POST https://passport.baidu.com/v2/api/?login HTTP/1.1
