@@ -203,7 +203,7 @@
 
   说明：GET请求
   
-  ```markdown
+  ```tex
   GET https://www.baidu.com/ HTTP/1.1
   Host: www.baidu.com
   Connection: keep-alive
@@ -218,7 +218,7 @@ Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD
 
   说明：POST请求（cookie假）
   
-  ```markdown
+  ```tex
   POST https://passport.baidu.com/v2/api/?login HTTP/1.1
   Host: passport.baidu.com
   Connection: keep-alive
@@ -264,7 +264,7 @@ Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD
 
         实例：
 
-        ```markdown
+        ```tex
         :authority: www.163.com
         :method: GET
         :path: /
@@ -391,7 +391,7 @@ Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD
 
 - HTTP响应实例
 
-  ```markdown
+  ```tex
   HTTP/1.1 200 OK
   Server: Tengine
   Connection: keep-alive
@@ -466,7 +466,7 @@ Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD
           | private  | 默认值private，仅客户端可以缓存    |
           | public   | 客户端、代理服务器都可以缓存       |
           | no-cache | 使用对比缓存验证缓存数据是否可用   |
-        | max-age  | max-age=XXX，缓存的数据将保存XXX秒 |
+       | max-age  | max-age=XXX，缓存的数据将保存XXX秒 |
           | no-stroe | 所有数据都不缓存                   |
 
        2. 对比缓存：需要用来验证缓存数据是否可用的标识__（基于数据已缓存）__
