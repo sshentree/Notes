@@ -201,43 +201,41 @@
 
 - HTTP请求示例（没有请求数据）
 
-  说明：GET请求
+  1. GET请求
   
-  ```tex
-  GET https://www.baidu.com/ HTTP/1.1
-  Host: www.baidu.com
-  Connection: keep-alive
-  Upgrade-Insecure-Requests: 1
-  User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36
-  Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
-  Referer: http://www.baidu.com/
-  Accept-Encoding: gzip, deflate, sdch, br
-  Accept-Language: zh-CN,zh;q=0.8,en;q=0.6
-Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD4601512DD3C41A7B; PSTM=1470329258; MCITY=-343%3A340%3A; BDUSS=nF0MVFiMTVLcUh-Q2MxQ0M3STZGQUZ4N2hBa1FFRkIzUDI3QlBCZjg5cFdOd1pZQVFBQUFBJCQAAAAAAAAAAAEAAADpLvgG0KGyvLrcyfrG-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFaq3ldWqt5XN; H_PS_PSSID=1447_18240_21105_21386_21454_21409_21554; BD_UPN=12314753; sug=3; sugstore=0; ORIGIN=0; bdime=0; H_PS_645EC=7e2ad3QHl181NSPbFbd7PRUCE1LlufzxrcFmwYin0E6b%2BW8bbTMKHZbDP0g; BDSVRTM=0
-  ```
+     ```tex
+     GET https://www.baidu.com/ HTTP/1.1
+     Host: www.baidu.com
+     Connection: keep-alive
+     Upgrade-Insecure-Requests: 1
+     User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+     Referer: http://www.baidu.com/
+     Accept-Encoding: gzip, deflate, sdch, br
+     Accept-Language: zh-CN,zh;q=0.8,en;q=0.6
+   Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD4601512DD3C41A7B; PSTM=1470329258; MCITY=-343%3A340%3A; BDUSS=nF0MVFiMTVLcUh-Q2MxQ0M3STZGQUZ4N2hBa1FFRkIzUDI3QlBCZjg5cFdOd1pZQVFBQUFBJCQAAAAAAAAAAAEAAADpLvgG0KGyvLrcyfrG-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFaq3ldWqt5XN; H_PS_PSSID=1447_18240_21105_21386_21454_21409_21554; BD_UPN=12314753; sug=3; sugstore=0; ORIGIN=0; bdime=0; H_PS_645EC=7e2ad3QHl181NSPbFbd7PRUCE1LlufzxrcFmwYin0E6b%2BW8bbTMKHZbDP0g; BDSVRTM=0
+     ```
 
-  说明：POST请求（cookie假）
+  2. POST请求（cookie假）
   
-  ```tex
-  POST https://passport.baidu.com/v2/api/?login HTTP/1.1
-  Host: passport.baidu.com
-  Connection: keep-alive
-  Content-Length: 3198
-  Cache-Control: max-age=0
-  Origin: https://www.baidu.com
-  Upgrade-Insecure-Requests: 1
-  Content-Type: application/x-www-form-urlencoded
-  User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36
-  Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
-  Referer: https://www.baidu.com/
-  Accept-Encoding: gzip, deflate, br
-  Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
-  Cookie: BAIDUID=EFFFF2453D442360DFBBAE2F16F8B7C6:FG=1; BIDUPSID=EFFFF2453D442360DFBBAE2F16F8B7C6; PSTM=1560908391;
-  
-  BAIDUID=EFFFF2453D442360DFBBAE2F16F8B7C6:FG=1; BIDUPSID=EFFFF2453D442360DFBBAE2F16F8B7C6; PSTM=1560908391;
-  ```
-  
-  
+     ```tex
+     POST https://passport.baidu.com/v2/api/?login HTTP/1.1
+     Host: passport.baidu.com
+     Connection: keep-alive
+     Content-Length: 3198
+     Cache-Control: max-age=0
+     Origin: https://www.baidu.com
+     Upgrade-Insecure-Requests: 1
+     Content-Type: application/x-www-form-urlencoded
+     User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+     Referer: https://www.baidu.com/
+     Accept-Encoding: gzip, deflate, br
+     Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+     Cookie: BAIDUID=EFFFF2453D442360DFBBAE2F16F8B7C6:FG=1; BIDUPSID=EFFFF2453D442360DFBBAE2F16F8B7C6; PSTM=1560908391;
+     
+     BAIDUID=EFFFF2453D442360DFBBAE2F16F8B7C6:FG=1; BIDUPSID=EFFFF2453D442360DFBBAE2F16F8B7C6; PSTM=1560908391;
+     ```
 
 ### 解析HTTP请求
 
