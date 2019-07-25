@@ -370,10 +370,134 @@ Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD
     - > HTTP请求是无状态的。也就是说即使第一次和服务器连接后并且登录成功后，第二次请求服务器依然不能知道当前请求是哪个用户。cookie的出现就是为了解决这个问题，第一次登录后服务器返回一些数据（cookie）给浏览器，然后浏览器保存在本地，当该用户发送第二次请求的时候，就会自动的把上次请求存储的cookie数据自动的携带给服务器，服务器通过浏览器携带的数据就能判断当前用户是哪个了。cookie存储的数据量有限，不同的浏览器有不同的存储大小，但一般不超过4KB。因此使用cookie只能存储一些小量的数据.
       >
       > [参考地址](https://www.cnblogs.com/xxtalhr/p/9053906.html)
->
+      >
       > [参考地址](http://bubkoo.com/2014/04/21/http-cookies-explained/)
-      
-    - 
+    
+11. Cookie 和 Session
+
+    说明：Cookie存储再客户端，Session存储在服务器端
+
+    - 服务器和客户端的交互仅限于请求和响应，结束便断开，在下一次请求时，服务器会认是新的客户端（HTTP请求相互独立）。为了维护他们之间的链接，让服务器知道这是前一个用户发送的请求，必须在一个地方保存客户端的信息。
+
+      **Cookie**：客户端 记录用户的身份。
+
+      **Session**：服务器端 记录确定用户的身份。
+
+### 解析HTTP响应报文
+
+- HTTP响应是由四部分组成：__状态行、消息报头、空行、响应正文__
+
+  ![HTTP响应格式](git_picture/HTTP响应格式.png)
+
+- HTTP响应实例
+
+  ```markdown
+  HTTP/1.1 200 OK
+  Server: Tengine
+  Connection: keep-alive
+  Date: Wed, 30 Nov 2016 07:58:21 GMT
+  Cache-Control: no-cache
+  Content-Type: text/html;charset=UTF-8
+  Keep-Alive: timeout=20
+  Vary: Accept-Encoding
+  Pragma: no-cache
+  X-NWS-LOG-UUID: bd27210a-24e5-4740-8f6c-25dbafa9c395
+  Content-Length: 180945
+  
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ....
+  ```
+
+- 状态行
+
+  说明：状态行是由 3 部分组成 ，版本协议、状态码、状态码描述，之间有空格分割
+
+  `HTTP/1.1 200 OK`
+
+  1. 状态码解释
+
+     | 状态码  | 解释用途                                                     |
+     | :-----: | :----------------------------------------------------------- |
+     | 100-199 | 表示 服务器成功接受部分请求，要求客户端继续提交余下请求才能完成整个处理过程 |
+     | 200-299 | 表示 服务器成功接受请求并处理完成。（常用 200  ok）          |
+     |   301   | 表示 永久重定向，搜索引擎将删除源地址，保存重定向地址        |
+     |   302   | 表示 暂时重定向，重定向地址由响应头中的Location属性指定<br>（JSP中Forward和Redirect之间的区别）<br>由于搜索引擎的判定问题，较为复杂的URL容易被其它网站使用更为精简的URL及302重定向劫持 |
+     |   304   | 表示 缓存文件未过期，可以继续使用，无需再次请求服务器获取数据 |
+     |   400   | 表示 客户端请求有语法错误，不能被服务器识别                  |
+     |   403   | 表示 服务器成功接受客户端请求，但拒绝提供服务（认证失败）    |
+     |   404   | 表示 请求数据服务器无法提供（服务器找不到）                  |
+     | 500-599 | 表示 服务器端出现错误（客户端不知道，也不敢问）              |
+
+- 消息报头
+
+  1. Server
+
+     说明：`Server: Tengine`
+
+     - 服务器名称和对应的版本。
+
+  2. Cnnection
+
+     说明：`Connection: keep-alive`
+
+     - 作为回应客户端HTTP请求的 Connection：keep-alive ，通知客户端服务器的 tcp 连接也是一个长连接，客户端可以继续使用这个tcp连接发送HTTP请求。
+
+  3. Date
+
+     说明：`Date: Wed, 30 Nov 2016 07:58:21 GMT`
+
+     - 服务器发送资源时的__服务器时间__（GMT是格林尼治所在地的标准时间）。HTTP请求中发送的时间都是GMT，主要是解决在互联网上，不同时区在相互请求资源的时候，时间混乱问题。
+
+  4. Cache-Control（重要技术）
+
+     说明：缓存的方式；强制缓存、对比缓存。数据缓存示意图 [缓存示意图](Notes\git_picture\HTTP-Response-Cache)
+
+     `Cache-Control: no-cache`
+
+     [参考地址](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ)
+
+     [参考地址](https://www.jianshu.com/p/dedb04225bc5) （建议读一下，想了解浏览器缓存的）
+
+     - 浏览器缓存解析
+
+       1. Cache-Control参数
+  
+          | 参数     | 作用                               |
+          | -------- | ---------------------------------- |
+          | private  | 默认值private，仅客户端可以缓存    |
+          | public   | 客户端、代理服务器都可以缓存       |
+          | no-cache | 使用对比缓存验证缓存数据是否可用   |
+        | max-age  | max-age=XXX，缓存的数据将保存XXX秒 |
+          | no-stroe | 所有数据都不缓存                   |
+
+       2. 对比缓存：需要用来验证缓存数据是否可用的标识__（基于数据已缓存）__
+
+          - 请求数据时，发送属性为 If-Modified-Since 获取数据的时间
+
+            `If-Modified-Since: Tue, 27 Jun 2017 11:09:34 GMT`
+
+            `Last-Modified: Tue, 27 Jun 2017 11:09:35 GMT`
+
+          - 服务器响应响应请求时，发送属性为 Last-Modified 最后修改的时间
+
+            `Last-Modified: Tue, 27 Jun 2017 11:09:35 GMT`
+
+          - If-modifief-Snice 和 Last-Modified 的值大小
+
+          - Etag 和 If-None-Match（优先级高于Last-Modified 和 If-Modified-Since）
+
+            Etag：服务器响应请求时，告诉客户端当前资源再服务器的唯一标识
+
+            `Etag: "ABfYctUWoo6IcnFWDuXnoFDYRhTh"`
+
+            If-None-Match：再次请求服务器时，服务器收到带有 If-None-Match 属性的请求后，与被请求资源的唯一标识进行比对，不同，说明资源又被改动过，则响应整片资源内容，返回状态码 200；相同，说明资源无修改，则响应 HTTP 304，告知浏览器继续使用所保存的cache。
+
+  5. Content-Type
+
+     说明：`Content-Type: text/html;charset=UTF-8`
+  
+     - 通知客户端，响应资源文件的类型、字符编码，客户端通过规定解码方式对资源进行解码，然后对资源进行html解析。通常有些网站是乱码，往往就是服务器端没有返回正确的编码。
+
+## 待续
 
 
 
