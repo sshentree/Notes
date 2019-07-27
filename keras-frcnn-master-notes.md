@@ -818,7 +818,7 @@ keras.utils.plot_model(keras.applications.ResNet50(include_top=True,input_shape=
 
   1. building_block_A
 
-     ![building_block-A](git_picture/building_block-A.png)
+     ![building_block-A](git_picture/building_block_A.png)
 
   2. building_block_B
 
