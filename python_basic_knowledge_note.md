@@ -4,7 +4,7 @@
 
 # python基础知识记录
 
-
+说明：Python官方文档 [参考地址](https://docs.python.org/3.6/tutorial/index.html)
 
 ## 进程&线程（浅入浅出）
 

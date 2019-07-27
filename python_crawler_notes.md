@@ -39,8 +39,46 @@
    - 分析、处理页面数据
 
      1. 保存有用数据
+2. 如果网页有其他URL地址，继续执行第二步（通过HTTP、HTTPS获取数据）
 
-     2. 如果网页有其他URL地址，继续执行第二步（通过HTTP、HTTPS获取数据）
+## TCP/IP协议族理解
+
+### TCP 3 次握手，4 次挥手
+
+1. 关键名词
+
+   SYN：请求握手包
+
+   FIN：请求挥手包
+
+   ACK：确认包
+
+   SYN+ACK：请求握手 + 确认包
+
+   FIN+ACK：请求挥手 + 确认包
+
+2. TCP 3 次握手
+
+   - 第一次握手，客户端向服务器发送 SYN，请求服务器建立连接。
+   - 第二次握手。服务器向客户端发送 SYN+ACK，服务器建立连接完成，请求客户端建立连接，并确认。
+   - 第三次握手，客户端向服务器发送 ACK，确认客户端也建立完成，可以通信。
+   - __注：每次发送请求包、确认包中都包含两个参数 SEQUENCE_NUM 和 ACK_NUM 用来检测请求是否成功__
+
+3. 数据发送形式
+
+   - 在建立连接完成之后，再发送数据
+   - 等待对方收到数据，再次发送确认包
+   - 如一段时间没有收到确认包，即再次发送数据
+   - TCP 比 UDP 稳定
+
+4. TCP 4 次挥手
+
+   说明：假设客户端先请求关闭连接
+
+   - 第一次挥手，客户端发送 FIN 通知服务器我要关闭连接。
+   - 第二次挥手，服务器发送 ACK 确认我收到。
+   - 第三次挥手，服务器发送 FIN 通知我也要关闭连接。
+   - 第四次挥手，客户端发送 ACK 确认收到。
 
 ## 解析浏览器请求
 
@@ -256,7 +294,7 @@
         | 7    | OPTIONS | 允许客户端查看服务器的性能                                   |
         | 8    | TRACE   | 回显服务器收到的请求，主要用于测试或诊断                     |
 
-     2. 为普及的HTTP 2.0 版本（感觉已经在使用了，例如：网易）：请求、响应首部的定义基本没有改变，只是所有首部键全部小写，而且请求行要独立为 `:method、:scheme、:host、:path`
+     2. 为普及的HTTP 2.0 版本（感觉已经在使用了）：请求、响应首部的定义基本没有改变，只是所有首部键全部小写，而且请求行要独立为 `:method、:scheme、:host、:path`
 
         实例：
 
@@ -314,7 +352,19 @@
    
    - Upgrade_Insecure_Requset；升级不安全请求，在使用HTTP请求资源时会自动替换成HTTPS请求，让浏览器不再显示HTTPS页面中的HTTP请求报警.
    
-5. Accept（传输文件类型）
+5. Uesr-Agent（浏览器名）
+
+   说明：客户端浏览器名称，在互联网中浏览器是一个合法身份去访问其他网站的身份。
+
+   [参考地址](https://www.jianshu.com/p/c5cf6a1967d1)
+
+   `User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36`
+
+   - 解释 Uesr-Agent
+
+     Mozilla/5.0 (平台) 引擎版本 浏览器版本号
+
+6. Accept（传输文件类型）
 
    说明：指浏览器或客户端可以接受的 MIME（multipurpose Internet Mail Extensions）(多通途互联网邮件扩展) 文件类型，服务器可以根据它的判断并返回适当的文件格式 
 
@@ -493,7 +543,257 @@
   
      - 通知客户端，响应资源文件的类型、字符编码，客户端通过规定解码方式对资源进行解码，然后对资源进行html解析。通常有些网站是乱码，往往就是服务器端没有返回正确的编码。
 
-## 待续
+## urllib.request、urllib.parse使用
+
+说明：Python2 中使用 urllib2，而到了 Python3 时，使用 urllib.request，其他方法调用方式一样。
+
+[urllib.request官方地址](https://docs.python.org/3.6/library/urllib.request.html?highlight=urllib#module-urllib.request) [urllib.parse官方地址](https://docs.python.org/3.6/library/urllib.parse.html?highlight=urllib#module-urllib.parse)
+
+- urllib.requset模块作用
+
+  > The [`urllib.request`](https://docs.python.org/3.6/library/urllib.request.html?highlight=urllib#module-urllib.request) module defines functions and classes which help in opening URLs (mostly HTTP) in a complex world — basic and digest authentication, redirections, cookies and more.
+
+- urllib.parse模块作用
+
+  > This module defines a standard interface to break Uniform Resource Locator (URL) strings up in components (addressing scheme, network location, path etc.), to combine the components back into a URL string, and to convert a “relative URL” to an absolute URL given a “base URL.
+
+### urllib.request.urlopen()使用
+
+1. 代码实列
+
+   ```python
+   # urllib.request用于HTTP/1.1,并且请求中属性Connection: close(请求完成及关闭连接)
+   import urllib.request
+   
+   
+   # 定义一个url地址
+   request = 'http://www.baidu.com'
+   
+   # 使用urlopen()打开url地址，但是参数url可以是url地址字符串，也可以时Request对象
+   # urlopen()返回值为，服务器响应的类文件对象
+   response = urllib.request.urlopen(url=request)
+   
+   # 打印服务器响应类文件对象
+   print('*' * 39)
+   print(response)
+   
+   # 打印，验证是否为响应类文件对象
+   print('*' * 39)
+   print(type(response))
+   
+   # 类文件对象，支持文件对象的操作方法，如read()方法读取文件全部内容，返回字节（b）
+   html = response.read()
+   
+   # 打印验证。是否为字节
+   print('*' * 39)
+   print(type(html))
+   
+   # 将字节解码为字符串，默认格式为utf-8
+   html = html.decode('utf-8')
+   
+   print('*' * 39)
+   print(html)
+   
+   运行结果
+   <http.client.HTTPResponse object at 0x0000023E3A1C8C18>
+   ***************************************
+   <class 'http.client.HTTPResponse'>
+   ***************************************
+   <class 'bytes'>
+   ***************************************
+   <!DOCTYPE html>
+   <!--STATUS OK-->
+   空很多行....
+   <html>
+   <head>
+   
+       <meta http-equiv="content-type" content="text/html;charset=utf-8">
+       <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+           <meta content="always" name="referrer">
+       <meta name="theme-color" content="#2932e1">
+       <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+       <link rel="search" type="application/opensearchdescription+xml" href="/content-search.xml" title="百度搜索" />
+       <link rel="icon" sizes="any" mask href="//www.baidu.com/img/baidu_85beaf5496f291521eb75ba38eacbd87.svg">
+   
+   
+           <link rel="dns-prefetch" href="//s1.bdstatic.com"/>
+           <link rel="dns-prefetch" href="//t1.baidu.com"/>
+           <link rel="dns-prefetch" href="//t2.baidu.com"/>
+           <link rel="dns-prefetch" href="//t3.baidu.com"/>
+           <link rel="dns-prefetch" href="//t10.baidu.com"/>
+           <link rel="dns-prefetch" href="//t11.baidu.com"/>
+           <link rel="dns-prefetch" href="//t12.baidu.com"/>
+           <link rel="dns-prefetch" href="//b1.bdstatic.com"/>
+   
+       <title>百度一下，你就知道</title>
+   ```
+
+2. 解释：验证爬下代码是否和浏览器的相同，在浏览器中查看源代码。
+
+### urllib.request.Request()使用
+
+1. 在使用 urllib.request.urlopen() 中 url 参数为 url地址（字符串），如果我们需要添加 HTTP 报头时，就需要使用 urllib.request.Request() 实例来作为 urllib.requset.urlopen()  的 url 参数的实参。
+
+2. 验证使用 urllib.request.Request() 是否和上一个效果一样,代码实列
+
+   ```python
+   import urllib.request
+   
+   
+   url = 'http://www.baidu.com'
+   
+   # 初始化 Request 对象
+   request = urllib.request.Request(url=url)
+   
+   # 将 Request 对象作为 url 形参的实参
+   response = urllib.request.urlopen(url=request)
+   
+   html = response.read()
+   print(type(html))
+   
+   # 默认的解码方式为 UTF-8
+   html = html.decode()
+   print(type(html))
+   print(html)
+   ```
+
+3. 解释：运行结果对比一样
+
+4. 添加 HTTP 报头
+
+   - 浏览器就是互联网公认合法的身份，如果我们希望我们的爬虫程序逼真的模仿一个真实用户。第一步，就是需要伪装成一个被公认的浏览器。用不同的浏览器在发送请求的时候，会有不同的User-Agent属性。 urllib2默认的User-Agent头为：`urllib"Python-urllib/x.y`  x和y是Python主版本和次版本号,例如 Python-urllib/3.6）。
+
+   - __解析HTTP请求__也已经说明 headers 里面有很多属性，可以通过 `urllib.request.Request()` 的对象的方法 `Request.add_header(key='', val='')`来添加属性值，还可以通过 `Resquest.get_header(header_name='')` 来获取已有的属性
+
+   - 添加 User-Agent 代码实例（最常用的属性之一）
+   
+     ```python
+     import urllib.request
+     
+     
+     # url.request.Resquest() 中的 headers形参 是 HTTP 请求报头，以字典的形式添加请求的属性
+     # Uesr-Agent的信息
+     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
+     url = 'http://www.baidu.com' 
+     
+     request = urllib.request.Request(url= url, headers=headers)
+     
+     # 向指定url地址发送请求，并返回服务器响应的类文件对象
+     response = urllib.request.urlopen(request)
+     
+     html = response.read().decode()
+     print(type(html))
+     print(html)
+     
+     运行结果
+     <class 'str'>
+     <!DOCTYPE html> 
+     <!--STATUS OK-->
+     空行...
+  html文件
+     ```
+   
+   - 添加其他属性（Connection）
+   
+     ```python
+     import urllib.request
+     
+     
+     # url.request.Resquest() 中的 headers形参 是 HTTP 请求报头，以字典的形式添加请求的属性
+     # Uesr-Agent的信息
+     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
+     url = 'http://www.baidu.com' 
+     
+     request = urllib.request.Request(url= url, headers=headers)
+     
+     # 添加一个 Connection 属性
+     request.add_header(key='Connection', val='Keep-alive')
+     
+     # 获取属性已有属性值
+     # 在获取 User-agent 时，注意大小写
+     print('*' * 39)
+     print(request.get_header(header_name='User-agent'))
+     print(request.get_header(header_name='Connection'))
+     print('*' * 39)
+     
+     # 获取已有属性，返回值为列表
+     # Request.header_items() -> List[Tuple[str, str]]
+     list_headers = request.header_items()
+     print(type(list_headers))
+     print('*' * 39)
+     
+     for val in list_headers:
+         print(val)
+     
+     print('*' * 39)
+     # 向指定url地址发送请求，并返回服务器响应的类文件对象
+     # response = urllib.request.urlopen(request)
+     
+     # html = response.read().decode()
+     # print(type(html))
+     # print(html)
+     
+     运行结果
+     ***************************************
+     Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36
+     Keep-alive
+     ***************************************
+     <class 'list'>
+     ***************************************
+     ('User-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36')
+     ('Connection', 'Keep-alive')
+     ***************************************
+     ```
+   
+   - 随机选取 User-Agent 属性
+   
+     ```python
+     import urllib.request
+     import random
+     
+     
+     url = 'http://www.baidu.com/'
+     
+     # 构造一个浏览器代理列表
+     list_ua = [
+         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv2.0.1) Gecko/20100101 Firefox/4.0.1",
+         "Mozilla/5.0 (Windows NT 6.1; rv2.0.1) Gecko/20100101 Firefox/4.0.1",
+         "Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; en) Presto/2.8.131 Version/11.11",
+         "Opera/9.80 (Windows NT 6.1; U; en) Presto/2.8.131 Version/11.11",
+         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko)      Chrome/17.0.963.56 Safari/535.11"
+     ]
+     
+     # 在list_ua列表中随机选取一个代理
+     user_agent = random.choice(list_ua)
+     
+     # 构造一个请求
+     request = urllib.request.Request(url=url)
+     
+     # 使用 add_header() 方法 添加一个HTTP报头
+     request.add_header('User-Agent', user_agent)
+     
+     # get_header()获取 HTTP 的报头的 User-Agent 属性
+     print('随机选取的User-Agent')
+     print(request.get_header('User-agent'))
+     
+     运行结果
+     随机选取的User-Agent
+     Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; en) Presto/2.8.131 Version/11.11
+     ```
+
+### urllib.parse.urlencode()使用
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

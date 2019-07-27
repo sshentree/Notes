@@ -725,6 +725,17 @@ __anchor形状示意图：__
 
 说明：打印ResNet50模型结构
 
+```python
+import keras
+
+
+keras.utils.plot_model(keras.applications.ResNet50(include_top=True,input_shape=(224,224,3),weights=None),
+                       to_file='./picture/ResNet_model.png',
+                        show_shapes=True)
+```
+
+
+
 ### 预备知识
 
 1. `enumerate()` 枚举函数的使用
@@ -780,11 +791,38 @@ __anchor形状示意图：__
      -- 2 --
      ++ 0 ++
      ++ 1 ++
-     
      ```
-
      
 
-     
+2. ResNet 是残差网络的代表
 
-     
+   - 残差网络并不是一个单一的超深的网络，而是多个网络指数级的隐式集成
+
+   - 残差网络也是不能解决梯度消失问题,缓解了梯度消失问题。
+
+   - 对于单个跨层模块，它所代表的映射粗略可以写成如下
+     $$
+     y_{i+1} = f_{i+1}(y_i) + y_i
+     $$
+     它是由上一层的数据直接传递和本模块的映射数据相加而成，对于 3 各模块的网络，映射关系如图
+
+     ![残差网络3层示意图](git_picture/残差网络3层示意图.jpg)
+
+   - Resnset模型示意图
+
+     [地址](Notes\git_picture\ResNet_model.png)
+
+### 代码构建
+
+- ResNet模型的两种 building_block 结构如图
+
+  1. building_block_A
+
+     ![building_block-A](git_picture/building_block-A.png)
+
+  2. building_block_B
+
+     ![building_block_B](git_picture/building_block_B.png)
+
+- 
+
