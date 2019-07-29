@@ -287,7 +287,7 @@
         | ---- | ------- | ------------------------------------------------------------ |
         | 1    | GET     | 请求页面信息，并返回实体主体                                 |
         | 2    | HEAD    | 类似于GET请求，只不过返回的响应中没有具体内容，主要用于获取报头 |
-        | 3    | POST    | 向指定资源提交数据并进行处理（例如：提交表单或上传文件），数据包含在请求体中。POS请求可能会导致新的资源建立或对已有的资源进行修改 |
+        | 3    | POST    | 向指定资源提交数据并进行处理（例如：提交表单或上传文件），数据包含在请求体中。POST请求可能会导致新的资源建立或对已有的资源进行修改 |
         | 4    | PUT     | 从客户端向服务器传送的数据取代指定文档的内容                 |
         | 5    | DELETE  | 请求服务器删除指定的页面                                     |
         | 6    | CONNECT | HTTP/1.1 版本协议中预留给能够将连接改为管道方式代理的服务器  |
@@ -690,7 +690,7 @@
      <!DOCTYPE html> 
      <!--STATUS OK-->
      空行...
-  html文件
+    html文件
      ```
    
    - 添加其他属性（Connection）
@@ -780,8 +780,335 @@
      随机选取的User-Agent
      Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; en) Presto/2.8.131 Version/11.11
      ```
+   
+5. 获取服务器响应的内容（状态码、实际的响应地址、报头信息等）
+
+   ```python
+   import urllib.request
+   
+   
+   # Uesr-Agent的信息
+   header_ua = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
+   
+   request = urllib.request.Request(url='http://www.baidu.com', headers=header_ua)
+   
+   response = urllib.request.urlopen(request)
+   
+   # 服务器响应返回的类文件对象支持Python文件对象的操作方法
+   # read()方法读取全部内容，返回字符串
+   html = response.read()
+   print(type(html))
+   # 打印状态码
+   # HTTP响应码 200成功、5服务器出错
+   print(response.getcode())
+   
+   # 实际响应的url，防止重定向
+   print(response.geturl())
+   
+   print('+' * 20)
+   
+   # 返回服务器响应的HTTP报头
+   print(response.info())
+   
+   
+   运行结果
+   <class 'bytes'>
+   200
+   https://www.baidu.com/
+   ++++++++++++++++++++
+   Bdpagetype: 1
+   Bdqid: 0xe3027768001ffcd7
+   Cache-Control: private
+   Content-Type: text/html
+   Cxy_all: baidu+22a54232e49cbb8e239b5ee93abd1b24
+   Date: Sun, 28 Jul 2019 07:02:18 GMT
+   Expires: Sun, 28 Jul 2019 07:01:22 GMT
+   P3p: CP=" OTI DSP COR IVA OUR IND COM "
+   Server: BWS/1.1
+   Set-Cookie: BAIDUID=417C4FA013EB3CF60C3661BC828D8B77:FG=1; expires=Thu, 31-Dec-37 23:55:55 GMT; max-age=2147483647; path=/; domain=.baidu.com
+   Set-Cookie: BIDUPSID=417C4FA013EB3CF60C3661BC828D8B77; expires=Thu, 31-Dec-37 23:55:55 GMT; max-age=2147483647; path=/; domain=.baidu.com
+   Set-Cookie: PSTM=1564297338; expires=Thu, 31-Dec-37 23:55:55 GMT; max-age=2147483647; path=/; domain=.baidu.com
+   Set-Cookie: delPer=0; path=/; domain=.baidu.com
+   Set-Cookie: BDSVRTM=0; path=/
+   Set-Cookie: BD_HOME=0; path=/
+   Set-Cookie: H_PS_PSSID=1469_21092_18560_29520_28518_29098_29567_28833_29221_26350; path=/; domain=.baidu.com
+   Strict-Transport-Security: max-age=172800
+   Vary: Accept-Encoding
+   X-Ua-Compatible: IE=Edge,chrome=1
+   Connection: close
+   Transfer-Encoding: chunked
+   ```
 
 ### urllib.parse.urlencode()使用
+
+1. URL中 `protocal://hostname[:port]/path/[:parameterrs][?query]#fragment` 有查询的参数、锚点参数，一般 HTTP 的 GET 请求数据时（带有参数），需要将__参数__编码成 URL 格式， 然后做成 URL 的一部分。
+
+2. HTTP 的 POST 请求数据时（带有参数），但与 GET 方法不同，POST的参数在 HTTP 请求体中，就是__请求数据__（最后一行，一般抓包工具在 form_body 中可以查看 POST 的提交的数据具体包含什么信息）。
+
+3. 代码演示
+
+   ```python
+   import urllib.request
+   import urllib.parse
+   
+   word = {'wd': '沈阳'}
+   
+   # 进行编码
+   encode_word = urllib.parse.urlencode(word)
+   
+   # 进行解码
+   decode_word = urllib.parse.unquote(encode_word)
+   
+   print(word)
+   print(encode_word)
+   print(decode_word)
+   
+   运行结果
+   {'wd': '沈阳'}
+   wd=%E6%B2%88%E9%98%B3
+   wd=沈阳
+   ```
+
+### GET请求
+
+1. GET 方式请求一般注意： __请求可能被缓存、请求保存在浏览器历史记录中、请求可能被收藏为书签、请求不应在处理敏感数据使用、请求有长度限制（GET方法向 URL 添加数据，而 URL 最大长度为 2048 个字节）、用于向服务器获取数据__。
+
+   - 类如：用百度搜索 _沈阳_  `[https://www.baidu.com/s?wd=%E6%B2%88%E9%98%B3](https://www.baidu.com/s?wd=沈阳)` 浏览器地址栏显示  `https://www.baidu.com/s?wd=沈阳` 但实际发送的数据是 `https://www.baidu.com/s?wd=%E6%B2%88%E9%98%B3` ,可以看出实际上是先进性编码，然后在发送的。
+
+   - 带有查询参数的代码演示
+
+     ```python
+     import urllib.request
+     import urllib.parse
+     
+     
+     word = {'wd': '沈阳'}
+     
+     # 进行编码
+     encode_word = urllib.parse.urlencode(word)
+     
+     url = 'http://www.baidu.com/s'
+     # 拼接url地址
+     url = url + '?' + encode_word # 使用 ？ 号来标识查询参数
+     header = {
+         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
+         }
+     
+     request = urllib.request.Request(url=url, headers=header)
+     
+     resopnse = urllib.request.urlopen(request)
+     
+     # 实际使用 read() 读出的是字节码，需要进行解码
+     html = resopnse.read().decode() # 默认解码方式为 UTF-8
+     print(type(html))
+     print(html)
+     
+     运行结果
+     <class 'str'>
+     <!DOCTYPE html> 
+     <!--STATUS OK-->
+     空行...
+     内容
+     ```
+
+2. 批量爬取贴吧页面数据
+
+   说明：URL 参数使用 `?` 开始，使用 `&` 隔开
+
+   - 分析贴吧的 URL 地址 `https://tieba.baidu.com/f?ie=utf-8&kw=美女&fr=search` ，实际上有些参数是可以不需要的，精简之后的 URL 地址 `https://tieba.baidu.com/f?&kw=美女` ，第 2 页的 URL 地址精简之后`https://tieba.baidu.com/f?kw=美女&pn=50`， 第 3 页的 URL 地址 `https://tieba.baidu.com/f?kw=美女&pn=100`，可以看出除了首页之外每增加一页，参数 `pn` 增加 50 ，但是你试着访问 `https://tieba.baidu.com/f?kw=美女&pn=0` 会发现其实也是贴吧首页。
+
+   - 确定 URL 地址、确定 URL 地址参数，进行编码，组合完整的 URL 地址
+
+   - 代码演示
+
+     ```python
+     import urllib.parse
+     import urllib.request
+     
+     
+     def loadPage(url, file_name):
+         """
+             作用：根据url发送请求，获取服务器响应文件
+             url：需要爬取的url地址
+             file_name：爬取页面的存放文件名称
+         """
+         print('正在下载：' + file_name)
+         headers = {
+             'User-Agent':
+             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv2.0.1) Gecko/20100101 Firefox/4.0.1",
+         }
+         request = urllib.request.Request(url, headers=headers)
+         response = urllib.request.urlopen(request)
+         # print(response)
+         return response
+         
+     
+     
+     def writePage(html, file_name):
+         """
+             作用：将html文件写入本地
+             html：服务器响应文件
+             file_name：响应文件存放的文件名
+         """
+         print('正在保存：' + file_name)
+         # 文件写入
+         with open('C:/Users/SS沈/Desktop/Ten/爬虫/爬虫基本概念/案例/' + file_name, 'wb', encoding='utf-8') as f:
+            
+             # print(type(html))
+             # html是一个
+             # <class 'http.client.HTTPResponse'>
+             # 类型 所以要进行转换为bytes类型，进行存储
+             html = html.read()
+             # print(type(html))
+             # html = html.decode('UTF-8')
+             # print(type(html))
+     
+             f.write(html)
+         print('*' * 30)
+     
+     
+     def tiebaSpider(url, beginPage, endPage):
+         """
+             作用：贴吧爬虫调度器，负责组合每个url和起始、页结束页
+             url：贴吧url的前部分
+             beginPage：贴吧起始页
+             endPage：贴吧结束页
+         """
+         for page in range(beginPage, endPage + 1):
+             pn = (page - 1) * 50
+     
+             file_name = '第' + str(pn / 50 + 1) + '页.html'
+             # 组合完整的url
+             fullurl = url + '&pn=' + str(pn)
+             # print(fullurl)
+             html = loadPage(fullurl, file_name)
+             writePage(html, file_name)
+     
+     
+     if __name__ == '__main__':
+         kw = input('请输入贴吧名称：')
+         beginPage = int(input('请输入起始页：'))
+         endPage = int(input('请输入结束页：'))
+     
+         url = 'http://tieba.baidu.com/f?'
+     
+         # 进行组合字典
+         kw = {'kw': kw}
+         # 进行编码
+         kw = urllib.parse.urlencode(kw)
+         # 组合完整URL
+         fullurl = url + kw
+         # print(fullurl)
+         # 调用主函数
+         tiebaSpider(fullurl, beginPage, endPage)
+     ```
+
+### POST请求
+
+1. POST 方式一般注意：__请求不会被缓存、请求不会被保存在浏览器历史记录中、不能被收藏为标签、对数据长度应该没有要求__。
+
+   - 类如：POST 方法打开的 URL 地址 `http://fanyi.youdao.com/` 输入 `python` 进行翻译时，URL 地址没有发生变化，但单词 `python` 时进行了正常的翻译。实际请求数据的发送不是和 GET请求一样包含在 URL 中，而是在HTTP 请求体中的请求数据中。
+
+   - 如图说明 POST 提交数据格式
+
+     ![POST请求数据格式](git_picture/POST请求数据格式.png)
+
+   - 如图说明 POST 提交数据具体样式（属性和对应的值）
+
+     ![查看POST提交数据](git_picture/查看POST提交数据.png)
+
+   - 如图说明响应数据格式
+
+     ![POST响应数据格式](git_picture/POST响应数据格式.png)
+
+2. POST 四种提交数据方式
+
+   - `application/x-www-form-urlencoded` 默认，采用 `key_1=val_1&key_2=val_2` 进行编码。__大部分 Ajax 提交数据也是用这种方法__。
+
+   - `multipart/form-data` 不会
+
+   - `application/json` 使用 __JSON__ 格式，逐渐流行（简单流行）
+
+3. 代码演示
+
+   - 翻译网站爬取数据
+
+     ```python
+     import urllib.request
+     import urllib.parse
+     
+     
+     url = 'http://fanyi.youdao.com/translate?smartresult=dict&smartresult=rule'
+     
+     headers = {
+         'Host': 'fanyi.youdao.com',
+         'Accept': 'application/json, text/javascript, */*; q=0.01',
+         'X-Requested-With': 'XMLHttpRequest',
+         'User_Agent': "Mozilla/5.0 (Windows NT 6.1; rv2.0.1) Gecko/20100101 Firefox/4.0.1",
+         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+         'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+     }
+     
+     key = input('请输入要翻译的文字：')
+     
+     
+     # 构造表单数据(字典形式)
+     form_data = {
+         'i': key,
+         'from': 'AUTO',
+         'to': 'AUTO',
+         'smartresult': 'dict',
+         'client': 'fanyideskweb',
+         'salt': '15613546005846',
+         'sign': '1ba91814d5099b7e84d373de9c207bb0',
+         'ts': '1561354600584',
+         'bv': '3a019e7d0dda4bcd253903675f2209a5',
+         'doctype': 'json',
+         'version': '2.1',
+         'keyfrom': 'fanyi.web',
+         'action': 'FY_BY_REALTlME',
+     }
+     
+     # 进行 URL 转码
+     # 还要进行编码（bytes）转码
+     data = urllib.parse.urlencode(form_data).encode('utf-8')
+     # print(data)
+     
+     # 参数data有值 为post请求
+     request = urllib.request.Request(url=url, data=data, headers=headers)
+     
+     reponse = urllib.request.urlopen(request)
+     
+     print(reponse.read().decode())
+     ```
+
+   - 运行结果
+
+     ```json
+     {"type":"EN2ZH_CN","errorCode":0,"elapsedTime":1,"translateResult":[[{"src":"welcome","tgt":"欢迎"}]]}  
+     ```
+
+   - 说明：_不知道哪里出现问题_，爬下来响应数据和抓包工具抓取的数据不一致（抓包工具的数据和页面显示数据一致）
+
+     抓包数据如下：(可以上网找一下 JSON 数据在线解析的网站对比一下)
+
+     ```json
+     {"translateResult":[[{"tgt":"欢迎","src":"welcome"}]],"errorCode":0,"type":"en2zh-CHS","smartResult":{"entries":["","adj. 受欢迎的；令人愉快的；可随意的；尽管……好了\r\n","n. 欢迎；迎接；接受\r\n","v. 欢迎，迎接；迎新；乐于接受\r\n"],"type":1}}
+     ```
+
+### 获取 AJAX 加载的内容
+
+说明：
+
+
+
+
+
+
+
+
+
+
 
 
 
