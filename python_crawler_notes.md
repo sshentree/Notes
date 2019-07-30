@@ -1085,21 +1085,214 @@
    - 运行结果
 
      ```json
-     {"type":"EN2ZH_CN","errorCode":0,"elapsedTime":1,"translateResult":[[{"src":"welcome","tgt":"欢迎"}]]}  
+     {
+         "type": "EN2ZH_CN",
+      "errorCode": 0,
+         "elapsedTime": 1,
+      "translateResult": [
+             [
+              {
+                     "src": "welcome",
+                     "tgt": "欢迎"
+                 }
+             ]
+         ]
+     }
      ```
-
+   
    - 说明：_不知道哪里出现问题_，爬下来响应数据和抓包工具抓取的数据不一致（抓包工具的数据和页面显示数据一致）
-
+   
      抓包数据如下：(可以上网找一下 JSON 数据在线解析的网站对比一下)
-
+   
      ```json
-     {"translateResult":[[{"tgt":"欢迎","src":"welcome"}]],"errorCode":0,"type":"en2zh-CHS","smartResult":{"entries":["","adj. 受欢迎的；令人愉快的；可随意的；尽管……好了\r\n","n. 欢迎；迎接；接受\r\n","v. 欢迎，迎接；迎新；乐于接受\r\n"],"type":1}}
+     {
+         "translateResult": [
+             [
+                 {
+                     "tgt": "欢迎",
+                     "src": "welcome"
+                 }
+             ]
+         ],
+         "errorCode": 0,
+         "type": "en2zh-CHS",
+         "smartResult": {
+             "entries": [
+                 "",
+                 "adj. 受欢迎的；令人愉快的；可随意的；尽管……好了\r\n",
+                 "n. 欢迎；迎接；接受\r\n",
+                 "v. 欢迎，迎接；迎新；乐于接受\r\n"
+             ],
+             "type": 1
+         }
+     }
      ```
 
 ### 获取 AJAX 加载的内容
 
 说明：
 
+1. 了解 Ajax 
+
+   - Ajax 概念
+
+     Ajax 是一种用于创建快速动态页面的技术
+
+     通过在后台与服务器进行少量请求、响应，Ajax 可以使网页实现异步更新。Ajax 的应用可以在不重新加载网格网页的情况下，对网页的某一部分进行更新。
+
+     解释：在访问一个普通网站时，当浏览器加载完 `html CSS Js` 时，页面内容就固定了，如果想让页面内容发生改变，就必须刷新页面才可以看到。
+
+     不使用 Ajax 技术的传统网页，如果需要跟新内容，必须重新加载网格页面
+
+     使用 Ajax 技术的网站，如微博、Google 地图（点击加载更多时，会帮我们加载更多的内容，同时页面没有刷新）。
+
+   - 本人理解（就爬虫而言）
+
+     就 Ajax 而言是一种不需要刷整个新页面就可以更新部分页面数据，但是，只要刷新了页面（不管时是全部页面还是部分页面），那一定获取了新的数据，有新的数据就一定会有新的且唯一 URL 地址来标识。但是本人不理解的浏览器地址栏的信息有的会发生变化，有的不会变化，但 2 者页面数据都有部分跟新，而整张页面没有刷新，实际你使用抓包工具时，你会发现，实际当你每次点击加载更多的时候，都有一个新的请求发送出去（对应新的 URL 地址），对应新的响应文件。感觉，Ajax 的技术，时加载格式一样的数据使用频发，只要网页使用 Ajax 技术的，绝大部是 JSON 格式。
+
+2. 解析 Ajax 的页面加载
+
+   - 要访问的 URL 地址 `https://movie.douban.com/tag/#/` ,实际访问的 URL 地址 `https://movie.douban.com/tag/ `
+
+   - Ajax 获取数据访问的 URL 地址 `https://movie.douban.com/j/new_search_subjects?sort=U&range=0,10&tags=&start=0 ` , '?' 号后面的参数，在表单里也可以看见
+
+   - 如图解释
+
+     1. 浏览器的地址栏显示的 URL
+
+        ![浏览器地址栏显示](git_picture/浏览器地址栏显示.png)
+
+     2. 抓包工具显示实际访问 URL 的地址
+
+        ![实际访问地址](git_picture/实际访问地址.png)
+
+     3. Ajax 加载数据，实际发送的 URL 地址
+
+        ![Ajax发送请求地址](git_picture/Ajax发送请求地址.png)
+
+     4. Ajax 请求表单的参数
+
+        ![Ajax表单属性值](git_picture/Ajax表单属性值.png)
+
+     5. Ajax 请求的响应文件
+
+        ![Ajax请求响应文件](git_picture/Ajax请求响应文件.png)
+
+3. 代码演示
+
+   说明：直接访问 Ajax 数据获取的 URL 地址，获取 JSON 的数据
+
+   ```python
+   import urllib.request
+   import urllib.parse
+   
+   
+   url = 'https://movie.douban.com/j/new_search_subjects?sort=U&range=0,10'
+   
+   headers = {
+       'User-Agent':
+       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv2.0.1) Gecko/20100101 Firefox/4.0.1'
+   }
+   
+   # 可以使用 GET 方式，将 tags=20 直接放在 URL 中
+   # urllib.request.Request() 形参 data 有实参时，就是 POST 请求
+   form_data = {
+       'tags': '20'
+   }
+   
+   form_data = urllib.parse.urlencode(form_data).encode('utf-8')
+   print(form_data)
+   
+   request = urllib.request.Request(url=url, data=form_data, headers=headers)
+   response = urllib.request.urlopen(request)
+   
+   # print(response.read().decode())
+   
+   # 将请求的响应数据（JSON格式），保存下来
+   with open('ajax抓取数据.json', 'wb') as f:
+       f.write(response.read())
+   
+   ```
+
+4. 为什么 POST 方式有时也可以在 URL 中看到数据
+
+   说明：[参考地址](https://www.cnblogs.com/qmfsun/p/3679246.html)
+
+   > GET 和 POSt 的区别
+   >
+   > - get 是把参数数据队列加到提交表单的ACTION属性所指的URL中，值和表单内各个字段一一对应，在 URL 中可以看到。
+   >
+   > - post是通过 HTTP post 机制，将表单内各个字段与其内容放置在 HTTP 请求 的 HEADER 内一起传送到ACTION属性所指的 URL 地址。用户看不到这个过程。
+   >
+   > - 对于 get 方式，服务器端用 Request.QueryString 获取变量的值，对于post方式，服务器端用 Request.Form 获取提交的数据。两种方式的参数都可以用Request来获得。
+   >
+   > - get 传送的数据量较小，不能大于 2KB。post传送的数据量较大，一般被默认为不受限制。但理论上，因服务器的不同而异。
+   >
+   > - ```html
+   >   
+   >   ```
+   >
+   > ```
+   > <form method="get" action="a.asp?b=b">
+   > <form method="get" action="a.asp">
+   > 
+   > get 的两种请求是一样的
+   > ```
+   >
+   > - ```html
+   >   
+   >   ```
+   > <form method="post" action="a.asp?b=b">
+   > <form method="post" action="a.asp">
+   >
+   > post 的两种请求是不一样的
+   > ```
+   > 
+   > GET 和 POST 特性
+   > 
+   > - 它会将数据添加到URL中，通过这种方式传递到服务器，通常利用一个问号？代表URL地址的结尾与数据参数的开端，后面的参数每一个数据参数以“名称=值”的形式出现，参数与参数之间利用一个连接符&来区分。
+   > - 数据是放在HTTP主体中的，其组织方式不只一种，有&连接方式，也有分割符方式，可隐藏参数，传递大批数据，比较方便。
+   > ```
+
+### 使用 Cookie 
+
+说明：Cookie 是 存储在客户端的验证信息，当访问需要登陆的网站时，网站使用 Cookie 的值和Session 来判断你是否已经登录成功，若成功登录可以访问网站其他页面数据。
+
+- 使用账号登录_人人网_ ,保存 Cookie 的值，将 Cookie 的添加到 Headers 中，进行访问。（Cookie的存活时间有限）
+
+- 代码演示
+
+  ```python
+  # 使用浏览器保存的已经登录状态的cookie来抓取已登录的页面
+  # 和服务器的session来进行比对，相同就可以访问
+  
+  import urllib.request
+  import urllib.parse
+  
+  
+  url = 'http://www.renren.com/323263508/profile'
+  
+  # 使用有意义的 Cookie 的值，进行访问
+  headers = {
+      'Host': 'www.renren.com',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+      'Referer': 'http://www.renren.com/SysHome.do',
+      'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+      'Cookie': 'anonymid=jxb5eg9slyjn9p; depovince=GW; _r01_=1; ick_login=3223ceca-c44a-49e2-98da-eedffb0ed05d; JSESSIONID=abc3dXZtEbdjfa__2tmUw; ick=53c10faf-5ed9-46a1-afd6-6c75631af1fe; first_login_flag=1; ln_uact=15702423221; ln_hurl=http://head.xiaonei.com/photos/0/0/men_main.gif; jebe_key=badec72b-eb2e-46ec-8ac5-6e78cda7ff76%7Cb364afd86a8f4df99041ab657d92afdd%7C1561427290522%7C1%7C1561427288904; wp_fold=0; wp=0; jebecookies=91ff85a5-5a1d-41ac-825c-dc2bea4165e3|||||; _de=B775DCA76366A1E9BDB23B0E912B5E67; p=53437d7e31b2d3fc6411b6b4e6b257517; t=c8252604d054480c1f17c03d444b3e937; societyguester=c8252604d054480c1f17c03d444b3e937; id=971287447; xnsid=73ab956c; loginfrom=syshome'
+  }
+  
+  request = urllib.request.Request(url=url, headers=headers)
+  
+  response = urllib.request.urlopen(request)
+  
+  print(response.read().decode())
+  
+  ```
+
+## Hander 处理器和自定义 Opener
+
+说明：待续......
 
 
 
@@ -1124,3 +1317,5 @@
 
 
 
+
+ 
