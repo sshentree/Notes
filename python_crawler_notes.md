@@ -1233,15 +1233,17 @@
    >   ```
    >
    > ```
+   > 
+   > ```
    > <form method="get" action="a.asp?b=b">
    > <form method="get" action="a.asp">
-   > 
+   >
    > get 的两种请求是一样的
    > ```
-   >
+   > 
    > - ```html
-   >   
-   >   ```
+   > 
+   > ```
    > <form method="post" action="a.asp?b=b">
    > <form method="post" action="a.asp">
    >
@@ -1290,9 +1292,388 @@
   
   ```
 
-## Hander 处理器和自定义 Opener
+## Handler 处理器和自定义 Opener
 
-说明：待续......
+说明：如果需要在请求中添加_代理_、处理请求的 _Cookie_ ，基本的 `urlopen()` 方法是不支持。想要使用 HTTP/HTTPS 的高级功能，就需要创建特定的 Hander 处理器，用来自定义 opener 对象，最后调用 `open()` 函数打开 URL 地址。
+
+### Handler处理器理解
+
+说明：[参考地址](https://www.jianshu.com/p/2e190438bd9c)
+
+1. Handler 处理器可以处理（HTTP、HTTPS、FTP等）各种请求的各种不同打开 URL 地址的方式（有点绕嘴，哈哈哈）。Handler处理器的父类是 `urllib.request.BaseHander` ，常见的Handler处理器（继承BaseHandler）
+
+   | 序号 | 处理器类名                      | 作用                        | 父类            |
+   | ---- | ------------------------------- | --------------------------- | --------------- |
+   | 1    | HTTPHandler                     | 处理 HTTP 请求              | BaseHandler     |
+   | 2    | ProxyHandler                    | 为请求设置代理              | BaseHandler     |
+   | 3    | HTTPCookieProcessor             | 处理 HTTP 请求的 Cookie     | BaseHandler     |
+   | 4    | HTTPPasswordMgr                 | 用于管理用户名、密码        | BaseHandler     |
+   | 5    | HTTPPasswordMgrWithDefaultRealm | 用于管理用户名、密码        | HTTPPasswordMgr |
+   | 6    | HTTPBasicAuthHandler            | 用于登录认证，一般和 5 连用 | BaseHandler     |
+
+### opener理解
+
+1. opener 是 OpenerDirector 一个实类，之前使用的 `urlopen()` 实际上是一个特例（urllib 模块提供的一个 opener）
+2. opener 和 Handler 关系，opener 是由 `build_opener(Handler)` 初始化的，如果想要全局的自定义opener，使用语句 `install_opener(opener)` ,就可以像之前使用 `urlopen()` 一样。
+
+### 构造不同的处理器（普通HTTP请求、代理、Cookie、认证）
+
+1. HTTPHandler（构建处理 HTTP 请求的处理器）
+
+   说明：这种方式发送请求、获取的响应文件，和 `urllib.request.urlopen()` 发送 HTTP/HTTPS 请求的响应文件一样。如果 HTTHandler() 增加了参数 debuglevel=1 会将 Debug Log 打开，执行程序时，自定打印收发包报头信息，方便调试。
+
+   - 代码
+
+     ```python
+     import urllib.request
+     
+     
+     # 构建一个HTTPHander处理器对象，支持处理HTTP请求
+     # debuglevel=1 程序执行时打印收发包的调试信息
+     http_hander = urllib.request.HTTPHandler(debuglevel=1)
+     
+     # 调用build_opener()方法构建 一个自定义的opener对象，参数是构建的处理器对象
+     opener = urllib.request.build_opener(http_hander)
+     
+     # 构造全局的 opener （1）
+     urllib.request.install_opener(opener)
+     
+     # 初始化一个 HTTP 请求 对象
+     request = urllib.request.Request('http://www.baidu.com/')
+     
+     # 没有构造全局的 opener 的使用 （2）
+     # response = opener.open(request)
+     
+     # 使用自定义的全局 opener （1）
+     response = urllib.request.urlope(request)
+     
+     # print(response.read().decode())
+     
+     
+     运行结果（打印调试信息）
+     send: b'GET / HTTP/1.1\r\nAccept-Encoding: identity\r\nHost: www.baidu.com\r\nUser-Agent: Python-urllib/3.6\r\nConnection: close\r\n\r\n'
+     reply: 'HTTP/1.1 200 OK\r\n'
+     header: Bdpagetype header: Bdqid header: Cache-Control header: Content-Type header: Cxy_all header: Date header: Expires header: P3p header: Server header: Set-Cookie header: Set-Cookie header: Set-Cookie header: Set-Cookie header: Set-Cookie header: Set-Cookie header: Set-Cookie header: Vary header: X-Ua-Compatible header: Connection header: Transfer-Encoding 
+     ```
+
+2. ProxyHandler（构造__代理__处理器）
+
+   说明：使用代理，是实现反爬虫的有效手段之一，通常也是最好的用的。
+
+   大部分网站会检测某一段时间的各个 IP 访问次数（通过流量统计、系统日志等）如果访问次数太不象正常水平，服务器会禁止此 IP 的访问。
+
+   所以代理服务器就起到了作用，只要爬虫程序，每隔一段时间自动更换一个 IP，这样就算一个 IP 被禁止访问，我们可以换一个 IP 继续访问。
+
+   - 理解代理服务器原理
+
+     说明：[参考地址](https://blog.csdn.net/bzhxuexi/article/details/16860175)
+
+     1. 代理服务器（Proxy Server）是提供转接功能的服务器。一般情况下，当访问 Internet 一个站点信息时，浏览是直接链接到目的站点服务器，然后由目的站点服务器把信息传送回来。代理服务器是介于客户端和Web服务器之间的另一台服务器，有了它之后，浏览器不是直接链接到 Web 服务器去取回网页数据，而是先将请求消息发送到代理服务器，由代理服务器链接 Web 服务器取回浏览器所需要的信息并传送给客户端浏览器。
+     2. 比如浏览器访问的目的网站是 A，由于某种原因不能访问到网站 A 或者就是不想直接访问网站 A，此时你就可以使用代理服务器，在实际访问网站的时候，你在浏览器的地址栏内和你以前一样输入你要访问的网站，浏览器会自动先访问代理服务器，然后代理服务器会自动给你转接到你的目标网站
+     3. 作用
+        - 提高访问速度：通常代理服务器都设置一个较大的缓冲区，当有外界的信息通过时，同时也将其保存到缓冲区中，当其他用户再访问相同的信息时，则直接由缓冲区中取出信息，传给用户，以提高访问速度。
+        - 隐藏真实身份：用户也可以通过代理服务器隐藏自己的真实地址信息，还可隐藏自己的IP，防止被黑客攻击。
+        - 突破限制：有时候网络供应商会对上网用户的端口，目的网站，协议，游戏，即时通讯软件等的限制，使用代理服务器都可以突破这些限制
+
+   - 开放代理（没有用户名、密码）和私密代理（本人没有私密代理）
+
+     ```python
+     import urllib.request
+     
+     
+     # 代理开关，是否选择开启代理
+     proxyswitch = True
+     
+     # 构建一个Handler处理器，参数是一个字典，包括代理类型和代理IP+Port
+     http_handler = urllib.request.ProxyHandler({'http': '61.128.208.94:3128'})
+     # 使用私密代理
+     # http_handler = urllib.request.ProxyHandler({'http': 'username:keyword@61.128.208.94:3128'})
+     
+     # 构建一个没有代理的处理器，但是也得有参数（一个空的字典）
+     #null_handler = urllib.request.ProxyHandler({})
+     
+     # 选择是否开启代理
+     if proxyswitch:
+         opener = urllib.request.build_opener(http_handler)
+     else:
+         opener = urllib.request.build_opener(null_handler)
+     
+     # 构建一个全局的opener，之后所有的请求都可以使用urlopen()方法发送请求，
+     # 也附带Handler功能
+     # 没有返回值
+     urllib.request.install_opener(opener)
+     
+     # 构建一个请求
+     request = urllib.request.Request('http://www.baidu.com/')
+     
+     # 发送请求
+     response = urllib.request.urlopen(request)
+     
+     # 接受是UTF-8的编码
+     # decode()进行解码
+     response = response.read().decode()
+     print(response)
+     
+     运行结果
+     <!DOCTYPE html> 
+     <!--STATUS OK-->
+     空行...
+     内容数据
+     ```
+
+   - 常见代理网站
+
+     [西刺没费代理 IP](https://www.xicidaili.com/)
+
+     [快代理免费代理](https://www.kuaidaili.com/free/inha/)
+
+3. HTTPPasswordMgrWithDefaultRealm() （密码管理对象）
+
+   说明：`HTTPPasswordMgrWithDefaultRealm()` 类将创建一个密码管理对象，用来保存 HTTP 请求相关的用户名、密码
+
+   - 验证代理授权的用户名和密码 `ProxyBasicAuthHandler()`
+   - 验证 Web 客户端的用户名和密码 `HTTPBasucAuthHandler()`
+
+4. ProxyBasicAuthHandler（代理授权验证）
+
+   说明：使用私密代理，需要进行私密代理授权验证，如果没有进行授权验证会报 HTTP 407 错误，表示代理没有验证，`urllib.request.HTTPError: HTTP Error 407: Proxy Authentication Required`。
+
+   - 使用 `passwdMgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()`  创建密码管理对象，用来保存私密代理用户名、密码
+
+   - 使用 `passwdMgr.add_password(None, proxy_server, user, passwd)` 将用户名和密码添加到密码管理对象中
+
+   - 使用 `proxy_handler = urllib.request.ProxyBasicAuthHandler(passwdMgr)`  来处理代理身份验证
+
+   - 还可以使用 `http_handler = urllib.request.ProxyHandler({'http': 'username:keyword@61.128.208.94:3128'})` 来进行代理授权，也可以依靠此方法，将用户名、密码写入环境变量中，使用 `import os` 模块，`os.environ.get('name')` 来取出变量值。__(此方法在处理私密代理比较常用)__
+
+     ```python
+     >>> os.environ.get('JAVA_HOME')
+     'H:\\Java\\jdk1.8.0_121'
+     ```
+
+   - 代码
+
+     ```python
+     import urllib.request
+     
+     
+     # 私密代理授权账户（假）
+     user = "user"
+     # 私密代理授权密码（假）
+     passwd = "password"
+     # 私密代理 IP + Port
+     proxyserver = "182.92.188.108:16817"
+     
+     # 构建一个密码管理对象，用来保存 HTTP 请求相关的用户名和密码
+     passwdmgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+     
+     # 添加账户信息，第一个参数realm是与远程服务器相关的域信息，一般写None，后三个参数分别是,代理服务器、用户名、密码
+     passwdmgr.add_password(realm=None, uri=proxyserver, user=user, password=passwd)
+     
+     # 构建一个代理基础用户名/密码验证的ProxyBasicAuthHandler处理器对象，参数是创建的密码管理对象
+     # 注意，这里不再使用普通ProxyHandler类了
+     proxyauth_handler = urllib.request.ProxyBasicAuthHandler(passwdmgr)
+     
+     # 通过 build_opener() 方法使用这些代理Handler对象，创建自定义 opener 对象，参数包括构建的 proxy_handler 和 proxyauth_handler
+     opener = urllib.request.build_opener(proxyauth_handler)
+     
+     # 构造 Request 请求
+     headers = {
+         'Accept': 'application/json, text/javascript, */*; q=0.01',
+         'X-Requested-With': 'XMLHttpRequest',
+         'User_Agent': "Mozilla/5.0 (Windows NT 6.1; rv2.0.1) Gecko/20100101 Firefox/4.0.1",
+         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+         'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+     }
+     url= 'http://www.baidu.com'
+     request = urllib.request.Request(url=url, headers=headers)
+     
+     # 使用自定义opener发送请求
+     response = opener.open(request)
+     
+     # 打印响应内容
+     print(response.read().decode())
+     ```
+
+   - __此处有很大的问题，就是代理试不试用都可以正常访问，不晓得是代码的问题，还是网站的问题，问题后续继续解决......__
+
+5. HTTPBasicAuthHandler（Web服务器基础认证）
+
+   说明：访问一些 Web 服务器时需要进行身份验证，爬虫的程序直接访问会报 HTTP 401 错误，表示访问身份未经授权 `urllib.request.HTTPError: HTTP Error 401: Unauthorized` 。
+
+   - 使用 `passwdMgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()` 管理 HTTP 请求相关的用户名和密码
+
+   - 使用 `passwdMgr.add_password(None, proxy_server, user, passwd)` 将用户名和密码添加到密码管理对象中
+
+   - 使用 `basic_auth_handler = urllib.request.HTTPBasicAuthHandle(passwdMgr)` 创建 HTTP 基础认证处理器
+
+   - 代码
+
+     ```python
+     import urllib.request
+     
+     
+     user_name = 'user'
+     password = '123456'
+     
+     webserver = '192.168.13.41'
+     
+     # 构建一个密码管理对象，可以用来保存和HTTP请求相关的授权账户信息
+     passwordMgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+     
+     # 添加授权账户信息，第一个参数是realm如果没有指定就写None，
+     # 后三个分别是,站点IP，账户，密码
+     passwordMgr.add_password(None, webserver, user_name, password)
+     
+     # 本机IP处理器
+     # web客户端验证处理器
+     httpauth_handler = urllib.request.HTTPBasicAuthHandler(passwordMgr)
+     
+     opener = urllib.request.build_opener(httpauth_handler)
+     
+     request = urllib.request.Request('192.168.13.41')
+     reponse = opener.open(request)
+     
+     print(reponse.read())
+     
+     ```
+
+6. HTTPCookieProcess（使用cookie访问登录后才能访问的页面）
+
+   - 导入 `from http import cookiejar`
+
+   - 使用 `cookie = cookiejar.CookieJar()` 创建 CookieJar 对象，用来存储 cookie信息
+
+   - 使用 `cookie_handle = urllib.request.HTTPCookieProcessor(cookie)` 构建一个 cookie 处理器
+
+   - 代码
+
+     ```python
+     import urllib.request
+     from http import cookiejar
+     import urllib.parse
+     
+     
+     # 通过 CookieJar() 方法构建一个 cookieJar 对象，用来储存 cookie
+     cookie = cookiejar.CookieJar()
+     
+     # 通过 HTTPCookieProcessor() 构建一个处理器对象，用来处理cookie
+     # 参数就是构建的CookieJar()对象
+     cookie_handle = urllib.request.HTTPCookieProcessor(cookie)
+     
+     # 构建 cookie 处理器
+     opener = urllib.request.build_opener(cookie_handle)
+     
+     # 使用 addheaders 属性赋值请求报头
+     # addheaders 是 opener 的属性，也可以继续使用 request.add_header() 方法
+     opener.addheaders = [(
+         'User-Agent',
+         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv2.0.1) Gecko/20100101 Firefox/4.0.1'
+     )]
+     
+     # 用户名、密码，属性通过 html 页面数据查看（标签的 name 值）
+     data = {'email':'15702423221', 'password': 'sHEN0077'}
+     
+     data = urllib.parse.urlencode(data).encode()
+     
+     url = 'http://www.renren.com/SysHome.do'
+     
+     request = urllib.request.Request(url=url, data=data)
+     
+     # header已经添加进去了
+     # 发送第一次POST请求，生成登录后的cookie（如果登录成功）
+     response = opener.open(request)
+     
+     # print(response.read().decode())
+     
+     # 第二次就可以get请求，这个请求将保存生成cookie一并发到web服务器上，服务器验证Cookie和Session
+     response_du = opener.open('http://www.renren.com/880792860/profile')
+     # 获取登录才能获取的网页信息
+     print(response_du.read().decode())
+     
+     运行结果
+     <!Doctype html>
+     <html class="nx-main860">
+     <head>
+         <meta name="Description" content="人人网 校内是一个真实的社交网络，联络你和你周围的朋友。 加入人人网校内你可以:联络朋友，了解他
+     们的最新动态；和朋友分享相片、音乐和电影；找到老同学，结识新朋友；用照片和日志记录生活,展示自我。"/>
+         <meta name="Keywords" content="Xiaonei,Renren,校内,大学,同学,同事,白领,个人主页,博客,相册,群组,社区,交友,聊天,音乐,视频,校园,人
+     人,人人网"/>
+         <title>人人网 - 包贝尔</title>
+     ```
+
+### HTTP几种认证方式
+
+说明：用户、客户端、资源服务器、认证服务器的作用和之间的关系
+
+1. 理解 HTTP 协议的“无连接”、“无状态”特点
+
+   - 无连接（Keep-Alive）
+
+     无连接的含义是限制每次链接只处理一个请求，服务器处理完客户端请求，并接收到客户端的应答，即断开连接，采用这种方式可以节约通道资源，早期的 HTTP 协议就是如此。
+
+     随着技术的发展，网页的复杂度也越来越高（内嵌了许多照片、CSS、JS），这时每次建立 TCP 链接只能做一次请求，要完成一个页面的下载，就需要多次  TCP 链接，多次请求，这显然是浪费时间。
+
+     Keep-Alive 应运而生，它可以使客户端，服务器保持长时间有效链接，避免了访问一个页面，需要建立多次 TCP 链接。
+
+     Keep-Alive 对资源的占用，也影响了服务器的性能，因为保持一段时间的 TCP 链接不中断，本来应该释放的资源没有正常释放。
+
+   - 无状态
+
+     无状态的含义是协议对请求处理没有记忆功能，服务器不知道客户端是什么状态，即我们向服务器发送 HTTP 请求，服务器根据请求消息，发送响应文件，发送完成之后不会记录任何信息。
+
+     HTTP 是无状态协议，这意味着每次请求都是独立的，Keep-Alive 的设置只是保持了链接，没有改变无状态的性质。
+
+     HTTP 无状态性质，使得稍后的请求必须携带前期的请求信息，这样导致了增加了每次请求的数据量。
+
+   - 本人理解
+
+     HTTP 协议设计是有时代的局限性，但可以看出在设计 HTTP 协议的时候，对访问者信息保护到了牺牲服务器性能的地步，感觉是对用户的一种无上的尊重。
+
+2. HTTP 基本认证（Basic Authentication）
+
+   说明：HTTP 基本认证，是建立在客户端和服务器链接安全的情况之下，一般公共的网站不会使用此认证。
+
+   - 基本认证过程
+     1. 客户端访问一个受 HTTP 基本认证保护的资源
+     2. 请求：客户端发送请求，第一条请求没有认证信息
+     3. 质询：服务器对客户端进行质询，返回一条 `401 Unauthentication` 响应的状态码。并在响应 headers 中返回 `WWWW-Authentication:Basic realm='XXXXXXX'` 说明如何以及在哪里认证，一般指定那个安全域进行认证。
+     4. 授权：客户端收到 401 状态码质询，弹出对话框，质询用户名、密码，输入用户名、密码，浏览器将用户名、密码进行 Base64 编码，设置请求头 `Authentication:Basic XXXXX(用户名:密码)`,继续访问。
+     5. 成功：服务器对用户名和密码进行解码，验证是否正确，正确返回 `200 ok` 状态码，返回响应文件。
+     6. __基本认证方式，是一种无状态的认证，就是不需要服务器保存 Session 信息，，每一次客户端访问都需要携带用户名、密码，以便服务器进行验证。用户名、密码，保存在浏览器的内存中，关闭浏览器时，基本认证的用户名、密码被删除，表示认证结束，下一次访问，重新输入用户名，密码。__
+     7. 安全缺陷：base-64 安全性不高，容易解密，所以一般 HTTP 基本认证都是建立在客户端和服务器建立私密链接中。
+
+3. OAuth 2.0 认证
+
+   说明：OAuth 协议为用户资源的授权提供了一个安全的、开放而又简易的标准。与以往的授权方式不同之处是 OAuth 的授权不会使第三方触及到用户的帐号信息（如用户名与密码），即第三方无需使用用户的用户名与密码就可以申请获得该用户资源的授权，因此 `OAuth`是安全的。OAuth 是  Open Authorization 的简写。
+
+   - OAuth 比较常见的是__微信登录、微博登录、qq登录等__，简单来说就是利用比较权威的网站和应用比较开放的 API 来实现用户登录，即用户可以不用再网站上注册账号，直接使用微信、微博、qq等账号登录。这样的好处是，减除注册的麻烦、又简化系统账号的体系、安全性有所提高。
+   - 认证过程
+     1. 用户访问一个没有登录的客户端（使用微信登录）
+     2. 客户端引导用户到微信授权页面，请求授权，即 Authorization Request 
+     3. 用户同意授权（各种样式的授权）即会在微信服务器获取一次性用户授权凭证如 code，给客户端
+     4. 客户端用第 3 步获取的 code 和自身的身份凭证（AppID）向微信授权服务器发送请求，获取 **access_token**，即令牌。
+     5. 客户端使用令牌（accsee_token）,向微信服务器请求用户基本信息（登录成功）。
+     6. 客户端使用令牌向资源服务器请求资源
+     7. 资源服务器使用令牌向微信服务器确认令牌正确性，确认无误，提供资源
+
+4. Cookie-Seseion 认证
+
+   ......
+
+5. Cookie-Session 升级版认证
+
+   ......
+
+6. 基于 JWT 的 Token 认证
+
+   ......
+
+### urllib.request 异常处理
+
+待续......
+
+## 非结构化的数据处理
 
 
 

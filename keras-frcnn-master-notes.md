@@ -824,5 +824,177 @@ keras.utils.plot_model(keras.applications.ResNet50(include_top=True,input_shape=
 
      ![building_block_B](git_picture/building_block_B.png)
 
-- 
+- 代码演示
+
+  说明：使用图片是 5 种花的图片['向日葵', '玫瑰', '菊花', '蒲公英', '郁金香']，模型以训练完成，（.h5）文件保存在代码地址中。
+
+  [代码完整地址](https://pan.baidu.com/s/1hPoQtrozvNVqtlF7KGAzgQ)
+
+  ```python
+  import os
+  
+  import numpy as np
+  from PIL import Image
+  import h5py as h5py
+  import tensorflow as tf
+  import keras.layers as KL
+  from keras.models import Model
+  from keras.utils import np_utils
+  from keras.utils.vis_utils import plot_model
+  
+  # 初始化一个全局的网络输入层
+  input = []
+  
+  
+  # 数据处理
+  def ReadImage(train_folder, file_name):
+      """
+      读取图片转换为数组
+      :param train_folder:
+      :param file_name:
+      :return:
+      """
+      img = Image.open(train_folder + '/' + file_name)
+      return np.array(img)
+  
+  
+  def train(train_folder):
+      """
+      制作标签
+      :param train_folder:
+      :return:
+      """
+      Train_image_list = []
+      Label_int_list = []
+  
+      for file_name in os.listdir(train_folder):
+          img_array = ReadImage(train_folder, file_name)
+          Train_image_list.append(img_array)
+          Label_int_list.append(int(file_name.split('_')[0]))
+  
+      Train_image_list = np.array(Train_image_list)
+      Label_int_list = np.array(Label_int_list)
+  
+      Train_image_list = Train_image_list.astype('float32')
+      Train_image_list /= 255.0
+  
+      X_train = Train_image_list
+      Y_train = np_utils.to_categorical(Label_int_list, 5)
+  
+      return X_train, Y_train
+  
+  
+  def head_layers():
+      """
+      头部、数据的前期处理
+      输出x.shape = (56, 56, 64)
+      :return:
+      """
+      global input
+      input = KL.Input(shape=(112, 112, 3))
+      x = KL.ZeroPadding2D(padding=(1, 1))(input)
+      x = KL.Conv2D(filters=64, kernel_size=(3, 3))(x)
+      x = KL.BatchNormalization(axis=3)(x)
+      x = KL.Activation(activation='relu')(x)
+      x = KL.MaxPool2D(pool_size=(2, 2))(x)
+      # print('1', x.shape)
+      return x
+  
+  
+  def building_block(filters, block):
+      """
+      残差层
+      :param filters:
+      :param block:
+      :return:
+      """
+      if block != 0:
+          stride = 1
+      else:
+          stride = 2
+  
+      def block_layers(x):
+          """
+          当stride=2时
+          输入x.shape(w, h, z)
+          输入x.shape(w\2, h\2, fiters)
+          当stride=1时
+          输出x.shape(w, h, filters)
+          :param x:
+          :return:
+          """
+          # print('2', x.shape)
+          y_1 = KL.Conv2D(filters=filters, kernel_size=(3, 3), strides=stride, padding='same')(x)
+          y_1 = KL.BatchNormalization(axis=3)(y_1)
+          y_1 = KL.Activation(activation='relu')(y_1)
+          y_1 = KL.Conv2D(filters=filters, kernel_size=(3, 3), padding='same')(y_1)
+          y_1 = KL.BatchNormalization(axis=3)(y_1)
+          y_1 = KL.Activation(activation='relu')(y_1)
+  
+          y_1 = KL.Conv2D(filters=filters * 4, kernel_size=(3, 3), padding='same')(y_1)
+          y_1 = KL.BatchNormalization(axis=3)(y_1)
+  
+          if block == 0:
+              y_2 = KL.Conv2D(filters=filters * 4, kernel_size=(3, 3), strides=stride, padding='same')(x)
+              y_2 = KL.BatchNormalization(axis=3)(y_2)
+          else:
+              y_2 = x
+  
+          # 将主、副网络数据相加（数据格式一致）
+          y = KL.Add()(inputs=[y_1, y_2])
+          y = KL.Activation(activation='relu')(y)
+          # print('4', y.shape)
+  
+          return y
+  
+      return block_layers
+  
+  
+  def block_tail(output, X_train, Y_train):
+      """
+      尾部
+      :param layer_x:
+      :return:
+      """
+      global input
+      output = KL.AveragePooling2D(pool_size=(2, 2))(output)
+      output = KL.Flatten()(output)
+      output = KL.Dense(units=5)(output)
+      output = KL.Activation(activation='softmax')(output)
+  
+      model = Model(inputs=input, outputs=output)
+  
+      # 打印模型参数
+      model.summary()
+      # 将模型结构，保存为图片
+      plot_model(model=model, to_file='./picture/model_ResNet.png', show_shapes=True)
+  
+      model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+      history = model.fit(x=X_train, y=Y_train, batch_size=40, epochs=50)
+  
+      # 将模型参数保存
+      model.save('./model/model_ResNet.h5')
+  
+  
+  def main():
+      filters = 64
+      block = [2, 2, 3]
+  
+      X_train, Y_train = train('Train_image')
+  
+      output = head_layers()
+  
+      for stage, block in enumerate(block):
+          for block_id in range(block):
+              output = building_block(filters=filters, block=block_id)(output)
+          filters *= 2
+  
+      block_tail(output=output, X_train=X_train, Y_train=Y_train)
+  
+  
+  if __name__ == '__main__':
+      main()
+  ```
+
+  
 
