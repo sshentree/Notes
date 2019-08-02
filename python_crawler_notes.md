@@ -1221,46 +1221,16 @@
    > GET 和 POSt 的区别
    >
    > - get 是把参数数据队列加到提交表单的ACTION属性所指的URL中，值和表单内各个字段一一对应，在 URL 中可以看到。
-   >
    > - post是通过 HTTP post 机制，将表单内各个字段与其内容放置在 HTTP 请求 的 HEADER 内一起传送到ACTION属性所指的 URL 地址。用户看不到这个过程。
-   >
    > - 对于 get 方式，服务器端用 Request.QueryString 获取变量的值，对于post方式，服务器端用 Request.Form 获取提交的数据。两种方式的参数都可以用Request来获得。
-   >
    > - get 传送的数据量较小，不能大于 2KB。post传送的数据量较大，一般被默认为不受限制。但理论上，因服务器的不同而异。
-   >
-   > - ```html
-   >   
-   >   ```
-   >
-   > ```
-   > 
-   > ```
-   >
-   > ```
-   > <form method="get" action="a.asp?b=b">
-   > <form method="get" action="a.asp">
-   > 
-   > get 的两种请求是一样的
-   > ```
-   >
-   > - ```html
-   >   
-   >   ```
-   >
-   > ```
-   > <form method="post" action="a.asp?b=b">
-   > <form method="post" action="a.asp">
-   > 
-   > post 的两种请求是不一样的
-   > ```
+   > - `<form method='get' action='a.asp?b=b'>` 和 `<form method='get' action='a.asp'>` 一样
+   > - `<form method='post' action='a.asp?b=b'>` 和 `<form method='post' action='a.asp?b=b'>` 不一样
    >
    > GET 和 POST 特性
    >
-   > - 它会将数据添加到URL中，通过这种方式传递到服务器，通常利用一个问号？代表URL地址的结尾与数据参数的开端，后面的参数每一个数据参数以“名称=值”的形式出现，参数与参数之间利用一个连接符&来区分。
-   > - 数据是放在HTTP主体中的，其组织方式不只一种，有&连接方式，也有分割符方式，可隐藏参数，传递大批数据，比较方便。
-   > ```
-   > 
-   > ```
+   > - GET 特性：它会将数据添加到 URL 中，通过这种方式传递给服务器，通常使用 `?` 代表 URL 地址的结尾和数据的开端，后面的参数每一个数据的形式都是 `name = val` 参数与参数以 `&` 区分。
+   > - POST 特性：数据是存放在 HTTP请求体中，数据组织方式不止一种，有 `&` 连接、分隔符、也可以隐藏参数。传递大批数据，比较方便。
 
 ### 使用 Cookie 
 
