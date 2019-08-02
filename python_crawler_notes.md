@@ -1235,25 +1235,31 @@
    > ```
    > 
    > ```
+   >
+   > ```
    > <form method="get" action="a.asp?b=b">
    > <form method="get" action="a.asp">
-   >
+   > 
    > get 的两种请求是一样的
    > ```
-   > 
+   >
    > - ```html
-   > 
+   >   
+   >   ```
+   >
    > ```
    > <form method="post" action="a.asp?b=b">
    > <form method="post" action="a.asp">
-   >
+   > 
    > post 的两种请求是不一样的
    > ```
-   > 
+   >
    > GET 和 POST 特性
-   > 
+   >
    > - 它会将数据添加到URL中，通过这种方式传递到服务器，通常利用一个问号？代表URL地址的结尾与数据参数的开端，后面的参数每一个数据参数以“名称=值”的形式出现，参数与参数之间利用一个连接符&来区分。
    > - 数据是放在HTTP主体中的，其组织方式不只一种，有&连接方式，也有分割符方式，可隐藏参数，传递大批数据，比较方便。
+   > ```
+   > 
    > ```
 
 ### 使用 Cookie 
@@ -1572,7 +1578,7 @@
      )]
      
      # 用户名、密码，属性通过 html 页面数据查看（标签的 name 值）
-     data = {'email':'15702423221', 'password': 'sHEN0077'}
+     data = {'email':'XXXX', 'password': 'XXXX'}
      
      data = urllib.parse.urlencode(data).encode()
      
