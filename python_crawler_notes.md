@@ -233,17 +233,17 @@
 
 说明：URL只是标识资源的唯一位置，而HTTP请求是用来提交获取资源的信息，客户端发送一个HTTP请求到服务器端的的数据格式如下
 
--	__请求行__、__请求头__、__空行__、__请求数据__
+__请求行__、__请求头__、__空行__、__请求数据__
 
 1. HTTP请求格式如图
 
-  ![HTTP请求格式](git_picture/HTTP请求格式.png)
+   ![HTTP请求格式](git_picture/HTTP请求格式.png)
 
 2. HTTP请求示例（没有请求数据）
 
-  - GET请求
-  
-     ```tex
+   - GET 请求
+
+     ```txt
      GET https://www.baidu.com/ HTTP/1.1
      Host: www.baidu.com
      Connection: keep-alive
@@ -256,9 +256,9 @@
      Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD4601512DD3C41A7B; PSTM=1470329258;            MCITY=-343%3A340%3A; BDUSS=nF0MVFiMTVLcUh-Q2MxQ0M3STZGQUZ4N2hBa1FFRkIzUDI3QlBCZjg5cFdOd1pZQVFBQUFBJCQAAAAAAAAAAAEAAADpLvgG0KGyvLrcyfrG-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFaq3ldWqt5XN; H_PS_PSSID=1447_18240_21105_21386_21454_21409_21554; BD_UPN=12314753; sug=3; sugstore=0; ORIGIN=0; bdime=0; H_PS_645EC=7e2ad3QHl181NSPbFbd7PRUCE1LlufzxrcFmwYin0E6b%2BW8bbTMKHZbDP0g; BDSVRTM=0
      ```
 
-  - POST请求（cookie假）
-  
-     ```tex
+   - POST 请求（cookie假）
+
+     ```txt
      POST https://passport.baidu.com/v2/api/?login HTTP/1.1
      Host: passport.baidu.com
      Connection: keep-alive
