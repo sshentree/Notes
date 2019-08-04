@@ -4,6 +4,8 @@
 
 # Python爬虫
 
+说明：__年轻的时候满脑子想的都是女孩、爱情、女人。现在我只想钱，在这个物质横流的世界里如果没有钱，你就是个垃圾。__
+
 ## 爬虫介绍
 
 ### 前言
@@ -1471,7 +1473,7 @@
      print(response.read().decode())
      ```
 
-   - __此处有很大的问题，就是代理试不试用都可以正常访问，不晓得是代码的问题，还是网站的问题，问题后续继续解决......__
+   - __此处有很大的问题，就是代理使不使用都可以正常访问，不晓得是代码的问题，还是网站的问题，问题后续继续解决......__
 
 5. HTTPBasicAuthHandler（Web服务器基础认证）
 
@@ -1683,6 +1685,8 @@
 > [维基百科](https://zh.wikipedia.org/wiki/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F)
 >
 > [正则表达式手册](https://tool.oschina.net/uploads/apidocs/jquery/regexp.html)
+>
+> [Python re 模块文档](https://docs.python.org/zh-cn/3.6/library/re.html)
 
 1. 正则表达式原理
 
@@ -1743,21 +1747,263 @@
 
      1. 主要函数介绍
 
-        | 方法名                                        | 所属模块或对象 | 作用                                                 | 返回值类型                       |
-        | --------------------------------------------- | -------------- | ---------------------------------------------------- | -------------------------------- |
-        | re.compile(pattern) <br>(pattern 是 匹配规则) | re 模块        | 创建正则表达式对象                                   | Pattren 对象<br>(正则表达式对象) |
-        | pattern.match(str, start, end)                | Pattern 对象   | 从起始位置开始匹配，返回第一个符合规则的，且只匹配一 |                                  |
-        | pattern.search()                              | Pattern 对象   | 从任何位置开始匹配，返回第一个符合规则的，且只匹配一 |                                  |
-        | pattern.findall()                             | Pattern 对象   | 所有的全部匹配，返回列表                             | 列表                             |
-        | pattern.finditer()                            | Pattern 对象   | 所有的全部匹配，返回迭代器                           | 迭代器                           |
-
-        
-
+        | 方法名                                        | 所属模块或对象 | 作用                                                   | 返回值类型                       |
+        | --------------------------------------------- | -------------- | ------------------------------------------------------ | -------------------------------- |
+        | re.compile(pattern) <br>(pattern 是 匹配规则) | re 模块        | 创建正则表达式对象                                     | Pattren 对象<br>(正则表达式对象) |
+        | pattern.match(str, start, end)                | Pattern 对象   | 从起始位置开始匹配，返回第一个符合规则的，且只匹配一次 | Match 对象、None                 |
+        | pattern.search()                              | Pattern 对象   | 从任何位置开始匹配，返回第一个符合规则的，且只匹配一次 | Match 对象、None                 |
+        | pattern.findall()                             | Pattern 对象   | 所有的全部匹配，返回列表                               | 列表                             |
+        | pattern.finditer()                            | Pattern 对象   | 所有的全部匹配，返回迭代器                             | 迭代器<br>(元素为 Match 对象)    |
+| pattren.sub()                                 | Pattern 对象   | 替换                                                   | 字符串                           |
+        | pattern.split()                               | Pattern 对象   | 分割                                                   | 列表                             |
+   
+     2. 主要函数的使用
+   
+        - `re.compile(pattren, flages)`
+   
+          `pattern` 正则表达式字符串
      
+          `flags` 编译标志（匹配模式）本人觉得主要的几个模式标记
+     
+          | flags=?       | 简写 | 作用                                                         |
+          | ------------- | ---- | ------------------------------------------------------------ |
+          | re.ASSIC      | re.A | 让 `\w, \W, \b, \B, \d, \D, \s, \S` 只匹配 ASSIC，而不是 Unicode。这只对 Unicode 样式有效，会被 byte 样式忽略。 |
+          | re.IGNORECASE | re.I | 忽略大小写，让 `[A-Z]` 也可以匹配大写字母。                  |
+          | re.MULTILINE  | re.M | 多行匹配，样式字符 `'^'` 匹配字符串的开始，和每一行的开始（换行符后面紧跟的符号）；样式字符 `'$'` 匹配字符串尾，和每一行的结尾（换行符前面那个符号）。默认情况下，`'^'` 匹配字符串头，`'$'` 匹配字符串尾。 |
+          | re.DOTALL     | re.S | 让 `'.'` 特殊字符，可以匹配包括换行符所有字符。              |
+          | re.VERBOSE    | re.X | 这个标记允许你编写更具可读性更友好的正则表达式。通过分段和添加注释。空白符号会被忽略。 |
+     
+          演示 `re.VERBOSE`
+     
+          ```python
+          a = re.compile(r"""\d+  # the integral part
+                              \.  # the decimal point
+                              \d* # somefractional digits""", re.X)
+          
+          b = re.compile(r'\d+\.\d*')
+          
+          # a, b 等价
+          ```
+     
+        - `pattern.match(str, start, end)`
+     
+          说明：如果 str 的开始位置或从开位置到多个字符匹配到了正则表达式样式，就返回一个相应的_匹配对象_，如果没有匹配到就返回一个 None。
+     
+          re.MULTILINE 多行模式,也只匹配字符串开始位置，而不匹配每行开始位置。
+     
+          __只匹配一次__。
+     
+          演示
+     
+          ```python
+          import re
+          
+          
+          # 初始化正则表达式匹配规则对象
+          # 被 '()' 括起来的表示分组，该匹配规则分成 2 个组，每组使用空格分割 
+          # re.I 表示忽略大小写
+          pattern = re.compile(r'([a-z]+) ([a-z]+)', re.I)
+          
+          # 匹配字符串
+          # 匹配结果 'Hello World'
+          # 忽略大小写、分组使用空格分割
+          # match 只从字符串开始位置匹配，且只匹配一次，所以 'Hello Python' 没有匹配的机会
+          m = pattern.match('HelloA World HelloB Python')
+          
+          # 显示全部匹配成功的字符串
+          print(m.group(0))
+          
+          print('+' * 30)
+          # 显示出符合匹配规则第一个字符串
+          print(m.group(1))
+          
+          # 显示第一个匹配成功字符串的位置信息
+          print(m.span(2))
+          
+          运行结果
+          HelloA World
+          ++++++++++++++++++++++++++++++
+          HelloA
+          (7, 12)
+          ```
+     
+        - `pattern.search(str, start, end)` 
+     
+          说明：扫描整个字符串找到匹配样式的第一个位置，并返回相应的匹配对象。如果没有匹配，就返回一个 None。
+     
+          __只匹配一次__。
+     
+          演示
+     
+          ```python
+          import re
+          
+          
+          # 初始化匹配对象
+          # 进行分组匹配
+          pattern = re.compile(r'(\d+)([a-z]+)(\d+)')
+          
+          # 匹配
+          m = pattern.search('aaa123sfws11')
+          
+          # 打印匹配成功的字符串
+          # 一共有 3 组
+          print(m.group(0))
+          
+          # 打印匹配成功的第 1 组
+          print(m.group(1))
+          
+          # 匹配所有的字符串的的起始位置、终止位置
+          print(m.span(0))
+          
+          运行结果
+          123sfws11
+          123
+          (3, 12)
+          ```
+     
+        - `pattern.findall(str, start, end)`
+     
+          说明：从左到右扫描整个字符串，反复使用正则匹配样式，匹配的字符串按找顺序返回。如果样式里存在__大于一个组__，就返回一个组合列表（元组的列表）.。
+     
+          返回列表
+     
+          __可以匹配多次__。
+     
+          演示
+     
+          ```python
+          import re 
+          
+          
+          # 初始化匹配对象
+          # 进行分组匹配
+          pattern = re.compile(r'(\d+)([a-z]+)(\d+)')
+          
+          # 匹配
+          m = pattern.findall('aaaa123sfws11aa123sfws11')
+          
+          # pattern = re.compile(r'(\d+)')
+          # m = pattern.findall('acd12ad34 ad34 24ad 45')
+          
+          # 返回的全部匹配的列表
+          print(type(m))
+          print(m)
+          
+          运行结果
+          <class 'list'>
+          [('123', 'sfws', '11'), ('123', 'sfws', '11')]
+          ************************************************
+          <class 'list'>
+          ['12', '34', '34', '24', '45']
+          ```
+     
+        - `pattern.finditer(str, start, end)`
+     
+          说明：同 `pattern.findall()` 用法一样，就是返回的是一个__迭代对象__，元素为 Match 对象，使用 `group()` 取值。
+     
+        - `pattern.split(str, maxsplit=0, flags=0)`
+     
+          说明：如果分隔符里有组，分隔符也会在返回的列表当中。
+     
+          maxsplit 非零，最多进行 maxsplit 次分割，剩下的字符全部返回到列表的最后一个元素。
+     
+          演示
+     
+          ```python
+          import re
+          
+          
+          # 分割符中有 组
+          pattern_1 = re.compile(r'(\W+)')
+          # 分割符没有 组
+          pattern_2 = re.compile(r'\W+')
+          
+          m_1 = pattern_1.split('Python, python, c++')
+          m_2 = pattern_2.split('Python, python, c++')
+          
+          # 返回值为列表
+          print(type(m_1))
+          
+          # 分割结果不一样
+          print(m_1)
+          print(m_2)
+          
+          运行结果
+          <class 'list'>
+          ['Python', ', ', 'python', ', ', 'c', '++', '']
+          ['Python', 'python', 'c', '']
+          ```
+     
+        - `pattern.sub(repl, str, count=0, flages=0)`
+     
+          说明：repl 是替换的字符串（也可以是函数，没仔细看原文档），str 是被替换的字符串。
+     
+          如果正则样式没有匹配，则返回 str。
+     
+          count 如果等于 0 ，则全部替换。如果大于 0，则是最大替换次数
+     
+          __这个方法提麻烦的__
+     
+          演示
+     
+          ```python
+          import re
+          
+          
+          pattern = re.compile('(l\w+)')
+          
+          str = 'You like,I like,but not...'
+          
+          print(str)
+          m = pattern.sub('love', str)
+          print(type(m))
+          print(m)
+          
+          运行结果
+          You like,I like,but not...
+          <class 'str'>
+          You love,I love,but not..
+          
+          ******************************************************
+          import re
+          
+          
+          pattern = re.compile('(\w+) (\w+)')
+          
+          str = 'You like,I like'
+          
+          print(str)
+          print(type(m))
+          print('+' * 30)
+          
+          # 匹配的第 1 组和第 2 组进行互换位置
+          # 实际上时进行了 2 次匹配
+          # 第 1 次匹配出 'You like',分 1 组，2 组
+          # 第 2 次匹配出 'I like',分 1 组，2 组
+          print(pattern.sub(r'\2 \1', str))
+          
+          运行结果
+          You like,I like
+          <class 'str'>
+          not like,not like
+          ++++++++++++++++++++++++++++++
+          like You,like I
+          ```
 
-   
+###  正则表达式案例
 
-   
+
+
+
+
+
+
+
+
+
+
+
 
 
 
