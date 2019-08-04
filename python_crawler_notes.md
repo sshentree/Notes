@@ -41,7 +41,7 @@
    - 分析、处理页面数据
 
      1. 保存有用数据
-2. 如果网页有其他URL地址，继续执行第二步（通过HTTP、HTTPS获取数据）
+3. 如果网页有其他URL地址，继续执行第二步（通过HTTP、HTTPS获取数据）
 
 ## TCP/IP协议族理解
 
@@ -233,15 +233,15 @@
 
 说明：URL只是标识资源的唯一位置，而HTTP请求是用来提交获取资源的信息，客户端发送一个HTTP请求到服务器端的的数据格式如下
 
-​	__请求行__、__请求头__、__空行__、__请求数据__
+-	__请求行__、__请求头__、__空行__、__请求数据__
 
-- HTTP请求格式如图
+1. HTTP请求格式如图
 
   ![HTTP请求格式](git_picture/HTTP请求格式.png)
 
-- HTTP请求示例（没有请求数据）
+2. HTTP请求示例（没有请求数据）
 
-  1. GET请求
+  - GET请求
   
      ```tex
      GET https://www.baidu.com/ HTTP/1.1
@@ -256,7 +256,7 @@
      Cookie: BAIDUID=04E4001F34EA74AD4601512DD3C41A7B:FG=1; BIDUPSID=04E4001F34EA74AD4601512DD3C41A7B; PSTM=1470329258;            MCITY=-343%3A340%3A; BDUSS=nF0MVFiMTVLcUh-Q2MxQ0M3STZGQUZ4N2hBa1FFRkIzUDI3QlBCZjg5cFdOd1pZQVFBQUFBJCQAAAAAAAAAAAEAAADpLvgG0KGyvLrcyfrG-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFaq3ldWqt5XN; H_PS_PSSID=1447_18240_21105_21386_21454_21409_21554; BD_UPN=12314753; sug=3; sugstore=0; ORIGIN=0; bdime=0; H_PS_645EC=7e2ad3QHl181NSPbFbd7PRUCE1LlufzxrcFmwYin0E6b%2BW8bbTMKHZbDP0g; BDSVRTM=0
      ```
 
-  2. POST请求（cookie假）
+  - POST请求（cookie假）
   
      ```tex
      POST https://passport.baidu.com/v2/api/?login HTTP/1.1
@@ -346,7 +346,7 @@
      3. 如果客户端收到包含 Connection:keep-alive 响应，请求网页中的JS、图片、CSS可以直接发送请求，不必再次建立连接，直到一方（客户端、服务器）关闭连接。
      4. __keep-alive 作用式可以重用连接（TCP/IP），缩短响应时间，减少资源消耗，但是也分情况而定
 
-4. Upgrade-Insecure——Request（升极为HTTPS协议）
+4. Upgrade-Insecure—Request（升极为HTTPS协议）
 
    说明：HTTPS协议是以安全为目标的HTTP协议通道，所以HTTPS承载的页面不允许出现HTTP请求，一旦出现就会提示或报错 
 
@@ -378,7 +378,7 @@
    - `Accept: text/html, application/xhtml+xml;q=0.9, image/*;q=0.8`: 表示浏览器支持的MIME类型分别为 html、xhtml、xml格式文本和所有图片格式资源
    - __q是权重系数，范围时 0 =< q <= 1，q值越大请求的资源格式越倾向谁。';' 前面的类型表示获取格式，如果没有指定 q 值，默认为 1。从左到右排序，如果 q = 0 则表示不接受次资源格式 __。
    
-6. Referer（页面跳转）
+7. Referer（页面跳转）
 
    说明：Referer：表明产生页面的请求来自哪一个 URL，用户是从该 Referer 页面访问当前的页面。这个属性可以用来跟踪 Web 请求来自哪个页面，是从什么网站上来的。
 
@@ -386,7 +386,7 @@
 
    - 有时，遇到下载网站图片时，需要对应的 Referer ，否则无法下载。原理是根据 Referer 来判断下载图片的请求是否来自本网站的页面，如果是可以下载，否则拒绝。
 
-7. Accept-Encoding(文件解压缩格式)
+8. Accept-Encoding(文件解压缩格式)
 
    说明：Accept-Encoding：指出浏览器可以接受的解压缩格式。解压缩方式不同于文件格式，它是为了压缩文件以加速文件传输速率的，浏览器在接受到服务器响应文件先进性解码，然后再检查文件格式，可以减少大量时间。
 
@@ -394,13 +394,13 @@
 
    - 如果多个 Encoding 同时匹配，按照 q 值大小排序，从左到右排序，如果没有标明文件编码格式则可以接受任何编码。
 
-8. Accept-language（语言种类）
+9. Accept-language（语言种类）
 
    说明：`Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7`
 
    - 浏览器可以接受的语言种类，如en或en-us指英语，zh或者zh-cn指中文，当服务器能够提供一种以上的语言版本时要用到，也会使用 q 权重系数来排序。
 
-9. Accept-charset（字符编码）
+10. Accept-charset（字符编码）
 
    说明：指浏览器可以接受的字符编码格式
 
@@ -409,7 +409,7 @@
    - 一般采用国际标准字符编码 Unicode 的 utf-8（可变长度的字符编码）
    - 如果此属性缺省，表示可以接受任何编码格式
 
-10. Cookie（用户登录状态编码）
+11. Cookie（用户登录状态编码）
 
     说明：解决HTTP请求独立问题
 
@@ -421,7 +421,7 @@
       >
       > [参考地址](http://bubkoo.com/2014/04/21/http-cookies-explained/)
     
-11. Cookie 和 Session
+12. Cookie 和 Session
 
     说明：Cookie存储再客户端，Session存储在服务器端
 
@@ -514,7 +514,7 @@
           | private  | 默认值private，仅客户端可以缓存    |
           | public   | 客户端、代理服务器都可以缓存       |
           | no-cache | 使用对比缓存验证缓存数据是否可用   |
-       | max-age  | max-age=XXX，缓存的数据将保存XXX秒 |
+          | max-age  | max-age=XXX，缓存的数据将保存XXX秒 |
           | no-stroe | 所有数据都不缓存                   |
 
        2. 对比缓存：需要用来验证缓存数据是否可用的标识__（基于数据已缓存）__
