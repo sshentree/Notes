@@ -1754,7 +1754,7 @@
         | pattern.search()                              | Pattern 对象   | 从任何位置开始匹配，返回第一个符合规则的，且只匹配一次 | Match 对象、None                 |
         | pattern.findall()                             | Pattern 对象   | 所有的全部匹配，返回列表                               | 列表                             |
         | pattern.finditer()                            | Pattern 对象   | 所有的全部匹配，返回迭代器                             | 迭代器<br>(元素为 Match 对象)    |
-| pattren.sub()                                 | Pattern 对象   | 替换                                                   | 字符串                           |
+        | pattren.sub()                                 | Pattern 对象   | 替换                                                   | 字符串                           |
         | pattern.split()                               | Pattern 对象   | 分割                                                   | 列表                             |
    
      2. 主要函数的使用
