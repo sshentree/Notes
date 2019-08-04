@@ -692,7 +692,7 @@ __请求行__、__请求头__、__空行__、__请求数据__
      <!DOCTYPE html> 
      <!--STATUS OK-->
      空行...
-    html文件
+     html文件
      ```
    
    - 添加其他属性（Connection）
