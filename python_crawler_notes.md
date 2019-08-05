@@ -1993,6 +1993,91 @@ __请求行__、__请求头__、__空行__、__请求数据__
 
 ###  正则表达式案例
 
+1. 正常的爬虫程序
+
+   - URL 地址
+     1. 解析 URL 随网页变化的规律
+     2. 构造动态 URL 地址（无非就是 URL 描述页码的数据就不断变化）
+   - headers 头部信息
+     1. 添加 User-Agent 信息
+     2. 可以添加更多信息
+   - `urllib.request.urlopen(ur=url, headers=headers)` 打开 URL
+     1. 解析响应文件 `response.read().decode()` 转换为字符串
+
+2. 正则表达式匹配
+
+   - 查看源文件（响应文件）的格式、表现形式
+
+     1. 源码
+
+        ```html
+        <div class="daoyu">　　甲：在座的各位大叔、大伯、哥们、爷们，我给大家请安了!　　乙：在座的阿姨、大婶、大娘、奶奶、姐妹们，我给大家送福了!　　甲：你怎么尽给女的行礼，没我们男同胞什么事?不厚道!　　乙：不厚道的也是你在先!你刚才你行礼的时候，不也没提我们女同</div>
+        <div>
+            ......
+        </div>
+        <div class="daoyu">　　1.有一次闺蜜喝多不小心冲进了男厕所，当着一张张惊慌失措的脸，这货竟然故作镇定的大声喊：“怕什么啊！我又没带尺~~~”　　2.知道吗？我真的好想带你出去体验一下KTV的魅力啊！知道什么是KTV吗？就是K你一顿，T你一脚，最后我再做个V的</div>
+        ```
+
+     2. 查找匹配规则
+
+        `'<div class="daoyu>"(.*?)</div>'` 其中要取消正则的贪婪模式。
+
+        即贪婪模式如上源码及匹配规则，正则样式匹配的是从 `<div class="daoyu">` 开始，到最后一个 `</div>` 结束。这显然不是我们理想的匹配结果。
+
+        非贪婪模式，匹配从 `<div class="daoyu">` 开始，到第一个 `</div>` 结束。
+
+3. 代码演示
+
+   - 部分代码演示
+
+     ```python
+     def deal_page(self, html):
+             """
+             处理页面数据
+             """
+             # 初始化正则表达式样式对象
+             # re.S 全文匹配
+             # 正则样式里只有 1 组，所以返回列表
+             # 正则默认是贪婪模式（就是尽量匹配的多）
+             # 取消贪婪模式假 '?' 号（只匹配第一个符合规则）
+             pattern = re.compile('<div\sclass="daoyu">(.*?)</div>', re.S)
+             contents = pattern.findall(html)
+             return contents
+     ```
+
+   - 完整代码
+
+     [查看地址](https://pan.baidu.com/s/1_B-WNP0KxrCfjGIXnVy6Ag)
+
+### XML 文档
+
+说明：[参考地址](https://www.w3school.com.cn/xml/xml_intro.asp)
+
+1. XML 是指__可扩展标记语言（Extensible Markup Language，简称：XML）__
+
+   - 作用
+
+     > XML 被设计是用来__传送、携带数据信息__，不是用来表现、展示数据，HTML 则是用来显示数据，所以 XML用途的焦点是它说明了数据是什么，以及携带的数据信息
+     >
+     > [维基百科](https://zh.wikipedia.org/wiki/XML)
+
+2. XML 与 HTML 的主要差异
+
+   > - XML 不是 HTML 的替代
+   > - XML 和 HTML 为不同的目的而设计
+   > - XML 被设计为传输和存储数据，其焦点是数据内容
+   > - HTML 被设计为显示数据，其焦点是数据外观
+   > - XML 旨在传输信息，而 HTML 旨在显示信息
+
+### HTML DOM 和 XML DOM 用途
+
+1. HTML DOM
+2. XML DOM
+
+
+
+
+
 
 
 
