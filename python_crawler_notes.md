@@ -2071,8 +2071,98 @@ __请求行__、__请求头__、__空行__、__请求数据__
 
 ### HTML DOM 和 XML DOM 用途
 
-1. HTML DOM
-2. XML DOM
+说明：实际本人理解 __“DOM 就是将HTML、XML 树型化”__
+
+1. 什么是 DOM
+
+   说明：__DOM 是 Document Object Model （文档对象模型）的缩写__
+
+   - DOM 是 W3C （万维网联盟）的标准
+   - DOM 定义了访问 HTML 和 XML 文档的标准
+   - W3C DOM 标准被分为 3 个不同的部分
+     1. 核心 DOM 针对任何结构化文档的标准模型
+     2. HTML DOM 针对 HTML 文档的标准模型
+     3. XML DOM 针对 XML 文档的标准模型
+
+2. 什么是 HTML DOM 
+
+   说明：[参考地址](https://www.w3school.com.cn/htmldom/index.asp)
+
+   - 是 HTML 的标准对象模型
+
+   - 是 HTML 标准编程接口
+
+   - 是 W3C 标准
+
+   - HTML DOM 定义了所有 HTML 元素的对象和属性，以及访问它们的方法
+
+     说明：在 HTML DOM 中，所有事物都是节点。DOM 是被视为节点树的 HTML
+
+     1. 整个文档是一个文档节点
+     2. 每个 HTML 元素是元素节点
+     3. 每个 HTML 的属性是属性节点
+     4. 注释是注释节点
+
+3. 什么是 XML DOM
+
+   说明：[参考地址](https://www.w3school.com.cn/xmldom/index.asp)
+
+   - 是 XML 的标准对象模型
+
+   - 是 XML 的标准编程接口
+
+   - 中立于平台和语言（不明白）
+
+   - 是 W3C 的标准
+
+   - XML DOM 定义了所有 XML 元素的对象和属性，以及访问它们的方法（接口）
+
+     说明：DOM 将 XML 文档作为一个树形结构，而树叶被定为节点（同 HTML DOM 一样都是树形节点）
+
+     1. 整个文档是一个文档节点
+     2. 每个 HTML 元素是元素节点
+     3. 每个 HTML 的属性是属性节点
+     4. 注释是注释节点
+
+   - 举例说明
+
+     1. XML文档
+
+        ```xml
+        <?xml version="1.0" encoding="ISO-8859-1"?>
+        <!-- Copyright w3school.com.cn -->
+        <!-- W3School.com.cn bookstore example -->
+        <bookstore>
+        <book category="children">
+        <title lang="en">Harry Potter</title>
+        <author>J K. Rowling</author>
+        <year>2005</year>
+        <price>29.99</price>
+        </book>
+        </bookstore>
+        ```
+
+     2. 对应（1）的树型结构
+
+        > ![XML DOM 树型结构图](git_picture/XML DOM 树型结构图.png)
+
+### XPath 语法介绍
+
+说明：XPath 是一门在 XML 文档中查找信息的语言，XPath 用于 XML 文档中通过元素和属性进行导航。__(XPath 使用路径表达式在 XML 文档中进行导航)__。
+
+本人理解：__使用 XPath 语法来解析 HTML 文档，首先要明白 XPath 是根据路径（元素、属性的节点）进行导航。XML DOM、HTML DOM 将文档属性化，所以将 HTML 属性化，就可以使用 XPath 语法来进行导航__。
+
+1. XPath 语法
+
+   说明：[XPath 语法 参考地址](https://www.w3school.com.cn/xpath/index.asp)
+
+   
+
+
+
+
+
+
 
 
 
