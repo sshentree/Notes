@@ -1,5 +1,5 @@
 ---
-
+typora-root-url: git_picture
 ---
 
 # Python爬虫
@@ -2144,7 +2144,7 @@ __请求行__、__请求头__、__空行__、__请求数据__
 
      2. 对应（1）的树型结构
 
-        > ![XML DOM 树型结构图](git_picture/XML DOM 树型结构图.png)
+        > ![XML_DOM树型结构图](/XML_DOM树型结构图.png)
 
 ### XPath 语法介绍
 
@@ -2156,6 +2156,8 @@ __请求行__、__请求头__、__空行__、__请求数据__
 
    说明：[XPath 语法 参考地址](https://www.w3school.com.cn/xpath/index.asp)
 
+   
+   
    
 
 
