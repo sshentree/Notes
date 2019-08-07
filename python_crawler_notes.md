@@ -2145,20 +2145,225 @@ __请求行__、__请求头__、__空行__、__请求数据__
      2. 对应（1）的树型结构
 
         > ![XML_DOM树型结构图](git_picture/XML_DOM树型结构图.png)
+        
+        
+        
+     3. HTML、XML 和 DOM的区别
+     
+        | 数据格式 | 描述                                           | 设计目的                                                     | 文件结构 |
+        | -------- | ---------------------------------------------- | ------------------------------------------------------------ | -------- |
+        | XML      | Extensible Markup language<br>(可扩展标记语言) | 设计目的是被用来传输和存储数据，其焦点是数据内容             |          |
+        | HTML     | Hyper Markup Language<br>(超文本标记语言)      | 显示数据以及如何更好的显示数据                               |          |
+        | DOM      | Documnet Object Model<br>(文档对象模型)        | DOM 定义了 HTML 和 XML 所有元素的对象和属性，以及访问它们的方法 | 树型结构 |
+     
+        
 
 ### XPath 语法介绍
 
 说明：XPath 是一门在 XML 文档中查找信息的语言，XPath 用于 XML 文档中通过元素和属性进行导航。__(XPath 使用路径表达式在 XML 文档中进行导航)__。
 
-本人理解：__使用 XPath 语法来解析 HTML 文档，首先要明白 XPath 是根据路径（元素、属性的节点）进行导航。XML DOM、HTML DOM 将文档属性化，所以将 HTML 属性化，就可以使用 XPath 语法来进行导航__。
+本人理解：__使用 XPath 语法来解析 HTML 文档，首先要明白 XPath 是根据路径（元素、属性的节点）进行导航。XML DOM、HTML DOM 将文档树型化（形成元素、属性节点），所以将 HTML 树型化，就可以使用 XPath 语法来进行导航__。
 
-1. XPath 语法
+1. XPath 节点介绍
 
    说明：[XPath 语法 参考地址](https://www.w3school.com.cn/xpath/index.asp)
 
+   - XPath 节点类型
    
+     说明：在 XPath 中，有 7 种类型J节点：__元素、属性、文本、命名空间、处理指令、注释以及文档节点（文档节点又称根节点）__。
    
+     1. 在 XPath 中，XML 文档是被作为节点树来对待。树的根节点称之为文档节点或者根节点。
    
+     2. XML 文档
+   
+        ```xml
+        <?xml version="1.0" encoding="ISO-8859-1"?>
+        <!-- Copyright w3school.com.cn -->
+        <!-- W3School.com.cn bookstore example -->
+        <bookstore>
+        <book category="children">
+        <title lang="en">Harry Potter</title>
+        <author>J K. Rowling</author>
+        <year>2005</year>
+        <price>29.99</price>
+        </book>
+        </bookstore>
+        ```
+   
+     3. 在 2 中的 XML 文档中指明各个节点信息
+   
+        | 元素和属性名                     | 节点名称                           |
+        | -------------------------------- | ---------------------------------- |
+        | `<bookstore>`                    | 文档节点                           |
+        | `<author> J K. Rowling</author>` | 元素节点                           |
+        | `lang="en"`                      | 属性节点                           |
+        | `J K.Rowling` 和 `"en"`          | 基本值<br>(基本值是无父或无子节点) |
+   
+   - XPath 节点关系
+   
+     说明：以下解释以该文档为例
+   
+     ```xml
+     <bookstore>
+     <book category="children">
+     <title lang="en">Harry Potter</title>
+     <author>J K. Rowling</author>
+     <year>2005</year>
+     <price>29.99</price>
+     </book>
+     ```
+   
+     1. 父节点
+   
+        说明：每个元素或属性都有一个父节点
+   
+        在上面的文档中 book 元素是 title、author、year 和 price 元素的父节点
+   
+     2. 子节点
+   
+        说明：元素节点可以有 0 个、1 个或者多个子节点
+   
+        在上面文档中 title、author、year以及price 元素都是 book 元素的子节点
+   
+     3. 同级（同胞）
+   
+        说明：拥有相同父节点
+   
+        在上面文档中 title、author、year以及 price 元素都是同级节点
+   
+     4. 先辈和后代
+   
+        先辈就是父节点的父节点
+   
+        后代子节点的子节点
+   
+   2. XPath 基本语法
+   
+      说明：XPath 使用路径表示来选取 XML 文档中的节点或者节点集。节点是通过沿着路径（path）或者步（steops）来选取
+   
+      - 基本语法如表格
+   
+        | 表达式   | 描述                                                   |
+        | -------- | ------------------------------------------------------ |
+        | nodename | 选取此节点所有子节点                                   |
+        | /        | 从根节点选取                                           |
+        | //       | 从匹配选取当前节点选取文档中的节点，而不考虑它们的位置 |
+        | .        | 选取当前节点                                           |
+        | ..       | 选取当前节点的父节点                                   |
+        | @        | 选取属性                                               |
+        
+        | 通配符 | 描述               |
+        | ------ | ------------------ |
+        | *      | 匹配任何元素节点   |
+        | @*     | 匹配任何节点节点   |
+        | node() | 批评日任何类型节点 |
+        
+      - XML 文档
+      
+        ```xml
+        <?xml version="1.0" encoding="ISO-8859-1"?>
+        
+        <bookstore>
+        
+        <book>
+          <title lang="eng">Harry Potter</title>
+          <price>29.99</price>
+        </book>
+        
+        <book>
+          <title lang="eng">Learning XML</title>
+          <price>39.95</price>
+        </book>
+            
+        </bookstore>
+        ```
+      
+      - 实列说明
+      
+        | 路径表示                           | 结果                                                         |
+        | ---------------------------------- | ------------------------------------------------------------ |
+        | bookstore                          | 选取 bookstore 元素的所有节点                                |
+        | /bookstore                         | 选取根节点 bookstore<br>注释：加入路径起始于('/'),则此路径始终代表到某元素的绝对路径 |
+        | //book                             | 选取文档中所有 book 元素，不管在什么位置                     |
+        | //@lang                            | 选取名为 lang 的所有属性                                     |
+        | /bookstore/*                       | 选取 bookstore 元素的所有子元素                              |
+        | //*                                | 选取文档中所有元素                                           |
+        | //title[@*]                        | 选取所有带有属性的 ttitle 元素                               |
+        | //title[@lang="eng"]               | 选取所有 title 元素，并且这些元素拥有值为 eng 的 lang 属性   |
+        | /bookstore/book[price>35.00]/title | 选取 bookstore 元素中的 book 元素的所有 title 元素，且其中的 price 元素的值须大于 35.00。 |
+
+### 使用 XPath 语法爬虫案例
+
+说明：XPath 语法可以导航XML（树型结构文件），Python 中 lxml 库提供了可以将 HTML 文档转换为 HTML DOM 树型结构文档，在使用 XPath 语法来导航 HTML DOM 文档。
+
+[lxml 官方文档](https://lxml.de/index.html)
+
+1. 使用 Python 中的 lxml 库爬虫步骤
+
+   - 明确 URL 地址
+   - 对 headers 进行组装
+   - 提取 服务器响应数据
+   - 将响应数据读出（`read()`）
+   - 将响应文件转换成__字符串或者字节__形式的数据，使用 `xml.etree.HTML('HTML文件')` 将响应数据__转换成 HTML DOM__ 树型结果数据
+   - 使用 HTML DOM 对象提供的方法 `HTML DOM(对象).xpath('XPath语法')` 提取所需数据
+
+2. 怎么使用 XPath 语法提取数据
+
+   - 本人使用 chrome 的插件 __Xpath Helper__（在 __chrome 网上应用商店__就可以下载）
+
+     ![Xpath-chrome](git_picture/Xpath-chrome.png)
+
+   - 类如查询 如下一段 HTML 文档数据 提取数据
+
+     ![XPath_查询](git_picture/XPath_查询.png)
+
+3. 部分代码（不能单独执行，仅供参考）
+
+   ```python
+   # XPath 匹配语句
+   xpath_a = '//div[@class="d_post_content j_d_post_content "]//img[@class="BDE_Image"]/@src'
+   # 处理 XPath 匹配规则
+   def deal_html(self, reponse, xml_xpath):
+           """
+           将服务器返回的值，解析HTML文档为HTML DOM模型
+           """
+           html = lxml.etree.HTML(reponse)
+           print(html)
+           # 返回所有匹配成功的数据以列表形式
+           link = html.xpath(xml_xpath)
+           print('-' * 30)
+           # print(link)
+           return link
+   # 调用处理 XPath 函数
+   links = spider.deal_html(reponse, xpath_a)
+   # 打印匹配结果
+   print(links)
+   
+   打印 links
+   ['https://imgsa.baidu.com/forum/w%3D580/sign=3f8065dd55b5c9ea62f303ebe538b622/945494eef01f3a2926ee86189725bc315d607cc5.jpg', 'https://imgsa.baidu.com/forum/w%3D580/sign=0f203d53c7ea15ce41eee00186013a25/8ceef01f3a292df5ece5ffc3b2315c6035a873c5.jpg', 'https://imgsa.baidu.com/forum/w%3D580/sign=56aeaf0c1bce36d3a20483380af23a24/e81f3a292df5e0fe943edad7526034a85fdf72c5.jpg']
+   ```
+
+4. 完整代码
+
+   说明：本想完成从网站主页面提取用户主页面，但是使用 XPath 总是提取不出来，所以只能直接上用户页面提取数据了。
+
+   [参考地址](https://pan.baidu.com/s/19rKoaJNimxE3f97BlEQB-Q)
+
+### BeautifulSoup4使用
+
+说明：
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
