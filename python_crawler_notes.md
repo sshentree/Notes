@@ -2294,7 +2294,9 @@ __请求行__、__请求头__、__空行__、__请求数据__
 
 ### 使用 XPath 语法爬虫案例
 
-说明：XPath 语法可以导航XML（树型结构文件），Python 中 lxml 库提供了可以将 HTML 文档转换为 HTML DOM 树型结构文档，在使用 XPath 语法来导航 HTML DOM 文档。
+说明：XPath 语法可以导航XML（树型结构文件），在 Python 中，对 XPath 语法提供了 lxml库，可以将 HTML 文档转换为 HTML DOM 树型结构文档，在使用 XPath 语法来导航 HTML DOM 文档。
+
+XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 [lxml 官方文档](https://lxml.de/index.html)
 
@@ -2320,6 +2322,10 @@ __请求行__、__请求头__、__空行__、__请求数据__
 3. 部分代码（不能单独执行，仅供参考）
 
    ```python
+   # 导入模块
+   import lxml.etree
+   
+   
    # XPath 匹配语句
    xpath_a = '//div[@class="d_post_content j_d_post_content "]//img[@class="BDE_Image"]/@src'
    # 处理 XPath 匹配规则
@@ -2349,9 +2355,50 @@ __请求行__、__请求头__、__空行__、__请求数据__
 
    [参考地址](https://pan.baidu.com/s/19rKoaJNimxE3f97BlEQB-Q)
 
-### BeautifulSoup4使用
+### Beautiful Soup4使用
+
+说明：[官方文档](https://beautifulsoup.readthedocs.io/zh_CN/v4.4.0/)
+
+1. Beautiful Soup4 介绍
+
+   - 引用官方的描述
+
+     > Beautiful Suop 是一个可以从 HTML 或者 XML 文档中提取数据的 Python 库，它能够通过你喜欢的转换器实现管用的文档导航、查找、修改文档方式。Beautiful Soup 会帮助你节省数小时甚至数天的工作时间。
+     >
+     > 推荐使用 Beautiful Soup4，因为 3 已经停止开发
+
+   - Beautiful Soup4 和 lxml 的区别
+
+     lxml 只会局部遍历，而 Beautiful Soup 是基于 DOM 的树型结果文档，会载入整个文档，解析整个文档，因此开销时间和内存开销都会大很多。
+
+     lxml 使用 c 开发，Beautlful Soup 是使用 Python 开发的，两者性能有很大差距。
+   
+2. Beautiful Soup 简单语法
+
+   说明：
+
+### 使用 BS4 爬虫案例
 
 说明：
+
+### 正则，lxml 和 Beautiful Soup4 性能对比
+
+1. 话不多，直接上图比较
+
+   | 抓取工具       | 速度对比 | 使用难度对比 | 安装难度对比 |
+   | -------------- | -------- | ------------ | ------------ |
+   | 正则表达式     | 最快     | 困难         | 内置         |
+   | lxml           | 块       | 简单         | 简单         |
+   | beautiful Soup | 慢       | 最简单       | 一般         |
+
+   可以明了看出，实际最优秀的还是__正则表达式__，折中的方法使用__lxml__。
+
+
+
+
+
+
+
 
 
 
