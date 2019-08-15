@@ -1651,6 +1651,187 @@ __请求行__、__请求头__、__空行__、__请求数据__
 
 待续......
 
+## Requests:让 HTTP 服务人类
+
+说明：[官方文档](https://2.python-requests.org//zh_CN/latest/index.html)
+
+### 介绍 Requests 库
+
+1. 对比之前的 `urllib.request` 和 `urllib.parse` 
+   - 不需要手动为 URL 添加查询字符串
+   - 不需要对 POST 数据进行表单编码
+   - Keep-alive 和 HTTP 链接池功能时 100% 自动化
+   - 一切动力都来自于 Resquests 内部的 urllib3
+   - 更符合对 Python 动能的定义
+2. 要跟好的了解，最好对官方文档进行学习
+
+### 如何使用 Requests
+
+说明：链接网络原理上面内容已经进行了讲述，固在 Requests 中，只讲解如何使用
+
+1. GET 请求
+
+   - 最基本的 GET 请求
+
+     ```python
+     import requests
+     
+     response = requests.get('http://www.baidu.com')
+     
+     # 也可以这样写
+     # response = requests.request('get', 'http://www.baidu.com')
+     
+     print(type(response))
+     print(response)
+     
+     运行结果
+     <class 'requests.models.Response'>
+     <Response [200]>
+     ```
+
+2. 响应内容
+
+   - ```python
+     import requests
+     
+     response = requests.get('http://www.baidu.com')
+     ```
+
+   - `response` 是响应文件
+
+     1. `response.text` 自动解码成字符串
+
+        说明：解析出来的是__字符串__
+
+        请求发出后，Requests 会基于 HTTP 头部对响应的编码作出有根据的推测。当使用 `response.text` 时，Requests 会使用其推测的文本编码。你可以找出 Requests 使用了什么编码，并且能够使用`response.encoding` 属性来改变它。
+
+        ```python
+        import requests
+        
+        response = requests.get('http://www.baidu.com')
+        
+        # 改变编码方式
+        response.encoding = 'utf-8'
+        print(response.text)
+        
+        运行结果
+        <!DOCTYPE html>
+        网页内容
+        ```
+
+     2. response.content 二进制响应内容
+
+        说明：响应文件为__二进制__，也可以对其进行解码成字符串
+
+        ```python
+        import requests
+        
+        response = requests.get('http://www.baidu.com')
+        print(response.content)
+        # 对二进制文件进行解码
+        # print(response.content.decode())
+        
+        运行结果
+        b'<!DOCTYPE html>\r\n<!--STATUS OK-->
+        网页内容
+        ```
+
+     3. JSON 响应文件
+
+        `response.json()` 之间解析 json 响应文件
+
+3. 响应状态
+
+   - 响应状态码
+
+     ```python
+     >>> import requests
+     >>> r = requests.get('http://www.baidu.com')
+     # 查看状态码
+     >>> r.status_code
+     200
+     # 验证状态码是否为 ok
+     >>> r.status_code == requests.codes.ok
+     True
+     ```
+
+   - 响应头
+
+     ```python
+     # 查看响应头信息
+     >>> r.headers
+     {'Cache-Control': 'private, no-cache, no-store, proxy-revalidate, no-transform', 'Connection': 'Keep-Alive', 'Content-Encoding': 'gzip', 'Content-Type': 'text/html', 'Date': 'Thu, 15 Aug 2019 13:54:16 GMT', 'Last-Modified': 'Mon, 23 Jan 2017 13:27:57 GMT', 'Pragma': 'no-cache', 'Server': 'bfe/1.0.8.18', 'Set-Cookie': 'BDORZ=27315; max-age=86400; domain=.baidu.com; path=/', 'Transfer-Encoding': 'chunked'}
+     
+     # 获取特定头部信息
+     >>> r.headers['Content-Type']
+     'text/html'
+     ```
+
+4. 定制请求头
+
+   - 简单添加请求头
+
+     ```python
+     import requests
+     
+     url = 'http://www.baidu.com'
+     headers = {'User-Agent': 'my-app'}
+     response = requests.get(url=url, headers=headers)
+     
+     print(type(response))
+     print(response)
+     
+     运行结果
+     <class 'requests.models.Response'>
+     <Response [200]>
+     ```
+
+5. POST 请求
+
+   - 基本 POST 请求
+
+     ```python
+     import requests
+     
+     payload = {'key1': 'value1', 'key2':'value2'}
+     
+     response = requests.post('http://httpbin.org/post', data=payload)
+     
+     print(response.text)
+     
+     运行结果（筛选出有用信息）
+     "form": {
+         "key1": "value1",
+         "key2": "value2"
+       }
+     ```
+
+   - 第二种 POST 基本用法
+
+     ```python
+     import requests
+     
+     payload = (('key', 'value1'), ('key', 'value2'))
+     
+     response = requests.post('http://httpbin.org/post', data=payload)
+     
+     print(response.text)
+     
+     运行结果（筛选有用信息）
+       "form": {
+         "key": [
+           "value1",
+           "value2"
+         ]
+       }
+     ```
+
+6. 代理（proxies）
+
+   说明：如需使用代理，可以通过任意请求方式提供 `proxies` 参数配置代理信息
+
+   待续......
+
 ## 数据处理
 
 说明：对于抓取某个网站或某个应用的数据内容来说，提取有价值的数据，这就是爬虫的根本目的。爬取的数据内容一般分为两种，一种是__结构化数据__、另一种是__非结构化数据__，不同类型的数据，需要采取不同的处理方式。
@@ -2252,11 +2433,11 @@ __请求行__、__请求头__、__空行__、__请求数据__
         | ..       | 选取当前节点的父节点                                   |
         | @        | 选取属性                                               |
         
-        | 通配符 | 描述               |
-        | ------ | ------------------ |
-        | *      | 匹配任何元素节点   |
-        | @*     | 匹配任何节点节点   |
-        | node() | 批评日任何类型节点 |
+        | 通配符 | 描述             |
+        | ------ | ---------------- |
+        | *      | 匹配任何元素节点 |
+        | @*     | 匹配任何节点节点 |
+        | node() | 匹配任何类型节点 |
         
       - XML 文档
       
@@ -2359,6 +2540,11 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 说明：[官方文档](https://beautifulsoup.readthedocs.io/zh_CN/v4.4.0/)
 
+提示：
+
+1. Beautiful Soup4 为不同的解析器提供了相同的接口，但是解析器本身是有区别的，同一个文档被不同的解析器解析后可能会产生不同结构的树型文档，故在使用 BS4 解析文档是最好指定解析器。
+2. 任何HTML或XML文档都有自己的编码方式,比如ASCII 或 UTF-8,但是使用Beautiful Soup解析后,文档都被转换成了Unicode。
+
 1. Beautiful Soup4 介绍
 
    - 引用官方的描述
@@ -2375,7 +2561,124 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
    
 2. Beautiful Soup 简单语法
 
-   说明：
+   说明：__最好参考官方文档进行学习__
+   
+   - 如何使用
+   
+     将文档传入 BeautifulSoup 的构造方法，就可以的到文档对象，可以传入一段字符串或者是一个文件句柄
+   
+     ```python
+     from bs4 import BeautifulSoup
+     
+     
+     soup = BeautifulSoup('index.html')
+     soup = BeautifulSoup('<html>data<html>')
+     ```
+   
+     首先，文档被转换成 Unicode ,并且 HTML 实例都被转换为 Unicode 编码（就是一个字符串也会被转换为 HTML 格式）。
+   
+     ```python
+     from bs4 import BeautifulSoup
+     
+     
+     soup = BeautifulSoup(markup='I love you', features='lxml')
+     print(type(soup))
+     print(soup，end='\n\n')
+     # 格式化打印
+     print(soup.prettify())
+     
+     运行结果
+     <class 'bs4.BeautifulSoup'>
+     <html><body><p>I love you</p></body></html>
+     # 格式化打印
+     <html>
+      <body>
+       <p>
+        I love you
+       </p>
+      </body>
+     </html>
+     ```
+   
+     然后，Beautiful Soup 选择最合适的解析器来解析这段文档，这里最好手动指定解析器（'lxml'）,避免环境不同造成解析结构不同。
+   
+   - 解析文档中四大对象种类
+   
+     Beautiful Soup 将复杂的文档转换成一种复杂的树型结构，每一个节点是 Python 对象，所有随想可以归纳为 4 种。
+   
+     | 名称            | 节点对象                                                     |
+     | --------------- | ------------------------------------------------------------ |
+     | Tag             | Tag 对象于 HtML，XML 原生文档中标签相同                      |
+     | NavigableString | 标签的文本内容。即 `.string` 可获取                          |
+     | BautifulSoup    | BeautifulSoup 对象表示一个文档内容，是一个特殊的 Tag 标签，没有属性 |
+     | Comment         | 一个特殊的 NavigableString ，输出不包含注释                  |
+   
+     1. Tag  的属性 name，attributes
+   
+        ```python
+        from bs4 import BeautifulSoup
+        
+        
+        soup = BeautifulSoup(markup='<html><body><p id="p_id" class="p_class" style="p_style">I love you</p></body></html>', features='lxml')
+        tag = soup.p
+        
+        # 获取标签的 name
+        print(tag.name)
+        
+        # 获取标签全部属性
+        # 返回值为 字典
+        print(tag.attrs)
+        
+        # 获取 id 属性
+        print(tag['id'])
+        
+        运行结果
+        p
+        {'id': 'p_id', 'class': ['p_class'], 'style': 'p_style'}
+        p_id
+        ```
+   
+     2. NavjgableString
+   
+        文本内容包含在 Tag 中，BeautifulSoup 用 NavigableString 类来包装 Tag 中的文本内容
+   
+        ```python
+        from bs4 import BeautifulSoup
+        
+        
+        soup = BeautifulSoup(markup='<html><body><p id="p_id" class="p_class" style="p_style">I love you</p></body></html>', features='lxml')
+        tag = soup.p
+        # 打印文本类型
+        print(type(tag.string))
+        # 打印文本内容
+        # 和字符串一样使用
+        print(tag.string)
+        
+        运行结果
+        <class 'bs4.element.NavigableString'>
+        I love you
+        ```
+   
+     3. BeautifulSoup
+   
+        `BeautifulSoup` 对象表示的是一个文档的全部内容，大部分时候，可以当作一个 Tag 对象使用。
+   
+        因为 `BeautifulSoup` 对象并不是真正的 HTML 的 Tag ，所以它没有 name 和 attribute 属性，但是查看它的 name 属性时包含了一个特殊的值 `[document]`。
+   
+        ```python
+        from bs4 import BeautifulSoup
+        
+        soup = BeautifulSoup(markup='<html><body><p id="p_id" class="p_class" style="p_style">I love you</p></body></html>', features='lxml')
+        # 打印 soup 属性
+        print(soup.name)
+        
+        运行结果
+        [documnet]
+        ```
+   
+     4. Comment
+   
+        Comment 对象是一个特殊的 NavigableString 对象
 
 ### 使用 BS4 爬虫案例
 
@@ -2464,4 +2767,4 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 
 
- 
+
