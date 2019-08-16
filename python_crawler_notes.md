@@ -1688,6 +1688,30 @@ __请求行__、__请求头__、__空行__、__请求数据__
      <class 'requests.models.Response'>
      <Response [200]>
      ```
+     
+   - 带参数的 GET 请求
+
+     ```python
+     import requests
+     
+     # 查询参数
+     payload = {'wd': '中国'}
+     url = 'http://www.baidu.com/s'
+     
+     # 不用手动编码
+     response = requests.get(url=url, params=payload)
+     
+     # 将响应文件内容使用 二进制 表示
+     b_response = response.content
+     
+     # 为方便查看将二进制进行解码
+     print(b_response.decode())
+     
+     运行结果
+     <!DOCTYPE html> 
+     <!--STATUS OK-->
+     网页内容
+     ```
 
 2. 响应内容
 
@@ -1830,7 +1854,98 @@ __请求行__、__请求头__、__空行__、__请求数据__
 
    说明：如需使用代理，可以通过任意请求方式提供 `proxies` 参数配置代理信息
 
-   待续......
+   __代理是不能使用的（假的）__
+   
+   - 公共代理使用
+   
+     ```python
+     import requests
+     
+     
+     # 现在知识来看
+     #   http 代理 http 协议网站
+     #   https 代理 https 协议网站
+     #   但是好像已经没有这个限制了
+     # 
+     # 最主要的是，建立连接的方式不同
+     proxies = {
+         'http': 'http://12.34.56.79:9523',
+         'https': 'http://10.10.1.10:1080'
+     }
+     
+     response = requests.get('http://www.baidu.com', proxies=proxies)
+     
+     print(response.status_code)
+     ```
+   
+   - 私密代理使用（代理使用 HTTP Basic Auth 基础认证）
+   
+     ```python
+     # 代理格式
+     proxies = {
+         'http':'http://uesr:password@10.10.1.10:3128'
+     }
+     ```
+   
+   - web 客户端验证
+   
+     ```python
+     import requests
+     
+     
+     # web 客户端验证 用户名/密码
+     auth = ('test', '123456')
+     
+     response = requests.get('http://192.1.1.0', auth=auth)
+     
+     print(response.status_code)
+     ```
+   
+7. requests 模块中 Session 模块
+
+   - Session解释
+
+     在 requests 中里，Session对象表示一次会话，一次会话表示从客户端浏览器链接服务器开始，到客户端浏览器与服务器断开为止。
+
+     会话对象让你能够跨域请求保持某些参数，它也会在同一个 Session 实例发出的所有请求之间保持 cookie， 期间使用 `urllib3` 的 [connection pooling](http://urllib3.readthedocs.io/en/latest/reference/index.html#module-urllib3.connectionpool) 功能。所以如果你向同一主机发送多个请求，底层的 TCP 连接将会被重用，从而带来显著的性能提升。
+
+   - 使用 Session 对象
+
+     ```python
+     import requests
+     
+     
+     # 创建session对象，可以保存Cookie值
+     session = requests.session() 
+     
+     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36"}
+     
+     # 需要登录的用户名和密码
+     data = {"email":"15702423221", "password":"sHEN0077"}  
+     
+     # 发送附带用户名和密码的请求，并获取登录后的Cookie值，保存在session里
+     session.post("http://www.renren.com/PLogin.do", data = data, headers=headers)
+     
+     # session包含用户登录后的Cookie值，可以直接访问登录后才可以访问的页面
+     response = session.get("http://www.renren.com/448414213/profile")
+     
+     # 打印响应状态码
+     print(response.status_code)
+     
+     # 打印响应内容
+     # 自动解析成功
+     print(response.text)
+     
+     运行结果
+     200
+     <!doctype html><html class="nx-main980" >
+     ```
+
+## 同源策略、跨域请求
+
+说明：同源策略目的是为了安全考虑，牺牲了网页部署的灵活性。跨域请求目的是在安全和灵活中找到一个平衡点。
+
+待续......
 
 ## 数据处理
 
@@ -2682,7 +2797,9 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ### 使用 BS4 爬虫案例
 
-说明：
+说明：bs4 太过于简单，所以没有必要进行案例分析
+
+待续......
 
 ### 正则，lxml 和 Beautiful Soup4 性能对比
 
@@ -2695,6 +2812,14 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
    | beautiful Soup | 慢       | 最简单       | 一般         |
 
    可以明了看出，实际最优秀的还是__正则表达式__，折中的方法使用__lxml__。
+
+### JSON 数据格式
+
+待续......
+
+### JsonPath语法介绍
+
+待续......
 
 
 
