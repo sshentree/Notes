@@ -2815,9 +2815,13 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ### JSON 数据格式
 
+说明：[官方文档](https://docs.python.org/zh-cn/3.6/library/json.html)
+
 待续......
 
 ### JsonPath语法介绍
+
+说明：[官方文档](https://goessner.net/articles/JsonPath/)
 
 待续......
 
