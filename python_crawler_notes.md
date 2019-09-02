@@ -1945,6 +1945,12 @@ __请求行__、__请求头__、__空行__、__请求数据__
 
 说明：同源策略目的是为了安全考虑，牺牲了网页部署的灵活性。跨域请求目的是在安全和灵活中找到一个平衡点。
 
+### 跨域请求
+
+待续......
+
+### 同源策略
+
 待续......
 
 ## 数据处理
@@ -2695,7 +2701,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      ```python
      from bs4 import BeautifulSoup
      
-     
+     # 参数 markup 是 html、xml 文档，feature 指定解析器
      soup = BeautifulSoup(markup='I love you', features='lxml')
      print(type(soup))
      print(soup，end='\n\n')
@@ -2723,7 +2729,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
    
      | 名称            | 节点对象                                                     |
      | --------------- | ------------------------------------------------------------ |
-     | Tag             | Tag 对象于 HtML，XML 原生文档中标签相同                      |
+     | Tag             | Tag 对象与 HTML，XML 原生文档中标签相同                      |
      | NavigableString | 标签的文本内容。即 `.string` 可获取                          |
      | BautifulSoup    | BeautifulSoup 对象表示一个文档内容，是一个特殊的 Tag 标签，没有属性 |
      | Comment         | 一个特殊的 NavigableString ，输出不包含注释                  |
@@ -2815,15 +2821,204 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ### JSON 数据格式
 
-说明：[官方文档](https://docs.python.org/zh-cn/3.6/library/json.html)
+说明：[官方文档](https://docs.python.org/zh-cn/3.6/library/json.html)<br>JSON（javascript Object Nonation）是一种轻量级的数据交互格式。<br>优点：<br>1. 方便阅读和编写<br>2.方便机器进行解析和生成<br>3.适合进行数据交换，比如网站前台与后台之间进行交互<br>Python 自带 JSON 模块，直接使用 `import json`
 
-待续......
+1. JSON 数据结构类型介绍
+
+   JSON 简单的说就是 Javascript 中的__对象__、__数组__，所以这两种结构就是__对象__、__数组__结构，通过这两种结构可以表示各种复杂的结构
+
+   - 对象
+
+     对象在 Javascript 中表示为  ‘{}’ 括起来的内容，数据结构为 `{key1: value1, key2: value2, key3: value3......}` 键值对结构。在面向对象语言中，key 为对象属性，value 为属性值。取值方法为 `object.key` 获取属性值，属性值可以是 （数字、数组、字符串、对象）。
+
+   - 数组：
+
+     数组在 Javascript 中表示 [] 括起来的内容，数据结构为  `['python', 'c\c++', 'Java'......]`。取值方式为数组的索引取值。字段值的类型为（数字、数组、字符串、对象）。
+
+2. Python 的 json 库的使用
+
+   json 模块将介绍四种方法：dumps、loads、dump、load，用于 JSON 格式（实际就是字符串类型）与 Python 的数据类型进行转换。
+
+   - `json.loads` 使用
+
+     1. 将 JSON 数据格式（字符串）转换为 Python 对象。从 JSON 到 Python 的数据类型转换如表
+
+        | JSON         | Python     |
+        | ------------ | ---------- |
+        | object       | dict       |
+        | array        | list       |
+        | string       | unicode    |
+        | number(int)  | int \ long |
+        | number(real) | float      |
+        | ture         | Ture       |
+        | false        | False      |
+        | null         | None       |
+
+     2. 代码演示
+
+        ```python
+        import json
+        
+        
+        # 定义 json 的 数组 形式数据格式
+        json_list = '["python", "c", "java"]'
+        
+        # 定义 json 的 对象（字典）形式的数据格式
+        json_dict = '{"city": "Shenyang", "major": "Computer"}'
+        
+        # 使用 json.loads() 将 json 数据转换为 Python 数据格式
+        python_list = json.loads(json_list)
+        python_dict = json.loads(json_dict)
+        
+        # 打印
+        print(python_list)
+        print('+' * 35)
+        print(python_dict)
+        
+        运行结果
+        ['python', 'c', 'java']
+        +++++++++++++++++++++++++++++++++++
+        {'city': 'Shenyang', 'major': 'Computer'}
+        ```
+
+        __注意：之前使用 `"['python', 'c', 'java']"`运行报错，使用 `'["python", "c", "java"]'` 正常运行__
+
+   - `json.dumps()` 使用
+
+     1. 将 Python 数据格式转换为 JSON 数据格式（字符串）。从 Python 到 JSON 的数据类型转换如表
+
+        | Python             | JSON   |
+        | ------------------ | ------ |
+        | dict               | object |
+        | list \ tuple       | array  |
+        | str \ unicode      | string |
+        | int \ long \ float | number |
+        | Ture               | ture   |
+        | False              | false  |
+        | None               | null   |
+
+     2. 代码演示
+
+        ```python
+        import json
+        
+        
+        # 定义 python 的 列表 形式数据格式
+        python_list = ['python', 'c', 'java']
+        
+        # 定义 python 的 字典 形式的数据格式
+        python_dict = {'city': 'Shenyang', 'major': 'Computer'}
+        
+        # 使用 json.dumps() 将 python 数据转换为 json 数据格式
+        json_list = json.dumps(python_list)
+        json_dict = json.dumps(python_dict)
+        
+        # 打印
+        print(type(json_list))
+        print(json_list)
+        print('+' * 35)
+        print(type(json_dict))
+        print(json_dict)
+        
+        运行结果
+        <class 'str'>
+        ["python", "c", "java"]
+        +++++++++++++++++++++++++++++++++++
+        <class 'str'>
+        {"city": "Shenyang", "major": "Computer"}
+        ```
+
+   - `json.dump()` 和 `json.load()` 使用
+
+     1. `json.dump()`将 Python 内置类型转化为为 JSON 对象写入文件
+
+     2. `json.load()` 将 JSON 形式的字符串转化为 Python 的数据类型
+
+     3. 代码演示
+
+        ```python
+        import json
+        
+        
+        # 定义 python 的 列表 形式数据格式
+        python_list = ['python', 'c', 'java']
+        
+        # 定义 python 的 字典 形式的数据格式
+        python_dict = {'city': 'Shenyang', 'major': 'Computer'}
+        
+        # 使用 json.dump() 将 python 数据转换为 json 数据格式,并写入文件
+        json.dump(python_list, open('Json数据/pythonlist.json', 'w'), ensure_ascii=False)
+        json.dump(python_dict, open('Json数据/pythondict.json', 'w'), ensure_ascii=False)
+        
+        # 使用 json.load() 将 json文件 数据读出、转换为 python 数据格式
+        new_list = json.load(open('Json数据/pythonlist.json', 'r'))
+        new_dict = json.load(open('Json数据/pythondict.json', 'r'))
+        
+        # 打印
+        print(type(new_list))
+        print(new_list)
+        print(type(new_dict))
+        print(new_dict)
+        
+        运行结果
+        <class 'list'>
+        ['python', 'c', 'java']
+        <class 'dict'>
+        {'city': 'Shenyang', 'major': 'Computer'}
+        ```
 
 ### JsonPath语法介绍
 
 说明：[官方文档](https://goessner.net/articles/JsonPath/)
 
-待续......
+1. 介绍 JsonPath
+
+   - JsonPath 是一种信息抽取类库，是从 json 文档中获取指定信息的工具，有多种语言实现（Javascript \ Python \ PHP \ Java）。JsonPath 与 JSON，相当于 XPATH 与 XML一样关系。
+
+   - 导入 `import jsonpath`
+
+2. JsonPath 与 XPath 语法
+
+   - | XPath | JsonPath | 描述                                                         |
+     | ----- | -------- | ------------------------------------------------------------ |
+     | /     | $        | 根节点                                                       |
+     | .     | @        | 当前节点                                                     |
+     | /     | .or[]    | 子节点                                                       |
+     | ..    | n/a      | 父亲节点（json 不支持）                                      |
+     | //    | ..       | 任意位置，选择符合条件                                       |
+     | *     | *        | 匹配所有节点                                                 |
+     | @     | n/a      | 根据属性访问（json不支持，因为 json 数据格式是 key：value 结构） |
+     | []    | []       | 迭代器标识（做简单的迭代操作，数组下标、属性值等）           |
+     | \|    | [,]      | 支持迭代器做多选                                             |
+     | []    | ?()      | 支持过滤操作                                                 |
+     | n/a   | （）     | 支持表达式计算（XPath 不支持）                               |
+     | （）  | n/a      | 分组（Json 不支持）                                          |
+
+   - Json 数据实类
+
+     ```json
+     { "store": {
+         "book": [ 
+           { "category": "reference",
+             "author": "Nigel Rees",
+             "title": "Sayings of the Century",
+             "price": 8.95
+           },
+           { "category": "fiction",
+             "author": "Evelyn Waugh",
+             "title": "Sword of Honour",
+             "price": 12.99
+           },
+         ],
+         "bicycle": {
+           "color": "red",
+           "price": 19.95
+         }
+       }
+     }
+     ```
+
+     
 
 
 
