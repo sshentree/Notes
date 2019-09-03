@@ -2910,8 +2910,9 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
         python_dict = {'city': 'Shenyang', 'major': 'Computer'}
         
         # 使用 json.dumps() 将 python 数据转换为 json 数据格式
-        json_list = json.dumps(python_list)
-        json_dict = json.dumps(python_dict)
+        # 禁用 默认转码格式为 ASCII，启用转码格式为 Unicode
+        json_list = json.dumps(python_list, ensure_list=False)
+        json_dict = json.dumps(python_dict, ensure_list=False)
         
         # 打印
         print(type(json_list))
@@ -2926,16 +2927,16 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
         +++++++++++++++++++++++++++++++++++
         <class 'str'>
         {"city": "Shenyang", "major": "Computer"}
-        ```
-
-   - `json.dump()` 和 `json.load()` 使用
-
-     1. `json.dump()`将 Python 内置类型转化为为 JSON 对象写入文件
-
-     2. `json.load()` 将 JSON 形式的字符串转化为 Python 的数据类型
-
-     3. 代码演示
-
+     ```
+   
+- `json.dump()` 和 `json.load()` 使用
+   
+  1. `json.dump()`将 Python 内置类型转化为为 JSON 对象__后__写入文件
+   
+  2. `json.load()` 将 JSON 形式的字符串转化为 Python 的数据类型
+   
+  3. 代码演示
+   
         ```python
         import json
         
@@ -2996,6 +2997,8 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
    - Json 数据实类
 
+     原始文件为 XML 文件，构建简单的 JSON 格式
+     
      ```json
      { "store": {
          "book": [ 
@@ -3015,80 +3018,71 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
            "price": 19.95
          }
        }
+}
+     ```
+     
+   - XPath 与 JsonPath语法对比（使用上面 JSON 数据格式）
+   
+     | XPath 语法           | JSONPath 语法                       | 结果                                   |
+     | -------------------- | ----------------------------------- | -------------------------------------- |
+     | /store/book/author   | $.store.book[*].author              | 书店所有书籍的作者                     |
+     | //author             | $..author                           | 所有作者                               |
+     | /store/*             | $.store.*                           | 书店的所有东西，书籍、红色自行车       |
+     | /store//price        | $.store..price                      | 书店里所有东西的价钱                   |
+     | //book[3]            | $..book[2]                          | 书店里第 3 本书                        |
+     | //book[last()]       | $..book[@.length-1]<br>$..book[-1:] | 书店里最后 1 本书                      |
+     | //bool[position()<3] | $..book[0,1]<br>$..book[:2]         | 前 2 本书                              |
+     | //book[price<10]     | $..book[?(@.price<10)]              | 过滤价钱大于 10 元的书籍               |
+     | //*                  | $..*                                | XML 文档中所有元素，JSON结构的所有成员 |
+   
+3. JsonPath 实例演示
+
+   - 中国个各大城市的 JSON 文件 [各大城市 JSON 文件](https://www.lagou.com/lbs/getAllCitySearchLabels.json)
+
+   - 代码演示
+
+     ```python
+     import json
+     # json 解析语法，对应 xpath
+     import jsonpath
+     
+     # 定义 url 地址，请求头部信息
+     url = 'https://www.lagou.com/lbs/getAllCitySearchLabels.json'
+     headers = {
+         'User-Agent':
+         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv2.0.1) Gecko/20100101 Firefox/4.0.1'
      }
+     
+     # 构造 http 协议请求
+     request = urllib.request.Request(url=url, headers=headers)
+     response = urllib.request.urlopen(request)
+     
+     # 将相应文件 转换为 字节（byte），在转换为 字符串（string）
+     html = response.read().decode()
+     # JSON 结构文件，为字符串
+     print('JSON 数据格式', type(html))
+     
+     # 将 JSON 响应文件，转换未 Python 的数据格式
+     python_unicode = json.loads(html)
+     # JSON 结构文件，转换为 Python 数据格式，为字典
+     print('转换为 Python 数据格式 ', type(python_unicode))
+     
+     # 解析 python格式的 JSON 数据结构
+     # '$..name' 匹配语法
+     city_list = jsonpath.jsonpath(python_unicode, '$..name')
+     
+     # 打印
+     print('jsonpath 匹配结构', type(city_list))
+     print(len(city_list))
+     print(city_list)
+     
+     运行结果
+     JSON 数据格式 <class 'str'>
+     转换为 Python 数据格式  <class 'dict'>
+     298
+     ['安阳', '安庆',
+      ......
+     '张掖', '张家界']
      ```
 
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+   - 待续......
