@@ -2653,7 +2653,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 4. 完整代码
 
-   说明：本想完成从网站主页面提取用户主页面，但是使用 XPath 总是提取不出来，所以只能直接上用户页面提取数据了。
+   说明：本想完成从网站主页面提取用户主页面，但是使用 XPath 总是提取不出来，所以只能直接上用户页面提取数据了。<br> __使用 XML 浏览器使用 IE 的 USER-AGENT，可以正确匹配__
 
    [参考地址](https://pan.baidu.com/s/19rKoaJNimxE3f97BlEQB-Q)
 
@@ -2927,16 +2927,19 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
         +++++++++++++++++++++++++++++++++++
         <class 'str'>
         {"city": "Shenyang", "major": "Computer"}
+        ```
+     ```
+     
      ```
    
 - `json.dump()` 和 `json.load()` 使用
-   
+  
   1. `json.dump()`将 Python 内置类型转化为为 JSON 对象__后__写入文件
-   
+  
   2. `json.load()` 将 JSON 形式的字符串转化为 Python 的数据类型
-   
+  
   3. 代码演示
-   
+  
         ```python
         import json
         
@@ -3083,6 +3086,65 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      ['安阳', '安庆',
       ......
      '张掖', '张家界']
+     ```
+
+
+### 使用 JsonPath 语法爬虫案例
+
+1. 对数据网络数据进行爬取，解析提取，然后将 Python 格式数据转换为 JSON 数据格式
+
+   - 代码演示
+
+     ```python
+     import urllib.request
+     import lxml.etree
+     import json
+     
+     
+     url = 'https://www.qiushibaike.com/hot/'
+     headers = {
+         'User-Agent':
+         'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko'
+     }
+     
+     request = urllib.request.Request(url=url, headers=headers)
+     response = urllib.request.urlopen(request)
+     
+     html = response.read().decode()
+     # 将服务器返回的响应，解析HTML文档为 HTML DOM 模型
+     html = lxml.etree.HTML(html)
+     
+     # XPath 语法 匹配\提取 创建根节点
+     node_list = html.xpath("//div[contains(@id,'qiushi_tag_')]")
+     
+     item = {}
+     
+     for text in node_list:
+         # test() 是 XPath 方法 对标签内容进行提取
+         # stats = text.xpath("/div[@class='stats']/span/i/text()")[0]
+     
+         # 匹配结果为列表
+         # 但列表元素是网页标签
+         # 需要进行进一步提取,使用 text 属性
+         stats = text.xpath(".//div[@class='stats']/span/i")[0].text
+         content = text.xpath(".//div[@class='content']/span")[0].text
+     
+         # 对字典进行赋值
+         item = {
+             'stats': stats,
+             'content': content
+         }
+         
+         # 将 Python 数据格式 转换 JSON 数据格式,写入文件中
+         # encoding 参数,表示使用 utf-8 对文件进行编码
+         with open('多线程爬虫/数据.json', 'a', encoding='utf-8') as f:
+             f.write(json.dumps(item, ensure_ascii=False) + '\n')
+             
+     运行结果
+     文件内容
+     ......
+     {"stats": "1478", "content": "\n\n\n我和老婆回家，刚好老爸的一个朋友来我家。"}
+     ......
      ```
 
    - 待续......
