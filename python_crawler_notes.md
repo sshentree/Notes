@@ -3018,7 +3018,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
            "price": 19.95
          }
        }
-}
+     }
      ```
      
    - XPath 与 JsonPath语法对比（使用上面 JSON 数据格式）
