@@ -2928,9 +2928,6 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
         <class 'str'>
         {"city": "Shenyang", "major": "Computer"}
         ```
-     ```
-     
-     ```
    
 - `json.dump()` 和 `json.load()` 使用
   
