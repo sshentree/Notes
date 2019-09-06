@@ -3120,7 +3120,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
          # test() 是 XPath 方法 对标签内容进行提取
          # stats = text.xpath("/div[@class='stats']/span/i/text()")[0]
      
-         # 匹配结果为列表
+         # 匹配结果为列表，取值为下标[]
          # 但列表元素是网页标签
          # 需要进行进一步提取,使用 text 属性
          stats = text.xpath(".//div[@class='stats']/span/i")[0].text
@@ -3185,8 +3185,139 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
    - Python 的多线程用途
 
      1. 由 GIL (全局解释器锁)，使得 Python 同一时间只能执行一个线程，其他线程处于等待状态
-
-     2. Python 的多线程适用于，大量密集的 I/O 处理
+2. Python 的多线程适用于，大量密集的 I/O 处理
+    
         - 当前 CPU 的计算能力，远远大于文件的读写等 I/O 处理能力，固 CPU 常处于等待状态
+    
      3. Python 的多进程适用于。大量的并行计算
+
+### 多线程爬虫案例
+
+1. 程序流程
+
+   - 流程
+
+     ```flow
+     st=>start: start
+     in1=>inputoutput: 爬取网页 url 的队列
+     op1=>operation: 创建 3 个线程，爬取网页数据
+     con1=>condition: 判断队列是否为空
+     op2=>operation: 分别从 url 队列中提取 url 地址
+     op3=>operation: 将各个线程爬取的数据存入网页数据队列中
+     out1=>inputoutput: 响应数据队列
+     op4=>operation: 创建 3 个解析线程
+     con2=>condition: 判断队列是否为空
+     op5=>operation: 分别从数据队列中提取网页数据
+     op6=>operation: 将解析后数据转为 json 格式
+     out2=>inputoutput: 解析后数据
+     e=>end: 结束
+
+     st->in1->op1->con1(no)->op2->op3->out1->op4->con2(no)->op5->op6->out2->e
+     con1(yes)->op3
+     con2(yes)->op6
+     ```
+     
+     
+
+2. 主要代码演示
+
+   说明：[完整代码地址](https://pan.baidu.com/s/1d6Yly0p9LCvsbm35WW7Xjw)
+
+   - 演示
+
+     ```python
+     # 验证 队列 是否为空
+     CRAWL_EXIT = False
+     PARSE_EXIT = False
+     
+     # json 文件路径
+     file_path = '多线程爬虫/name_list.json'
+     
+     def main():
+         # 创建 页码 队列
+         page_queue = Queue(10)
+         # 队列属性: maxsize 表示队列长度
+         for i in range(1, 11):
+             # 放入1-10个数据
+             page_queue.put(i)
+     
+         # 创建页面信息队列，无参数，表示无限多（html源码）
+         data_queue = Queue()
+     
+         crawllist = ['采集1号', '采集2号', '采集3号']
+         threadcrawl = []
+         for thread_name in crawllist:
+             thread = ThreadCrawl(thread_name, page_queue, data_queue)
+             thread.start()
+             threadcrawl.append(thread)
+     
+         # 加上堵塞时，只有等待 爬取线程全部执行结束，才开始执行解析线程
+         # 这样，本人不知道，后果怎样
+         # 
+         # 但是，没有这堵塞语句时
+         # 爬取线程在爬取网页，响应文件进入队列中
+         # 
+         for thread in threadcrawl:
+             thread.join()
+     
+         # 三个解析线程名
+         parselist = ['解析线程1号','解析线程2号','解析线程3号']
+         threadparse = []
+     
+         for thread_name in parselist:
+             thread = ThreadParse(thread_name, data_queue, file_path)
+             thread.start()
+             threadparse.append(thread_name)
+     
+         # 等待队列为空
+         while not page_queue.empty():
+             pass
+     
+         global CRAWL_EXIT
+         CRAWL_EXIT = True
+         print('pageQueue为空')
+     
+         while not data_queue.empty():
+             pass
+         global PARSE_EXIT
+         PARSE_EXIT = True
+         print('data_queue为空')
+         
+     
+     if __name__ == '__main__':
+         main()
+     ```
+
+3. 遇到问题说明、有待解决
+
+   - json 文件出现不寻常的大量重复数据
+
+     1. 爬取网页就是这样
+
+     2. 线程之间调度、网页页码队列的取值、响应文件队列的取值，出现问题
+
+     3. 爬取线程的堵塞 `.json()` 有一定问题，加上，只有等代爬取完成，才开始执行主线程、解析线程。不加，容易出现，解析线程某一时间遇到响应队列没有值，而结束线程（概率小，但总会遇到）如下：
+
+        ```python
+        """
+        启动： 采集1号
+        启动： 采集2号
+        启动： 采集3号
+        启动： 解析线程1号
+        启动： 解析线程2号
+        启动： 解析线程3号
+        page_queue为空
+        结束： 采集2号
+        结束： 解析线程1号
+        结束： 采集3号
+        data_queue为空
+        结束： 解析线程3号
+        结束： 解析线程2号
+        结束： 采集1号
+        """
+        ```
+
+## 待续......
+
+
 
