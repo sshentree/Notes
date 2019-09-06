@@ -102,6 +102,8 @@
 
    - 过程式
 
+     说明：从结果可以看出 Process 创建的进程，主进程会等待子进程执行结束，再结束
+     
      ```python
      # 继承Process类
      # 自己定义一个类，要定义run()方法，使用start()调用run()方法
@@ -136,48 +138,48 @@
      ----1----sub
      ----1----sub
      ----1----sub
-     
-     从结果可以看出 Process 创建的进程，主进程会等待子进程执行结束，再结束
      ```
 
 3. Pool() 类，进程池
 
    说明：Pool()  进程池可以提供指定数量的进程供用户调用，当有新的请求提交到Pool中时，如果进程池没有满，那么就会创建一个新的进程来执行该请求，但如果进程池中的进程已经达到上线规定最大值，该请求就会等待，直到进程中又可使用的进程，才会创建新的进程。[引用地址](https://www.cnblogs.com/kaituorensheng/p/4465768.html)
 
-   ```python
-   # 进程池 pool
-   from multiprocessing import Pool
-   import time
-   import random
-   import os
+   - 代码演示
    
+     说明：`Pool()` 一定要使用 `.join()`， 因为 `Pool()` 主进程不会等待子进程结束，再结束。
    
-   def worker(msg):
-       print('任务 ：%d'%msg)
-       for i in range(random.randint(1, 3)):
-           print('pid=%d'%os.getpid())
-           time.sleep(1)
-       # print('-' * 40)
-   # 创建进程池（存放4个进程）
-   
-   if __name__ == '__main__':
-       # 只能在‘main’执行
-       pool = Pool(4)
-       for i in range(10):
-           # 将进程添加到进程中，如进程池满，则需要等待
-           pool.apply_async(func=worker, args=(i,)) 
-           # 堵塞方式执行，一次执行一个进程（就像对于是单进程）
-           # pool.apply(worker, args=(i,))
-           
-       # 关闭进程池，相当于不能再添加新任务
-       pool.close() 
-       # .join()是等待子进程执行完毕
-       # 主进程堵塞，不会继续执行
-       pool.join()
-       print('----主进程 结束----')
-   ```
-   
-   解释：`Pool()` 一定要使用 `.join()`， 因为 `Pool()` 主进程不会等待子进程结束，再结束。
+     ```python
+     # 进程池 pool
+     from multiprocessing import Pool
+     import time
+     import random
+     import os
+     
+     
+     def worker(msg):
+         print('任务 ：%d'%msg)
+         for i in range(random.randint(1, 3)):
+             print('pid=%d'%os.getpid())
+             time.sleep(1)
+         # print('-' * 40)
+     # 创建进程池（存放4个进程）
+     
+     if __name__ == '__main__':
+         # 只能在‘main’执行
+         pool = Pool(4)
+         for i in range(10):
+             # 将进程添加到进程中，如进程池满，则需要等待
+             pool.apply_async(func=worker, args=(i,)) 
+             # 堵塞方式执行，一次执行一个进程（就像对于是单进程）
+             # pool.apply(worker, args=(i,))
+             
+         # 关闭进程池，相当于不能再添加新任务
+         pool.close() 
+         # .join()是等待子进程执行完毕
+         # 主进程堵塞，不会继续执行
+         pool.join()
+         print('----主进程 结束----')
+     ```
 
 ### 进程之间通信
 
