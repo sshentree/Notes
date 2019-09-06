@@ -1,5 +1,5 @@
 ---
-
+ 
 ---
 
 # python基础知识记录
@@ -12,7 +12,7 @@
 
 ### 进程（暂时知道）
 
-说明：进程之间数据互不影响，每一个进程都会有一份相同的数据（全局变量，局部变量），实际上有的数据不是每一个进程，都会备份，只有再不得已的情况下才会是每一个进程都有一份相同的数据（节省资源）
+说明：进程之间数据互不影响，每一个进程都会有一份相同的数据（全局变量，局部变量），实际上有的数据并不是每一个进程，都会进行备份，只有再不得已的情况下每一个进程都有一份相同的数据（节省资源）
 
 | 进程类型      | 所在模块        | 是否等待子进程结束 | 返回值类型 | 通信方式                |
 | ------------- | --------------- | ------------------ | ---------- | ----------------------- |
@@ -22,7 +22,7 @@
 
 1. `fork()`
 
-   说明：使用简单，但是是基于Linux系统，其win没有fork()函数，一般不太实用
+   说明：使用简单，但是是基于Linux系统，其win没有fork()函数，一般不太使用
 
    ```python
    import os
@@ -49,7 +49,7 @@
    
    ```
 
-2. Process()对象
+2. Process() 对象
 
    说明：`Process`类用来描述一个进程对象，创建子进程的时候，只需要传入执行函数和函数的参数完成Process创建
 
@@ -137,10 +137,10 @@
      ----1----sub
      ----1----sub
      
-     从结果可以看出 Process 创建的进程，主进程会等待子进程执行结束，在结束
+     从结果可以看出 Process 创建的进程，主进程会等待子进程执行结束，再结束
      ```
 
-3. Pool（）类，进程池
+3. Pool() 类，进程池
 
    说明：Pool()  进程池可以提供指定数量的进程供用户调用，当有新的请求提交到Pool中时，如果进程池没有满，那么就会创建一个新的进程来执行该请求，但如果进程池中的进程已经达到上线规定最大值，该请求就会等待，直到进程中又可使用的进程，才会创建新的进程。[引用地址](https://www.cnblogs.com/kaituorensheng/p/4465768.html)
 
@@ -165,7 +165,7 @@
        pool = Pool(4)
        for i in range(10):
            # 将进程添加到进程中，如进程池满，则需要等待
-           pool.apply_async(worker, (i,)) 
+           pool.apply_async(func=worker, args=(i,)) 
            # 堵塞方式执行，一次执行一个进程（就像对于是单进程）
            # pool.apply(worker, args=(i,))
            
@@ -177,7 +177,7 @@
        print('----主进程 结束----')
    ```
    
-   
+   解释：`Pool()` 一定要使用 `.join()`， 因为 `Pool()` 主进程不会等待子进程结束，再结束。
 
 ### 进程之间通信
 
@@ -213,11 +213,11 @@
 
 说明：先有进程，然后再有线程，一个进程包含一个或多个线程，线程是进程执行单位（本人是这样理解的），进程执行时，就会创建一个主线程，线程就好比一个指针，程序执行到哪一句，线程就会指向那里。线程中全局变量共享，局部变量私有（个人理解，就好比函数调用数据的使用一样理解）。
 
-1. Thread（）线程
+1. Thread（）线程 全局变量共享
 
    说明：thread() 是比较低层，python封装了threading模块
 
-   - 全局变量共享
+   - 全局变量共享代码演示
 
      ```python
      # 线程，共享全局变量
@@ -236,6 +236,7 @@
      
      def work_2():
          global g_num
+         g_num += 1
          print('线程 2 的g_g_num=%d'%g_num)
      
      print('全局变量的g_num=%d'%g_num)
@@ -248,13 +249,20 @@
      t2 = threading.Thread(target=work_2)
      t2.start()
      
+     time.sleep(1)
+     print('全局变量的g_num=%d'%g_num)
+     
      运行结果
-     全局变量的g_num=100
-     线程 的g_num=103
-     线程 2 的g_g_num=103
+    全局变量的g_num=100
+     线程 1 的g_num=103
+    线程 2 的g_g_num=104
+     全局变量的g_num=104
      ```
+2. 线程与主线程执行顺序（主线程等待子线程结束）
 
-   - 线程与主线程执行顺序（主线程等待子线程结束）
+   说明：线程的执行顺序（子线程、主线程），执行顺序是按照系统调度算法决定的，固没有什么顺序。主线程执行结束，会等待子线程执行结束，然后结束程序。（`.join` 依然可以使用，堵塞，主进程执行，直到子进程执行结束，主进程，再继续执行）
+
+   - 代码演示
 
      ```python
      import os
@@ -292,15 +300,17 @@
      I amThread-1 @2
      I amThread-3 @2
      I amThread-2 @2
-         
      ```
 
-   - 全局被修改
+3. 线程中全局变量修改问题解析
 
-     说明：当两个线程同时对全局变量修改时，会出现错误
+   说明：线程的全局变量理解和函数的局部变量相同（本人这样认为）
+
+   - 全局变量修改
 
      ```python
      # 线程，共享全局变量
+     # 但是用不好，就容易出错
      
      import time
      import threading
@@ -310,8 +320,10 @@
      
      def work_1():
          global g_num
+     
          for i in range(1000000):
              g_num += 1
+     
          print('线程 1 的g_num=%d'%g_num)
      
      def work_2():
@@ -335,27 +347,29 @@
      
      
      """
-     这理解一下为什么会出现，不屏蔽睡眠的语句，程序的运行结果和 预期的比一样
+     这理解一下为什么会出现，不屏蔽睡眠的语句，程序的运行结果和预期的不一样
      
      解释：
-         问题出现在 g_num += 1这句话这句话等价于 g_num = g_num + 1
-         实际上这句语句，是分两句执行的，第一次执行g_num取值 加 1，这是cpu调度
-         算法，执行下一个线程，也是执行 g_num取值 加 1 ，只是cpu执行上一个线程
-         任务，进行赋值，g_num = 1，然后cpu在进行赋值g_num=1，所以，这个实际加
-         2 的语句，就变成了加 1 的效果了
+         问题出现在 g_num += 1语句上。此语句等价于 g_num = g_num + 1
+         实际上此语句，是分两次执行的，第一次执行g_num取值 加 1，第二次执行时 g_num = 1 的赋值
+         就此代码，主线程在创建 2 个子线程时（该进程由 3 个线程在执行），进行休眠（4秒），目的等待打印最后的 g_num 值
+         执行子线程 1 的 g_num + 1,转向子线程 2 执行 g_num + 1,关键点
+         再转向子线程 1 执行 g_num = 1 赋值操作，后转向子线程 2 执行 g_num = 1，如此调度是因为系统调度算法决定的
+         以上可以看出，g_num = 1 执行了两次
+         所以，这个实际加 2 的语句，就变成了加 1 的效果了
      
      """
      
      运行结果
      全局变量的g_num=0
-     线程 2 的g_num=1119922
-     线程 1 的g_num=1196007
-     全局变量g_num=1196007
+     线程 1 的g_num=1214385
+     线程 2 的g_num=1307210
+     全局变量g_num=1307210
      ```
 
-   - 全局变量被修改-解决办法一
+   - 全局变量修改----解决办法 1 
 
-     说明：使用__条件语句__、__while循环__
+     说明：使用__条件语句、while循环__
 
      ```python
      import time
@@ -394,14 +408,18 @@
      # time.sleep(3) # 取消屏蔽，执行结果会不一样
      
      t2 = threading.Thread(target=work_2)
-     t2.start()
-     
+       t2.start()
      time.sleep(3)
-     print('全局变量g_num=%d'%g_num)
+          print('全局变量g_num=%d'%g_num)
      
+     运行结果
+     全局变量的g_num=0
+     线程 1 的g_num=1000000
+     线程 2 的g_num=2000000
+     全局变量g_num=2000000
      ```
 
-   - 全局变量被修改-解决办法二
+   - 全局变量被修改----解决办法 2 
 
      说明：使用互斥锁。所属模块`threading`, 初始化`mutex = threading.Lock()`,默认互斥锁是__堵塞状态__就是没有成功上锁，就继续等待
 
@@ -446,7 +464,7 @@
      t2.start()
      
      time.sleep(2)
-     print(g_num)
+       print(g_num)
      
      """
      加互斥锁的原则：加互斥锁的语句越少越好
@@ -458,10 +476,12 @@
      2000000
      ```
 
-   - 死锁
-   
-     说明：死锁，就是线程相互等待对方释放资源（就是你不释放，我我执行不了，我不是释放，你执行不了）
-   
+4. 死锁
+
+   说明：死锁，就是线程相互等待对方释放资源（就是你不释放，我我执行不了，我不是释放，你执行不了）
+
+   - 死锁代码演示
+
      ```python
      from threading import Thread
      import threading
@@ -470,10 +490,11 @@
      
      class Task_1(Thread):
          def run(self):
-             # 将互斥锁 2 上锁
+             # 将互斥锁 1 上锁
              if lock_1.acquire():
                  print(self.name + '----TasK-1-up----')
                  time.sleep(1)
+                 # 将互斥锁 2 上锁
                  if lock_2.acquire():
                      print(self.name + '----Task-1-down')
                      lock_2.release()
@@ -487,6 +508,7 @@
              if lock_2.acquire():
                  print(self.name + '----TasK-2-up----')
                  time.sleep(1)
+                 # 将互斥锁 1 上锁
                  if lock_1.acquire():
                      print(self.name + '----Task-2-down')
                      lock_1.release()
@@ -495,7 +517,7 @@
                    
      
      if __name__ == '__main__':
-         # 初始化 2 互斥锁
+         # 初始化 2 个互斥锁
          lock_1 = threading.Lock()
          lock_2 = threading.Lock()
      
@@ -513,13 +535,14 @@
      运行结果
      Thread-1----TasK-1-up----
      Thread-2----TasK-2-up----
-         
      ```
-   
-   - 同步应用（多个线程按照一定顺序先后执行）
-   
-     说明：使用互斥锁，相互上锁，相互解锁，以达到同步
-   
+
+5. 线程执行顺序（同步、异步）
+
+   - 同步应用
+
+     说明：使用互斥锁，相互上锁，相互解锁，以达到同步__(按照一定顺序执行各个线程)__
+
      ```python
      # 互斥锁初始化时，默认是没有上锁的
      # Lock.acquire(blocking: bool, timeout: float) -> bool 上锁
@@ -562,7 +585,7 @@
      
      
      if __name__ == '__main__':
-         # 创建 3 互斥锁
+         # 创建 3 个互斥锁
          lock_1 = threading.Lock()
          lock_2 = threading.Lock()
          lock_3 = threading.Lock()
@@ -579,12 +602,24 @@
          t_1.start()
          t_2.start()
          t_3.start()
+         
+     运行结果
+     ----TasK-1----
+     ----TasK-2----
+     ----TasK-3----
+     ----TasK-1----
+     ----TasK-2----
+     ----TasK-3----
+     ......
+     
      ```
-   
-   - 异步
-   
-     说明：
-   
+
+   - 异步（进程解释、进程实现）
+
+     说明：多个线程没有执行顺序，没有顺序，没有时间限制规定线程执行时间
+
+     解释：使用进程池，创建进程，参数 callback 为回调，作用：当子进程执行结束，无论主进程在做什么，都需要切换回，执行 callback（符合异步特性），子进程返回的参数，传递给主进程。
+
      ```python
      import os
      import time
@@ -605,35 +640,58 @@
      if __name__ =='__main__':
          # 初始化进程池
          pool = Pool()
+         
+         # 参数 callback （回调）
+         # 当子进程执行结束，主进程执行 callback（并子进程参数，传递给 主进程）
          pool.apply_async(func=test_1, callback=test_2)
      
          pool.close()
-     
+     	
+         # 主进程休眠 3 秒
          time.sleep(3)
          while True:
              print('----主进程--pid=%d'%os.getpid())
              time.sleep(1)
+             
+     运行结果
+     ----进程池中的进程----pid=8896,ppid=1028
+     ----0----
+     ----1----
+     ----2----
+     ----主进程--pid=1028
+     ----callback func--pid=1028
+     ----callback func--args=hello python
+     ----主进程--pid=1028
+     ----主进程--pid=1028
+     ......
      ```
-   
-   - 保存线程所产生的私有数据以供其访问
-   
-     说明：使用字典保存线程所产生的私有数据
-   
+
+6. 保存 线程所产生的私有数据以供其访问
+
+   说明：使用字典保存线程所产生的私有数据
+
+   - 当 字典、列表（可变类型）为全局变量时，在函数（局部）中对其进行修改时，不用进行`global` 声明，但前提是，使用 字典、列表对象提供的方法进行__修改__
+
+     说明：此解释再 7 中（列表作为参数传递给线程）
+
      ```python
      import threading
      
      
      global_dict = {}
+     print(id(global_dict))
      
      def std_thread(name):
          std = name
          # 把std放到全局变量global_dict中
          global_dict[threading.current_thread().name] = std
+         print(id(global_dict))
          task_1()
      
      def task_1():
          std = global_dict[threading.current_thread().name]
          print('线程 ' + threading.current_thread().name, ' ' + std)
+         print(id(global_dict))
      
      if __name__ == '__main__':
          # 初始化 2 个线程
@@ -642,10 +700,19 @@
      
          t_1.start()
          t_2.start()
+         
+     运行结果
+     2585017674128
+     2585017674128
+     线程 Thread-A  aaaaa
+     2585017674128
+     2585017674128
+     线程 Thread-B  bbbbb
+     2585017674128
      ```
-   
-     说明：使用`ThreadLock` 所在模块`threading` 使用形式`threading.local()`初始化一个全局变量
-   
+
+   - 使用`ThreadLock` 所在模块`threading` 使用形式`threading.local()`初始化一个全局变量
+
      ```python
      import threading
      
@@ -671,11 +738,88 @@
      
          t_1.start()
          t_2.start()
+         
+     运行结果
+     线程 Thread-A  aaaaa
+     线程 Thread-B  bbbbb
      ```
-   
-   - python线程的GIL
-   
-     说明：据了解python的多线程实际上是假的 [参考地址](http://cenalulu.github.io/python/gil-in-python/)
+
+7. 参数列表作为实参传递给线程的一系列问题
+
+   说明：可变类型、不可变类型，作为实参传递给函数时，都是引用赋值（都是传地址）。但可变变量可在原址进行修改，不可变类型，则需另开辟内存空间存储内容，函数执行结束，局部变量内存被回收。
+
+   - 代码演示
+
+     ```python
+     # 线程，共享全局变量传递实参
+     
+     import time
+     import threading
+     
+     
+     g_num = [1, 2, 3]
+     g = 100
+     
+     def work_1(g_num, g):
+         g_num.append(4)
+         print('线程 1 的参数g地址',id(g))
+         g += 1
+         print('线程 1 的g_num=', g_num)
+         print('线程 1 的g_num地址=', id(g_num))
+         print('线程 1 的g=', g)
+         print('线程 1 的g地址=', id(g))
+     
+     def work_2(g_num, g):
+         print('线程 1 的参数g地址',id(g))
+         
+         print('线程 2 的g_num=', g_num)
+         print('线程 2 的g_num地址=', id(g_num))
+         print('线程 2 的g=', g)
+         print('线程 2 的g地址=', id(g))
+     
+     
+     if __name__ == '__main__':
+     
+         print('全局变量的g_num=', g_num)
+         print('全局变量的g=', g)
+         print('全局的g_num地址=', id(g_num))
+         print('全局的g地址=', id(g), end='\n\n')
+     
+         t1 = threading.Thread(target=work_1, args=(g_num, g))
+         t1.start()
+     
+         time.sleep(1)
+     
+         t2 = threading.Thread(target=work_2, args=(g_num, g))
+         t2.start()
+     
+         time.sleep(1)
+         print('全局变量的g_num=', g_num)
+         print('全局变量的g=', g)
+         
+     运行结果
+     全局变量的g_num= [1, 2, 3]
+     全局变量的g= 100
+     全局的g_num地址= 2787255753544
+     全局的g地址= 1708030064
+     
+     线程 1 的参数g地址 1708030064
+     线程 1 的g_num= [1, 2, 3, 4]
+     线程 1 的g_num地址= 2787255753544
+     线程 1 的g= 101
+     线程 1 的g地址= 1708030096
+     线程 2 的参数g地址 1708030064
+     线程 2 的g_num= [1, 2, 3, 4]
+     线程 2 的g_num地址= 2787255753544
+     线程 2 的g= 100
+     线程 2 的g地址= 1708030064
+     全局变量的g_num= [1, 2, 3, 4]
+     全局变量的g= 100
+     ```
+
+8. python线程的GIL
+
+   说明：据了解python的多线程实际上是假的 [参考地址](http://cenalulu.github.io/python/gil-in-python/)
 
 ## Python的变量存储机制、参数传递
 
@@ -721,8 +865,6 @@
 | 列表     | 数字       |
 | 字典     | 字符串     |
 | 集合     | 元组       |
-
-
 
 1. 可变类型就是可以在原来的基础上修改，不可变类型是不能在原来的基础上修改，只能重新创建，改变引用地址，原来的对象内存被回收。
 
@@ -813,7 +955,7 @@
    *******************************************
    ```
 
-   说明：python的不可变类型使用引用传递，即传递的是地址，但由于不可变类型，不能被修改，所以重新开辟空间初始化新的对象值
+   说明：python的不可变类型使用引用传递，即传递的是地址，但由于不可变类型，不能被修改，所以重新开辟空间初始化新的对象值。参数的传递是，将变量值增加一个引用，可变类型在源地址进行修改，不可变类型改变引用地址。
 
 2. 可变类型
 
