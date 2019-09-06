@@ -24,30 +24,31 @@
 
    说明：使用简单，但是是基于Linux系统，其win没有fork()函数，一般不太使用
 
-   ```python
-   import os
-   import time
-   
-   # 当主进程执行到pid = os.fork()时（实际等号两边是两句语句，等号右边，左边，先执行等号右边，再执行左边），# 其执行到os.fork()时，主进程创建一个子进程。这时主进程、子进程要执行的下一步都是要给等号左边pid赋值。有意# 思的是，主进程赋值是大于0的（其实时把子进程的id号赋给pid），子进程赋值时等于零的。
-   pid = os.fork()
-   
-   if 0 == pid:
-       print('----1----subprocess pid=%d'%pid)
-       time.sleep(1)
-       # os.getpid()获得进程的id号，os.getppid()获得该子进程的父进程id号
-       print('subprocess id=%d,pprocess id=%d'%(os.getpid(), os.getppid()))
-   else:
-       print('----2----pprocess pid=%d'%pid)
-       time.sleep(2)
-       print('pprocess id=%d'%os.getpid())
-   
-   运行结果
-   ----2----pprocess pid=2626
-   ----1----subprocess pid=0
-   subprocess id=2626,pprocess id=2625
-   pprocess id=2625
-   
-   ```
+   - 代码演示
+
+     ```python
+     import os
+     import time
+     
+     # 当主进程执行到pid = os.fork()时（实际等号两边是两句语句，等号右边，左边，先执行等号右边，再执行左边），# 其执行到os.fork()时，主进程创建一个子进程。这时主进程、子进程要执行的下一步都是要给等号左边pid赋值。有意# 思的是，主进程赋值是大于0的（其实时把子进程的id号赋给pid），子进程赋值时等于零的。
+     pid = os.fork()
+     
+     if 0 == pid:
+         print('----1----subprocess pid=%d'%pid)
+         time.sleep(1)
+         # os.getpid()获得进程的id号，os.getppid()获得该子进程的父进程id号
+         print('subprocess id=%d,pprocess id=%d'%(os.getpid(), os.getppid()))
+     else:
+         print('----2----pprocess pid=%d'%pid)
+         time.sleep(2)
+         print('pprocess id=%d'%os.getpid())
+     
+     运行结果
+     ----2----pprocess pid=2626
+     ----1----subprocess pid=0
+     subprocess id=2626,pprocess id=2625
+     pprocess id=2625
+     ```
 
 2. Process() 对象
 
@@ -255,9 +256,9 @@
      print('全局变量的g_num=%d'%g_num)
      
      运行结果
-    全局变量的g_num=100
+   全局变量的g_num=100
      线程 1 的g_num=103
-    线程 2 的g_g_num=104
+   线程 2 的g_g_num=104
      全局变量的g_num=104
      ```
 2. 线程与主线程执行顺序（主线程等待子线程结束）
