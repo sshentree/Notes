@@ -3338,35 +3338,95 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ### 静态页面和动态页面介绍
 
-说明：说明：[参考地址-1](https://blog.csdn.net/qq_26975307/article/details/53992231)、[参考地址-2](https://blog.csdn.net/weixin_42028854/article/details/80019945)、[参考地址-3](https://blog.csdn.net/yuming226/article/details/80280745)、[参考地址-4](https://www.jianshu.com/p/649d2a0ebde5)
+说明：说明：[参考地址-1](https://blog.csdn.net/qq_26975307/article/details/53992231)、[参考地址-2](https://blog.csdn.net/weixin_42028854/article/details/80019945)、[参考地址-3](https://blog.csdn.net/yuming226/article/details/80280745)、[参考地址-4](https://www.jianshu.com/p/649d2a0ebde5)、[反爬虫技术分享](https://segmentfault.com/a/1190000005840672)
 
 1. 静态页面介绍
 
-   - 在静态 Web 程序中，客户端使用Web浏览器（chrome、FireFox等）经过网络连接到服务器上，使用 HTTP 协议发起一个请求（Request），通知 WEB 服务器现在需要得到哪个页面，所有的请求交给Web服务器，之后WEB服务器根据用户的需要，从文件系统（存放了所有静态页面的磁盘）取出内容。再通过 Web 服务器返回给客户端，客户端接收到内容之后经过浏览器渲染解析，得到显示的效果。
+   - 在静态 Web 程序中，客户端使用Web浏览器（chrome、FireFox等）经过网络连接到服务器上，使用 HTTP 协议发起一个请求（Request），通知 Web 服务器现在需要得到哪个页面，所有的请求交给Web服务器，之后 Web 服务器根据用户的需要，从文件系统（存放了所有静态页面的磁盘）取出内容。再通过 Web 服务器返回给客户端，客户端接收到内容之后经过浏览器渲染解析，得到显示的效果。
    - 为了让静态 web 页面显示更加好看，使用 JavaScript、VBScript 和 AJAX（Asynchronous Javascript And XML、异步 JavaScript 和 XML 是指一种创建交互式网页应用的网页开发技术）但是这些特效都是在客户端上借助于浏览器展现给用户的，所以在服务器上本身并没有任何的变化。
    - 静态页面缺点和开发技术
-     1. 静态 WEB 无法连接数据库
+     1. 静态 Web 无法连接数据库
      2. 由于 web 页面中，大量使用JS，导致浏览器打开页面，会占用大量的内存。此时服务端的压力减轻，但同时压力转移到了客户端。
-     3. 静态 WEB 资源开发技术：HTML、XML
+     3. 静态 Web 资源开发技术：HTML、XML
 
 2. 动态页面介绍
 
-   - 动态 WEB 中，程序依然使用客户端和服务端，客户端依然使用浏览器（chrome、FireFox等），通过网络连接到服务器上，使用HTTP协议发起请求（Request），现在的所有请求都先经过一个WEB Server Plugin 来处理。<br>如果客户端请求的是静态资源（.html），则将请求直接转交给 WEB 服务器，之后WEB服务器从文件系统中取出内容，发送回客户端浏览器进行解析执行。<br>
+   - 动态 Web 中，程序依然使用客户端和服务端，客户端依然使用浏览器（chrome、FireFox等），通过网络连接到服务器上，使用HTTP协议发起请求（Request），现在的所有请求都先经过一个Web Server Plugin 来处理。<br>如果客户端请求的是静态资源（.html），则将请求直接转交给 Web 服务器，之后 Web 服务器从文件系统中取出内容，发送回客户端浏览器进行解析执行。<br>
 
-     如果客户端请求的是动态资源（.jsp、.asp\\.aspx、.php），则先将请求转交给 WEB Container （WEB 容器），在 WEB Container 中连接数据库，从数据库中取出数据等一系列操作后动态拼凑页面的展示内容，拼凑页面的展示内容后，把所有的展示内容交给 WEB 服务器，之后通过 WEB 服务器将内容发送回客户端浏览器进行解析执行。
+     如果客户端请求的是动态资源（.jsp、.asp\\.aspx、.php），则先将请求转交给 Web Container （WEB 容器），在 Web Container 中连接数据库，从数据库中取出数据等一系列操作后动态拼凑页面的展示内容，拼凑页面的展示内容后，把所有的展示内容交给 Web 服务器，之后通过 Web 服务器将内容发送回客户端浏览器进行解析执行。
 
    - 动态页面缺点和开发技术
 
      1. 动态网站以数据库为基础，所以对数据库的安全和保密性要求较高，要专业技术人员提供维护才能保证网站的安全
      2. 动态网站不利于搜索引擎收录
-
-     3. 动态网站制作成本较高
+3. 动态网站制作成本较高
      4. HTML+JavaScript(Node.js)
      5. HTML+PHP
      6. HTML+ASP.NET(或ASP)
      7. HTML+JSP
 
-## 待续......
+### Selenium 与  XXXdriver
+
+1. Selenium 
+
+   说明：[官方文档](https://selenium-python.readthedocs.io/index.html)、[使用文档](https://selenium-python-zh.readthedocs.io/en/latest/getting-started.html)
+
+   - Selenium介绍
+
+     说明：[参考文档](https://juejin.im/post/5ce50c57e51d4556dc293582)
+
+     Selenium 是用于测试 Web 应用程序的用户界面（UI）的常用框架。<br>Selenium  不是浏览器，不支持浏览器的功能，需要与第三方浏览器结合使用（一般将其内嵌代码中执行）。
+
+     Selenium 的使用，通过一些指令让浏览器自动（自动化检测）加载页面等一些列操作。
+
+   - Selenium 安装
+
+     通过 `pip install selenium`
+
+2. PhantomJS
+
+   说明：[官方文档](https://phantomjs.org/documentation/)<br>PhantomJS 已近停止进一步开发，Python3 也已经不支持，如下说明：
+
+   ```tex
+   Warning (from warnings module):
+     File "H:\Compile\Python\Python36\lib\site-packages\selenium\webdriver\phantomjs\webdriver.py", line 49
+       warnings.warn('Selenium support for PhantomJS has been deprecated, please use headless '
+   UserWarning: Selenium support for PhantomJS has been deprecated, please use headless versions of Chrome or Firefox instead
+   ```
+
+   - PhantomJS 介绍
+
+     PhantomJS 实现了一个无头（headless）、无界面的 Webkit 浏览器。PhantomJS 会把网页加载到内存中执行（如执行JavaScript）,因其不会展示玩也页面，所以高效。常用于网页抓取、页面输出、自动化测试等方面。
+
+   - PhantomJS 安装
+
+     [下载地址](https://phantomjs.org/download.html)，因其是无界面浏览器，而非 Python 库，固只能从官网下载安装
+
+3. chromedriver 与 geckodriver 替换 PhantomJS
+
+   说明：PhantomJS 已死、[参考文档-1](https://testerhome.com/topics/5349)、[参考文档-2](https://www.jianshu.com/p/31c8c9de8fcd)
+
+   - XXXdriver 是什么
+     1. XXXdriver 是为于网站开发人员提供自动化检测的接口，是 Selenium （网站自动化检测框架）的 chrom 和 firefox 基础部分。
+     2. 本人理解：XXXdriver 是 Selenium 和浏览器进行通信的桥梁，通过 XXXdriver ，Selenium 可以远程启动浏览器。
+
+   - google浏览器、firefox 浏览器都支持实现一个无头（headless）模式，用于测试。
+   - 使用方式
+     1. 下载，chromedriver、geckodriver 对应版本文件，
+     2. 只需进行解压。如 `geckodriver.exe\chromedriver.exe`
+     3. 再将其添加到环境变量中
+
+4. Selenium 的使用介绍
+
+   说明：[官方文档](https://seleniumhq.github.io/selenium/docs/api/py/)、[具体API参考地址](https://seleniumhq.github.io/selenium/docs/api/py/api.html)
+
+   - Selenium 的使用是通过 WebDriver API（Application Programming interface,应用程序编程接口）。简单来 WebDriver 是一个方法集合，包括的操作如：像个浏览器加载网页信息、定位网页元素、与网页元素进行交互（发送文本、点击等）
+
+   
+
+
+
+
 
 
 
