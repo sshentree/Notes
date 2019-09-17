@@ -3365,7 +3365,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      6. HTML+ASP.NET(或ASP)
      7. HTML+JSP
 
-### Selenium 与  XXXdriver
+### Selenium 与 浏览器（XXXdriver）
 
 1. Selenium 
 
@@ -3416,13 +3416,187 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      2. 只需进行解压。如 `geckodriver.exe\chromedriver.exe`
      3. 再将其添加到环境变量中
 
-4. Selenium 的使用介绍
 
-   说明：[官方文档](https://seleniumhq.github.io/selenium/docs/api/py/)、[具体API参考地址](https://seleniumhq.github.io/selenium/docs/api/py/api.html)
+### Selenium 的使用介绍
 
-   - Selenium 的使用是通过 WebDriver API（Application Programming interface,应用程序编程接口）。简单来 WebDriver 是一个方法集合，包括的操作如：像个浏览器加载网页信息、定位网页元素、与网页元素进行交互（发送文本、点击等）
+说明：[官方文档](https://seleniumhq.github.io/selenium/docs/api/py/)、[具体API参考地址](https://selenium-python-zh.readthedocs.io/en/latest/getting-started.html)
 
+1. Selenium 的 Webdriver 的介绍
+
+   - Selenium 的使用是通过 WebDriver API（Application Programming interface,应用程序编程接口）。简单来说WebDriver 是一个方法集合，包括的操作如：像个浏览器加载网页信息、定位网页元素、与网页元素进行交互（发送文本、点击等）
+
+2. Selenium 的简单使用
+
+   - 代码演示
+
+     ```python
+     # 导入 webdriver 模块
+     from selenium import webdriver
+     from selenium.webdriver.common.by import By
+     # 导入 调用键盘按键操作模块
+     from selenium.webdriver.common.keys import Keys
+     import time
+     
+     
+     # 创建浏览器对象，配置过环境变量
+     driver = webdriver.Firefox()
+     # 没有配置环境变量
+     # driver = webdriver.Firefox(executable_path='geckodriver路径')
+     
+     
+     # driver.get(url) 方法将打开一个 url 地址，webdriver将等待，知道页面全部加载完毕（其实是等待onload方法执行完毕）
+     # 然后返回继续执行
+     # 
+     # 注意：如果页面大量使用 ajax 加载，webdriver可能不知道什么时候页面已经完成加载
+     driver.get('http://www.baidu.com')
+     # 打印页面源代码
+     # print(driver.page_source)
+     
+     # 打印页面标题"百度一下，你就知道"
+     print(driver.title)
+     
+     # 截屏查看
+     driver.save_screenshot('自动化检测/1.png')
+     
+     
+     # 获取页面元素，id为us
+     data = driver.find_element_by_id('su')
+     # data = driver.find_element(by=By.ID, value='su')
+     # .text 获取标签内容
+     # 正确打印 "百度一下"
+     print(data.text)
+     
+     
+     # 获取页面元素，id为kw（搜索框）
+     input_1 = driver.find_element_by_id('kw')
+     
+     # ctrl + a 全选搜索框内容
+     content_1 = input_1.send_keys(Keys.CONTROL, 'a')
+     
+     # ctrl + x 剪切搜索框内容
+     content_2 = input_1.send_keys(Keys.CONTROL, 'x')
+     
+     # 清除搜索框
+     input_1.clear()
+     
+     # id='kw' 是百度搜索框，输入'NBA'
+     input_1.send_keys('NBA')
+     
+     
+     # 在搜索框中输入，代码执行完成，但浏览器需要时间响应，固设置休眠时间，等待浏览器响应完成
+     # 在截取快照
+     time.sleep(2)
+     # 截屏查看
+     driver.save_screenshot('自动化检测/2.png')
+     
+     # 打印网页渲染后的源代码
+     # print(driver.page_source)
+     
+     # 使用键盘模块，调用键盘的回车键
+     # input_1.send_keys(Keys.RETURN)
+     
+     # 点击 '百度一下'按钮 进行搜索
+     # 
+     # 这个由问题，字符串没有 click 属性
+     data.click()
+     
+     # 获取当前 url 地址
+     url = driver.current_url
+     print(url)
+     
+     # 获取 cookie 的值
+     cookie = driver.get_cookies()
+     print(cookie)
+      
+     # 同上理由
+     time.sleep(1)
+     driver.save_screenshot('自动化检测/3.png')
+     
+     
+     # 关闭一个标签页
+     # 如浏览器只开了一个标签,则默认关闭浏览器
+     # driver.close()
+     
+     # 关闭浏览器
+     driver.quit()
+     ```
    
+3. 定位页面元素
+
+   - 如表
+
+     | 方式                 | 方法 \\ `from selenium.webdriver.common.by import By`        |
+     | -------------------- | ------------------------------------------------------------ |
+     | by id                | find_element_by_id<br>find_element(by=By.ID, value='xxx')    |
+     | by name              | find_element_by_name<br>find_element(by=By.NAME, value='xxx') |
+     | by class name        | find_element_by_class_name<br>find_element(by=By.CLASS_NAME, value='xxx') |
+     | by xpath             | find_element_by_xpath<br>find_element(by=By.XPATH, value='xxx') |
+     | by  tag name         | find_element_by_tag_name<br>find_element(by=By.TAG_NAME, value='xxx') |
+     | by link text         | find_element_by_link_text<br>find_element(by=By.LINK_TEXT, value='xxx') |
+     | by partial link text | find_element_by_partial_link_text<br>find_element(by=By.PARTIAL_LINK_TEXT, value='xxx') |
+     | by css selector      | find_element_by_css_selector<br>find_element(by=By.CSS_SELECTOR, value='xxx') |
+
+   - 实例演示
+
+     `<a href='https://www.baidu.com/s?wd=NBA'>NBA</a>`
+
+     `element = driver.find_element_by_limk_text('NBA')`
+
+     ---
+
+     `from selenium.webdriver.common.by import By`
+
+     `element = driver.find_element(by=By.LINK_TEXT, value='NBA')`
+
+4. 鼠标动作链介绍
+
+   说明：通过导入 `ActionChains` 类，`from selenium.webdriver import ActionChains`，来实现鼠标动作：单击、双击、拖拽、移动等。
+
+   - 代码演示
+
+     说明：鼠标一些操作，只能在特定网页使用，故此处只演示：鼠标单击和移动鼠标到元素处
+
+     ```python
+     from selenium import webdriver
+     # 导入 ActionChains类
+     from selenium.webdriver import ActionChains
+     
+     # 打开 Firefox 浏览器
+     driver = webdriver.Firefox()
+     
+     # 打开 url 地址
+     url = 'http://www.baidu.com'
+     driver.get(url=url)
+     
+     # 定位页面元素，id为'kw'(搜索框)
+     input_1 = driver.find_element_by_id(id_='kw')
+     # 输入数据
+     input_1.send_keys('NBA')
+     
+     
+     # 定位页面元素，id为'su'(百度一下)
+     baidu = driver.find_element_by_id(id_='su')
+     # 在此元素处单击
+     ActionChains(driver).move_to_element(baidu).click(baidu).perform()
+     
+     
+     # 定位页面元素，class name = 'pf'(设置)
+     set_1 = driver.find_element_by_class_name(name='pf')
+     # 将鼠标移动到此元素
+     ActionChains(driver).move_to_element(set_1).perform()
+     ```
+
+   - 伪代码演示
+
+     说明：演示：鼠标双击、鼠标右击、鼠标单击（hold）、将元素 1 拖拽 到元素 2 的位置
+
+## 待续......
+
+
+
+
+
+
 
 
 
