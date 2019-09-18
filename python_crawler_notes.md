@@ -1234,7 +1234,7 @@ __请求行__、__请求头__、__空行__、__请求数据__
 
 ### 使用 Cookie 
 
-说明：Cookie 是 存储在客户端的验证信息，当访问需要登陆的网站时，网站使用 Cookie 的值和Session 来判断你是否已经登录成功，若成功登录可以访问网站其他页面数据。
+说明：Cookie 是存储在客户端的验证信息，当访问需要登陆的网站时，网站使用 Cookie 的值和 Session 来判断你是否已经登录成功，若成功登录可以访问网站其他页面数据。
 
 - 使用账号登录_人人网_ ,保存 Cookie 的值，将 Cookie 的添加到 Headers 中，进行访问。（Cookie的存活时间有限）
 
@@ -3589,8 +3589,146 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
    - 伪代码演示
 
      说明：演示：鼠标双击、鼠标右击、鼠标单击（hold）、将元素 1 拖拽 到元素 2 的位置
+     
+     ```python
+     # 导入 ActionChains 类
+     from selenium.webdriver import ActionChains
+     
+     
+     # 鼠标双击
+     #
+     # 获取元素
+     ac_1 = driver.find_element_by_xpath('//element_2')
+     Actionchains(driver).move_to_element(ac_1).double_click(ac_1).perform()
+     
+     # 鼠标右击
+     #
+     # 获取元素
+     ac_2 = driver.find_element_by_class_name('elemnet_2')
+     ActionChains(driver).move_to_element(ac_2).context_click(ac_2).perform()
+     
+     # 鼠标单击（hold）
+     #
+     # 获取元素
+     ac_3 = driver.find_element_by_id('element_3')
+     ActionChains(driver).move_to_element(ac_3).click_and_hold(ac_3).perform()
+     
+     # 将元素 4 拖到元素 5 的位置
+     #
+     # 获取元素
+     ac_4 = driver.find_element_by_id('element_4')
+     ac_5 = driver.find_element_by_id('element_5')
+     ActionChains(driver).drag_and_drop(ac_4, ac_5).perform()
+     ```
+   
+5. 填充表单
+
+   说明：已知如何像输入框输入内容，如于到 `<select>xxx</select>` 下拉框标签，将如何选择？ 
+
+   - select  下拉框实例
+
+     ```html
+     <select name="select_option" id="select-1">
+             <option value="">中国</option>
+             <option value="0">北京</option>
+             <option value="1">上海</option>
+             <option value="2">广州</option>
+             <option value="3">南京</option>
+     </select>
+     ```
+
+   - selenium 的 webdriver 的 Select 类可以处理此类情况，伪代码演示
+
+     说明：导入 `from selenium.webdriver.support.ui import Selenium`
+
+     ```python
+     # 导入 Select 类
+     from selenium.webdriver.support.ui import Select
+     
+     
+     # 定位页面元素
+     select = Select(driver.find_element_by_name(select_option))
+     # 取值（三种）
+     #
+     # 第一种（索引：从 0 开始）
+     select = select_by_index(1)
+     
+     # 第二种（value属性）
+     select = select_by_value('0')
+     
+     # 第三种（option标签文本内容）
+     select = select_by_visible_text('北京')
+     
+     # 取消全部选择
+     select = deselect_all()
+     ```
+
+6. 弹框处理
+
+   说明：__弹框不是页面元素，无法获取元素。它是浏览器的功能__
+
+   - 网页中触发某个事件，页面会出现__弹框__，处理和捕获提示信息方法如下：
+
+     `alert = driver.switch_to_alert`
+
+7. 页面切换
+
+   说明：如浏览器打开多个窗口，需要进行页面之间的切换
+
+   - 切换方法如下：
+
+     `driver.forward()`
+
+     `driver.back()`
+
+8. 对 Cookie 的操作
+
+   说明：一个页面有时会有多个 cookie 值
+
+   - 获取 cookie 值
+
+     1. `driver.get_cookies()`
+
+        返回值为：[{}, {}]，列表 里套 字典
+
+     2. 代码演示
+
+        ```python
+        for cookie in driver.get_cookies():
+            print('%s->%s'%(cookie['name'], cookie['value']))
+        ```
+
+   - cookie  的删除
+
+     1. 通过名字（by name）
+
+        `driver.delete_cookie('cookie_name')`
+
+     2. 删除所有
+
+        `driver.delete_all_cookies()`
+
+9. 页面等待
+
+   说明：[参考文档](https://selenium-python-zh.readthedocs.io/en/latest/getting-started.html)
+
+   - Webdriver 的说明
+     1. 现在的大多数的 web 应用程序是使用 Ajax 技术，当一个页面被加载到浏览器，该页面的元素可以在不同时间点被加载。这使得定位元素变得困难，如果元素不在页面中，会抛出 `ElementNotVisibleException` 异常。使用 waits，我们可以决绝这个问题。waits 提供了一些操作之间的时间间隔（主要是定位元素或针对该元素的任何操作）
+     2. Selenium Webdriver 提供两种类型的 waits（隐式、显示）。显示等待会让 Webdriver等待一个满足一定条件以后再进一步的执行。而隐式等待让 Webdriver 等待一定的时间后在开始查找元素
+   
+   - 显示等待
+   
+   - 隐式等待
 
 ## 待续......
+
+
+
+
+
+
+
+
 
 
 
