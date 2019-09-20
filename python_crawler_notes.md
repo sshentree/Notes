@@ -3669,13 +3669,28 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
    - 网页中触发某个事件，页面会出现__弹框__，处理和捕获提示信息方法如下：
 
-     `alert = driver.switch_to_alert`
+     `alert = driver.switch_to_alert()`
 
 7. 页面切换
 
    说明：如浏览器打开多个窗口，需要进行页面之间的切换
 
-   - 切换方法如下：
+   - 切换方式（1）
+
+     `driver.switch_to.windows('windows_name')`
+
+     解释：windows_name 好像就是 `driver.title`
+
+   - 切换方式（2）
+
+     说明：通过 `driver.window_handles` 获取窗口操作对象
+
+     ```python
+     for handle in driver.window_handles:
+         driver.switch_to.windows(handle)
+     ```
+
+   - 页面前进后退：
 
      `driver.forward()`
 
@@ -3689,12 +3704,13 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      1. `driver.get_cookies()`
 
-        返回值为：[{}, {}]，列表 里套 字典
+        __返回值为：[{}, {}]，列表 里套 字典__
 
      2. 代码演示
 
         ```python
         for cookie in driver.get_cookies():
+            # cookie 为字典
             print('%s->%s'%(cookie['name'], cookie['value']))
         ```
 
@@ -3718,7 +3734,146 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
    
    - 显示等待
    
+     说明:
+   
+     > 显示等待是你在代码中定义的等待一定条件发生后再进一步执行你的代码。__最糟糕的案例是使用 `time.sleep()`__，他将条件设置为等待一个确切的时间段。这里有一些方便的方法让你只等待你需要等待的时间。__WebDriverWait 结合 ExceptedCondition 实现的一种方式__
+   
+     1. 代码演示
+   
+        ```python
+        from selenium import webdriver
+        from selenium.webdriver.common.by import By
+        # WebDriverWait 库，负责循环等待
+        from selenium.webdriver.support.ui import WebDriverWait
+        # expection_conditions 类，等到条件
+        from selenium.webdriver.support import expected_conditions as EC
+        
+        
+        driver = webdriver.Firefox()
+        driver.get(url='url')
+        
+        try:
+            element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located(By.ID, 'myelement'))
+        finally:
+            driver.quit()
+        ```
+   
+        解释：在抛出  TimeoutExpection 异常之前，将等待 10 秒或者 10 秒内发现了查找的元素。WebDriverWait 默认情况下会 0.5 秒调用一次 ExpectionCondition 直到结果成功返回。ExpextionCondtion 成功返回的结果是一个 __布尔类型的 Ture，或是不为 null 的返回值__(总感觉这就话有点怪)<br>文档例子：` element = WebDriverWait(driver, 10).until(lambda x: x.find_element_by_id("someId"))` __返回值为页面元素__
+   
+     2. 内置等待条件
+   
+        说明：自动化的 web 浏览器中一些常见的预期条件，方便调用（不用去编写 expection_condition类）
+   
+        ```tex
+        title_is
+        title_contains
+        presence_of_element_located
+        visibility_of_element_located
+        visibility_of
+        presence_of_all_elements_located
+        text_to_be_present_in_element
+        text_to_be_present_in_element_value
+        frame_to_be_available_and_switch_to_it
+        invisibility_of_element_located
+        element_to_be_clickable – it is Displayed and Enabled.
+        staleness_of
+        element_to_be_selected
+        element_located_to_be_selected
+        element_selection_state_to_be
+        element_located_selection_state_to_be
+        alert_is_present
+        ```
+   
    - 隐式等待
+   
+     说明：
+   
+     > 如果某些元素不是立即可用的，隐式等待是告诉 WebDriver 去等待一时间后去查找元素。默认等待时间是 0 秒，以但设置该值，隐式等待是设置该 WebDriver 的实例的声明周期
+   
+     1. 代码演示
+   
+        ```python
+        from selenium import webdriver
+        
+        
+        driver = webdriver.Firefox()
+        
+        # 等待 10 秒，隐式（implicitly）
+        driver.implicitly_wait(10) 
+        driver.get(url='url')
+        element = driver.find_element_by_id("myelement")
+        ```
+
+### 模拟登录
+
+说明：使用 `selenium` 模块的 `webdriver` API，实现对网站的模拟登录
+
+1. 代码演示
+
+   说明：代码模块正常，但由于__反爬虫__，所以暂时一些__好__网站，模拟登录不上去。
+
+   - 代码
+
+     ```python
+     from selenium import webdriver
+     from selenium.webdriver.common.by import By
+     from selenium.webdriver.common.keys import Keys
+     from selenium.webdriver import ActionChains
+     
+     
+     driver = webdriver.Firefox()
+     
+     driver.get(url='https:......')
+     driver.implicitly_wait(5)
+     
+     # 选择 密码登录 方式
+     # 
+     # 使用 by link text 选取元素：'unable to locate element:密码登录'
+     # pass_word_element = driver.find_element_by_link_text('密码登录')
+     
+     # 第一步：
+     # 
+     # 定位页面元素：'密码登录'
+     pass_word_log_element = driver.find_element_by_xpath('/html/body/div[1]/div[1]/ul[1]/li[2]')
+     # 鼠标单击
+     ActionChains(driver).move_to_element(pass_word_log_element).click(pass_word_log_element).perform()
+     
+     # 第二步：
+     # 
+     # 定位页面元素：'账号输入框'
+     username_element = driver.find_element_by_xpath('/html/body/div[1]/div[2]/div[1]/div[3]/div/input')
+     # 输入账号
+     username_element.send_keys('15702423221')
+     
+     # 定位页面元素：'密码'
+     password_element = driver.find_element_by_id('password')
+     password_element.send_keys('sHEN0077')
+     
+     # 第三步：
+     # 
+     # 定位页面元素：'登录\注册'
+     log_element = driver.find_element_by_xpath('/html/body/div[1]/div[2]/div[1]/div[5]/a')
+     # 鼠标单击
+     ActionChains(driver).move_to_element(log_element).click(log_element).perform()
+     
+     
+     # 保存页面截图
+     flag = driver.save_screenshot('自动化检测/4.png')
+     print(flag)
+     ```
+
+2. 爬虫角度解释
+
+   - zhihu
+
+     网络连接报 `10001` 错误码，但是`webdriver` 的方法，如：页面元素定位、鼠标单击、输入框输入等正常使用
+
+   - douban
+
+     没有尝试到网络连接部分，页面元素定位错误，如：by xpath、by class、by name等会发生页面元素定位错误。
+
+     注意：by xpath 页面元素定位，会定位到__其他__的页面元素。
 
 ## 待续......
 
