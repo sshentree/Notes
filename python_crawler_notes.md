@@ -2661,7 +2661,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 提示：
 
-1. Beautiful Soup4 为不同的解析器提供了相同的接口，但是解析器本身是有区别的，同一个文档被不同的解析器解析后可能会产生不同结构的树型文档，故在使用 BS4 解析文档是最好指定解析器。
+1. Beautiful Soup4 为不同的解析器提供了相同的接口，但是解析器本身是有区别的，同一个文档被不同的解析器解析后可能会产生不同结构的树型文档，__故在使用 BS4 解析文档是最好指定解析器。__
 2. 任何HTML或XML文档都有自己的编码方式,比如ASCII 或 UTF-8,但是使用Beautiful Soup解析后,文档都被转换成了Unicode。
 
 1. Beautiful Soup4 介绍
@@ -2670,7 +2670,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      > Beautiful Suop 是一个可以从 HTML 或者 XML 文档中提取数据的 Python 库，它能够通过你喜欢的转换器实现管用的文档导航、查找、修改文档方式。Beautiful Soup 会帮助你节省数小时甚至数天的工作时间。
      >
-     > 推荐使用 Beautiful Soup4，因为 3 已经停止开发
+     > 推荐使用 Beautiful Soup4，因为 3 版本已经停止开发
 
    - Beautiful Soup4 和 lxml 的区别
 
@@ -3807,7 +3807,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ### 模拟登录
 
-说明：使用 `selenium` 模块的 `webdriver` API，实现对网站的模拟登录
+说明：使用 `selenium` 模块的 `webdriver` API，实现对网站的模拟登录（因为反爬虫技术，没有实现模拟登录）
 
 1. 代码演示
 
