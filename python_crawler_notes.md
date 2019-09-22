@@ -2661,7 +2661,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 提示：
 
-1. Beautiful Soup4 为不同的解析器提供了相同的接口，但是解析器本身是有区别的，同一个文档被不同的解析器解析后可能会产生不同结构的树型文档，__故在使用 BS4 解析文档是最好指定解析器。__
+1. Beautiful Soup4 库为不同的解析器提供了相同的接口，但是解析器本身是有区别的，同一个文档被不同的解析器解析后可能会产生不同结构的树型文档，__故在使用 BS4 解析文档是最好指定解析器。__
 2. 任何HTML或XML文档都有自己的编码方式,比如ASCII 或 UTF-8,但是使用Beautiful Soup解析后,文档都被转换成了Unicode。
 
 1. Beautiful Soup4 介绍
@@ -2690,6 +2690,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      from bs4 import BeautifulSoup
      
      
+     # 创建文档对象
      soup = BeautifulSoup('index.html')
      soup = BeautifulSoup('<html>data<html>')
      ```
@@ -2699,7 +2700,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      ```python
      from bs4 import BeautifulSoup
      
-     # 参数 markup 是 html、xml 文档，feature 指定解析器
+     # 参数 markup 是 html、xml 文档，features 指定解析器
      soup = BeautifulSoup(markup='I love you', features='lxml')
      print(type(soup))
      print(soup，end='\n\n')
@@ -2723,17 +2724,19 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
    
    - 解析文档中四大对象种类
    
-     Beautiful Soup 将复杂的文档转换成一种复杂的树型结构，每一个节点是 Python 对象，所有随想可以归纳为 4 种。
+     说明：__可以通过 soup 加标签名来获取标签，但是获得是第一个符合内容的标签__
    
+     Beautiful Soup 将复杂的文档转换成一种复杂的树型结构，每一个节点是 Python 对象，所有随想可以归纳为 4 种。
+     
      | 名称            | 节点对象                                                     |
      | --------------- | ------------------------------------------------------------ |
      | Tag             | Tag 对象与 HTML，XML 原生文档中标签相同                      |
      | NavigableString | 标签的文本内容。即 `.string` 可获取                          |
-     | BautifulSoup    | BeautifulSoup 对象表示一个文档内容，是一个特殊的 Tag 标签，没有属性 |
+   | BautifulSoup    | BeautifulSoup 对象表示一个文档内容，是一个特殊的 Tag 标签，没有属性 |
      | Comment         | 一个特殊的 NavigableString ，输出不包含注释                  |
    
      1. Tag  的属性 name，attributes
-   
+     
         ```python
         from bs4 import BeautifulSoup
         
@@ -2754,13 +2757,13 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
         运行结果
         p
         {'id': 'p_id', 'class': ['p_class'], 'style': 'p_style'}
-        p_id
+      p_id
         ```
    
      2. NavjgableString
    
         文本内容包含在 Tag 中，BeautifulSoup 用 NavigableString 类来包装 Tag 中的文本内容
-   
+     
         ```python
         from bs4 import BeautifulSoup
         
@@ -2775,7 +2778,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
         
         运行结果
         <class 'bs4.element.NavigableString'>
-        I love you
+      I love you
         ```
    
      3. BeautifulSoup
@@ -2783,7 +2786,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
         `BeautifulSoup` 对象表示的是一个文档的全部内容，大部分时候，可以当作一个 Tag 对象使用。
    
         因为 `BeautifulSoup` 对象并不是真正的 HTML 的 Tag ，所以它没有 name 和 attribute 属性，但是查看它的 name 属性时包含了一个特殊的值 `[document]`。
-   
+     
         ```python
         from bs4 import BeautifulSoup
         
@@ -2792,16 +2795,172 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
         print(soup.name)
         
         运行结果
-        [documnet]
+      [documnet]
         ```
    
      4. Comment
-   
+     
         Comment 对象是一个特殊的 NavigableString 对象
+     
+   - 遍历 DOM 树型文档
+   
+     1. 树型文档
+   
+        ```html
+        <html>
+         <head>
+          <meta content="text/html;charset=utf-8" http-equiv="content-type"/>
+          <meta content="IE=Edge" http-equiv="X-UA-Compatible"/>
+          <meta content="always" name="referrer"/>
+          <link href="http://s1.bdstatic.com/r/www/cache/bdorz/baidu.min.css" rel="stylesheet" type="text/css"/>
+          <title>   
+           百度一下，你就知道
+            <a class="mnav" href="http://news.baidu.com" name="tj_trnews">
+               新闻
+            </a>
+          </title>
+         </head>
+         </html>
+        ```
+   
+     2. 使用 BeautifulSoup4 提取转换为 DOM 树型文档
+   
+        ```python
+        import requests
+        from bs4 import BeautifulSoup as bs
+        
+        
+        html = """
+                <html>
+                <head>
+                <meta content="text/html;charset=utf-8" http-equiv="content-type"/>
+                <meta content="IE=Edge" http-equiv="X-UA-Compatible"/>
+                <meta content="always" name="referrer"/>
+                <link href="http://s1.bdstatic.com/r/www/cache/bdorz/baidu.min.css" rel="stylesheet" type="text/css"/>
+                <title>   
+                百度一下，你就知道
+                    <a class="mnav" href="http://news.baidu.com" name="tj_trnews">
+                    新闻
+                    </a>
+                </title>
+                </head>
+                </html>
+        """
+        
+        # 使用 lxml 为解析器
+        soup = bs(markup=html, features='lxml')
+        ```
+   
+     3. 直接子节点：`.content` \ `.childer` 属性 (节点属性)
+   
+        说明：获取节点的 __子节点__ 
+   
+        - `.content`
+     
+          说明：获取的子节点以列表的形式返回
+     
+          ```python
+          head = soup.head
+          
+          node_list = head.contents
+          print(type(node_list))
+          print(len(node_list))
+          print(node_list)
+          
+          运行结果
+          <class 'list'>
+          11
+          ['\n', <meta content="text/html;charset=utf-8" http-equiv="content-type"/>, '\n', <meta content="IE=Edge" http-equiv="X-UA-Compatible"/>, '\n', <meta content="always" name="referrer"/>, '\n', <link href="http://s1.bdstatic.com/r/www/cache/bdorz/baidu.min.css" rel="stylesheet" type="text/css"/>, '\n', <title>   
+                  百度一下，你就知道
+                      <a class="mnav" href="http://news.baidu.com" name="tj_trnews">
+                      新闻
+                      </a>
+          </title>, '\n']
+          ```
+     
+          解释：节点的子节点内容都会保存，但是是以子节点为单位（换行符也算子节点了）
+     
+        - `.childern`
+     
+          说明：返回的子节点为迭代器类型
+     
+          ```python
+          head = soup.head
+          
+          node_iter = head.children
+          print(type(node_iter))
+          print(node_iter)
+          
+          for node in node_iter:
+              print(node)
+              
+          运行结果
+          <class 'list_iterator'>
+          <list_iterator object at 0x00000144567FC6D8>
+          
+          <meta content="text/html;charset=utf-8" http-equiv="content-type"/>
+          ......
+          ```
+     
+     4. 获取节点所有子孙节点 `.descendants` 属性（节点属性）与 `.children` 相似不是列表
+     
+        - 所有子孙节点包含上面的所有节点
+     
+          ```python
+          head = soup.head
+          
+          node_desc = head.descendants
+          print(type(node_desc))
+          print(node_desc)
+          
+          for node in node_desc:
+              print(node)
+              
+          运行结果
+          <class 'generator'>
+          <generator object descendants at 0x000001E77D9478E0>
+          
+          
+          <meta content="text/html;charset=utf-8" http-equiv="content-type"/>
+          
+          
+          <meta content="IE=Edge" http-equiv="X-UA-Compatible"/>
+          
+          
+          <meta content="always" name="referrer"/>
+          
+          
+          <link href="http://s1.bdstatic.com/r/www/cache/bdorz/baidu.min.css" rel="stylesheet" type="text/css"/>
+          
+          
+          
+          <title>
+                  百度一下，你就知道
+                      <a class="mnav" href="http://news.baidu.com" name="tj_trnews">
+                      新闻
+                      </a>
+          </title>
+          
+                  百度一下，你就知道
+          
+          <a class="mnav" href="http://news.baidu.com" name="tj_trnews">
+                      新闻
+                      </a>
+          
+                      新闻
+          ```
+     
+          解释：__真是所有子节点，内容也算是节点了__
+     
+     5. 节点内容 `.string` 属性（节点属性）
+     
+        说明：如果该标签内没有子标签，`.string` 属性可以获得该标签的内容。 ~~如果该标签只有一个子标签，那么它可以获得子标签的内容（就这两种使用方式）~~ (有待考察，反正本人试的时候不可以)
+     
+   - 搜索文档树
 
 ### 使用 BS4 爬虫案例
 
-说明：bs4 太过于简单，所以没有必要进行案例分析
+说明：bs4 太过于简单，所以没有必要进行案例分-析
 
 待续......
 
