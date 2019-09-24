@@ -2956,7 +2956,209 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      
         说明：如果该标签内没有子标签，`.string` 属性可以获得该标签的内容。 ~~如果该标签只有一个子标签，那么它可以获得子标签的内容（就这两种使用方式）~~ (有待考察，反正本人试的时候不可以)
      
-   - 搜索文档树
+   - 搜索文档树 `.find_all()`
+   
+     说明：`find_all(name=None, attrs={}, recursive=True, text=None, limit=None, **kwargs):` <br> 参数 `name` 接受 __字符串、列表、正则表示__ <br> 参数 `text` 接受 __字符串、列表、正则表达式__ <br> 传入列表 ['a', ‘b’] 会匹配任意一个，有就匹配，没有就不匹配
+   
+     1. 树型文件
+   
+        ```python
+        import requests
+        from bs4 import BeautifulSoup as bs
+        
+        
+        html = """
+                <html>
+                <head>
+                <meta content="text/html;charset=utf-8" http-equiv="content-type"/>
+                <meta content="IE=Edge" http-equiv="X-UA-Compatible"/>
+                <meta content="always" name="referrer"/>
+                <link href="http://s1.bdstatic.com/r/www/cache/bdorz/baidu.min.css" rel="stylesheet" type="text/css"/>
+                <title>  
+                    <a class="mnav" href="http://news.baidu.com" name="tj_trnews">
+                    新闻
+                    </a>
+                    <a href=http://www.baidu.com/duty/>
+                    使用百度前必读
+                    </a>
+                    <a href=http://v.baidu.com name=tj_trvideo class=mnav>
+                    视频
+                    </a>
+                </title>
+                </head>
+                </html>
+        """
+        soup = bs(markup=html, features='lxml')
+        ```
+   
+     2. 参数 `name`
+   
+        说明：通过标签名 name 查找所有的标签
+   
+        ```python
+        a_tag = soup.find_all(name='a')
+        print(type(a_tag))
+        print(a_tag)
+        
+        运行结果
+        <class 'bs4.element.ResultSet'>
+        
+        [<a class="mnav" href="http://news.baidu.com" name="tj_trnews">
+                    新闻
+                    </a>, <a href="http://www.baidu.com/duty/">
+                    使用百度前必读
+                    </a>, <a class="mnav" href="http://v.baidu.com" name="tj_trvideo">
+                    视频
+                    </a>]
+        ```
+   
+     3. 参数 `attrs` 和 `name`
+   
+        说明：name 为标签名字，`attrs` 为标签属性
+   
+        ```python
+        a = soup.find_all(name='a', attrs={'class': 'mnav'})
+        print(a)
+        
+        运行结果
+        [<a class="mnav" href="http://news.baidu.com" name="tj_trnews">
+                    新闻
+                    </a>, <a class="mnav" href="http://v.baidu.com" name="tj_trvideo">
+                    视频
+                    </a>]
+        ```
+   
+     4. `name` 传入正则表达式
+   
+        ```python
+        import re
+        a = soup.find_all(name=re.compile('^a'))
+        print(a)
+        
+        运行结果
+        [<a class="mnav" href="http://news.baidu.com" name="tj_trnews">
+                    新闻
+                    </a>, <a href="http://www.baidu.com/duty/">
+                    使用百度前必读
+                    </a>, <a class="mnav" href="http://v.baidu.com" name="tj_trvideo">
+                    视频
+                    </a>]
+        ```
+   
+     5. 参数 `text` 搜索标签内容值
+   
+        说明：接受 __字符串、列表、正则表达式__
+   
+        __不好用，根究标签内容取标签__
+   
+     6. 参数 **keyword  不定长参数字典
+   
+        用法：`id=id` 好像只能用 ID 属性
+   
+        ```python
+        tag_id = soup.find_all(id='a_1')
+        print(tag_id)
+        
+        运行结果
+        [<a class="mnav" href="http://news.baidu.com" id="a_1" name="tj_trnews">
+                    新闻
+                    </a>]
+        ```
+   
+        解释：在上面用到的例子中 __a 标签中添加属性 ID__
+   
+   - CSS 选择器  `.select()`
+   
+     说明：`select(selector, namespaces=None, limit=None, **kwargs)` <br> 方式：类名加 `.` id 名加 `#` <br> 返回值：为列表
+   
+     1. 通过标签名查找
+   
+        ```python
+        tag = soup.select('title')
+        
+        print(type(tag))
+        print(tag)
+        
+        运行结果
+        <class 'list'>
+        [<title>
+        <a class="mnav" href="http://news.baidu.com" id="a_1" name="tj_trnews">
+                    新闻
+                    </a>
+        <a href="http://www.baidu.com/duty/">
+                    使用百度前必读
+                    </a>
+        <a class="mnav" href="http://v.baidu.com" name="tj_trvideo">
+                    视频
+                    </a>
+        </title>]
+        ```
+   
+        解释：返回的是列表，是标签的所有内容
+   
+     2. 通过类名查找
+   
+        ```python
+        class_name = soup.select('.mnav')
+        
+        print(type(class_name))
+        print(class_name[1])
+        
+        运行结果
+        <class 'list'>
+        <a class="mnav" href="http://v.baidu.com" name="tj_trvideo">
+                    视频
+                    </a>
+        ```
+   
+     3. 通过 ID 名查找
+   
+        ```python
+        id_name = soup.select(selector='#a_1')
+        
+        print(id_name)
+        
+        运行结果
+        [<a class="mnav" href="http://news.baidu.com" id="a_1" name="tj_trnews">
+                    新闻
+                    </a>]
+        ```
+   
+     4. 组合查找
+   
+        说明：查找 a 标签的 id 为 。。。
+   
+        `soup.select('a #a_1')`
+   
+        `soup.select('head > title')`
+   
+     5. 属性查找
+   
+        说明：查找标签可以加入属性
+   
+        ```python
+        a = soup.select('a[id="a_1"]')
+        
+        print(a)
+        
+        运行结果
+        [<a class="mnav" href="http://news.baidu.com" id="a_1" name="tj_trnews">
+                    新闻
+                    </a>]
+        ```
+   
+     6. 获取标签内容
+   
+        说明：`select` 返回值为列表，使用 `get_text()` 方法获取内容
+   
+        ```python
+        a = soup.select('a[id="a_1"]')
+        
+        print(a[0].get_text())
+        
+        运行结果
+        新闻
+        ```
 
 ### 使用 BS4 爬虫案例
 
@@ -4034,6 +4236,50 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      注意：by xpath 页面元素定位，会定位到 __其他__ 的页面元素。
 
+### 执行 JavaScript 语句
+
+说明：javascript 不怎么了解，执行 javascript 需要读取网页源码，固不是本人学习内容，不在此说明
+
+1. 执行 javascript 语句代码
+
+   - 主要代码演示
+
+     ```python
+     from selenium import webdriver
+     
+     driver = webdriver.Firefox()
+     
+     # javascript 语句
+     js = 'var q = document.getElementById()'
+     
+     # 执行
+     driver.execute_script(js)
+     
+     # 在执行后续代码
+     ```
+
+### 机器视觉
+
+说明：很有意思的一个东西
+
+1. ORC 库概述
+   - Python 非常出色的语言，虽然运行效率一般，但第三方库非常丰富，所以适合学术代码（机器学习、深度学习）
+   - Tesseract 是 ORC 的一个库，是目前公认最优秀、精度最高的开源库（识别任何字体）
+2. Tessertact 的安装
+   - windows 下载安装文件 (地址)[https://github.com/tesseract-ocr/]
+   - LInux 通过 `apt-get $sudo apt-get tesseract-ocr`
+3. 使用
+   - 设置信息环境变量 `TESSERACT_PREFIX` ，存放 Tesseract 的训数据 `tessdata` 在 tesseract 目录下
+   - 使用命令行 `tesseract` 执行，不适用 `import` 导入
+4. 安装 pytesseract
+   - 可以通过 `pip install pytesseract` 安装
+   - 使用 `import` 导入 `pytesser`
+   - `pytesseract_image_to_string(image)` 返回字符串
+
+##  scrapy 模块
+
+说明：
+
 ## 待续......
 
 
@@ -4056,3 +4302,6 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 
 
+~~~~
+
+~~~~

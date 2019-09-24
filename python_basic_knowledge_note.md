@@ -1160,6 +1160,52 @@
 
 说明：
 
+## Python 测试模块
+
+说明：导入 `import unittest`
+
+ ### 使用案例
+
+说明：类继承 `unittest.TestCase` 父类，类中方法 `def setUp(self)`初始化方法 \ `testXXX(self)` test开头的方法 \ `tearDown(self)` 结束方法
+
+1. 代码演示
+
+   - 案例
+
+     ```python
+     import unittest
+     
+     class test(unittest.TestCase):
+         # 初始化方法
+         def setUp(self):
+             self.a = 4
+             self.b = 6
+             return super().setUp()
+     
+         # 执行方法(必须 test 开头)
+         def test_add(self):
+             print(self.a + self.b)
+     
+         # 结束方法
+         def tearDown(self):
+             return super().tearDown()
+     
+     if __name__ == '__main__':
+         unittest.main()
+         
+     运行结果
+     10
+     .
+     ----------------------------------------------------------------------
+     Ran 1 test in 0.000s
+     
+     OK
+     ```
+
+## 待续......
+
+
+
 
 
 
