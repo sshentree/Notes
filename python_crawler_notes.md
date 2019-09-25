@@ -1,5 +1,3 @@
-
-
 # Python爬虫
 
 说明：__年轻的时候满脑子想的都是女孩、爱情、女人。现在我只想钱，在这个物质横流的世界里如果没有钱，你就是个垃圾。__
@@ -4266,9 +4264,9 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
    - Python 非常出色的语言，虽然运行效率一般，但第三方库非常丰富，所以适合学术代码（机器学习、深度学习）
    - Tesseract 是 ORC 的一个库，是目前公认最优秀、精度最高的开源库（识别任何字体）
 2. Tessertact 的安装
-   - windows 下载安装文件 (地址)[https://github.com/tesseract-ocr/]
+   - windows 下载安装文件 [地址](https://github.com/tesseract-ocr/)
    - LInux 通过 `apt-get $sudo apt-get tesseract-ocr`
-3. 使用
+3. **使用**
    - 设置信息环境变量 `TESSERACT_PREFIX` ，存放 Tesseract 的训数据 `tessdata` 在 tesseract 目录下
    - 使用命令行 `tesseract` 执行，不适用 `import` 导入
 4. 安装 pytesseract
@@ -4278,30 +4276,140 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ##  scrapy 模块
 
-说明：
+说明：[官方文档](https://docs.scrapy.org/en/latest/intro/tutorial.html) <br>
+
+> Scrapy 是一个 Python 编写的 __开源网络爬虫框架__ 。它是一个被设计用于爬取网络数据、提取结构性数据的程序框架。该框架主要由 *Scrapinghub 公司* 进行维护
+
+### Scrapy 介绍
+
+1. 功能介绍
+   - Scrapy 是用 Python 实现的一个为爬取网站数据、提取结构性数据而编写的应用框架
+   - Scrapy 常应用在包括数据挖掘、信息处理或存储历史数据等一系列的程序中
+   - 通常我们可以使用简单的通过 Scrapy 框架实现一个爬虫，榨取指定网页的内容或图片
+
+### Scrapy 的模块介绍
+
+1. 数据流向
+
+   - 如图
+
+     ![Scrapy数据流向图](git_picture/Scrapy数据流向图.png)
+
+2. 对 Scrapy 的各个模块的 介绍
+
+   - Scrapy Engine（引擎）
+
+     负责 Spider、ItemPipeline、Downloader、Scheduler 中间的通讯、信号、数据传递等。
+
+   - Scheduler（调度器）
+
+     它负责接受引擎发送过来的 Request 请求，按照一定方式进行整理排列
+
+   - Downloader（下载器）
+
+     负责下载 Scrapy Engine（引擎）发送的所有 Request 请求，并将其获取的 Response 交给 Scrapy Engine（引擎）。由引擎交给 Spider 来处理
+
+   - Spider（爬虫）
+
+     它负责处理所有 Response 从中分析提取数据，获取 Item 字段需要数据，并将需要跟进的 URL 提交给引擎，再次进入 Scheduler（调度器）
+
+   - Item Pipline（管道）
+
+     它负责处理 Spider 中获取的 Item ，并进行后期处理（详细分析、过滤、储存等）的地方
+
+   - Downloader Middlewares（下载中间插件）
+
+     可以当作自定义扩展下载功能的组件
+
+   - Spider Middlewares（Soider 中间插件）
+
+     可以理解为是一个可以扩展和操作引擎的 Spider 中间通信的功能组件（比如进入 Spider 的 Responses 和从 Spider 出去的 Request）
+
+### Scrapy 的工作流程
+
+1. 流程
+
+   - 引擎
+
+     你好！！！Spider，你要处理哪个网站？
+
+   - Spider
+
+     引擎，我要处理 `xxx.com`
+
+   - 引擎
+
+     把你的第一个要处理的 URL 给我
+
+   - Spider
+
+     给你，第一个 URL 是 `xxx.com`
+
+   - 引擎
+
+     你好！！！调度器，我这里有 Requset 请求你帮我排序入队
+
+   - 调度器
+
+     给你，这是我处理好的 Request
+
+   - 引擎
+
+     你好！！！下载器，你按照用户设置的 “下载中间插件” 下载 Request 请求
+
+   - 下载器
+
+     好的，给你，这是下载完成的东西（如果下载失败，引擎会告诉调度器，这个 Request 下载失败，你记录一下，我们一会再下载）
+
+   - 引擎
+
+     你好！！！，spider（第 2 次见面），这是下载好的东西，并且已经按照用户的“下载中间插件”处理了，你自己在处理一下（这个 Request 默认是交给 `def parse()` 处理） 
+
+   - Spider
+
+     （处理完数据之后对于需要跟进的 URL），你好！！！引擎（第 3 次见面），这里有两个结果，这是需要跟进的 URL，这是获取的 Item 数据
+
+   - 引擎
+
+     你好！！！管道，这有个 Item 帮我处理一下
+
+     你好！！！调度器，这是需要跟进的 URL 帮我处理一下（循环第 5 步开始）
+
+   - 管道
+
+     好的，现在就做
+
+2. 结束条件
+
+   - 只有当 __调度器__ 中不存在任何 Request 了，整个程序才结束
+   - 也就是说，对于下载失败的 URL，Scrapy 也会重新下载
+
+3. 制作 Scrapy 爬虫（一共 4 步）
+
+   - 新建项目（scrapy startproject xxx）：新建体格爬虫项目
+   - 明确目标（编写 item.py）：明确抓取目标
+   - 制作爬虫（spider/xxscrapy.py）：制作爬虫开始爬虫网页
+   - 存储内容（piplines.py）：设计管道存储爬取内容
+
+### Scrapy 安装介绍
+
+说明：说是不要再全局中安装 Scrapy ，在局部安装，防止与一些系统工具和脚本冲突。<br> [局部安装网址](https://virtualenv.pypa.io/en/stable/installation/)
+
+1. windows 安装
+
+   - `pip install Scrapy`
+
+2. Ubuntu 安装
+
+   说明：安装依赖是因为 Scrapy 的（lxm、twisted 和 pyOpenSSL）是最新的兼容 Ubuntu 各个版本。不要使用 Ubuntu 提供的 Scrapy 安装包，所以需要安装依赖
+
+   - `sudo apt-get install python-dev python-pip libxml2-dev libxslt1-dev zlib1g-dev libffi-dev libssl-dev`
+
+   - `sudo pip install scrapy`    
+
+### 入门案例
+
+
 
 ## 待续......
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-~~~~
-
-~~~~
