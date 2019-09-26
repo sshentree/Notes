@@ -4409,7 +4409,126 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ### 入门案例
 
+说明：<br> 目标 <br> 创建一个 Scrapy 项目 <br> 定义提取的结构化数据（Item） <br> 编写爬取的网站的 Spider 并提取处结构化数据（Item） <br> 编写 Item Piplines 来存储提取到的 Item （及结构化数据）
 
+1. 新建项目
+
+   说明：使用 Pychram 使用虚拟环境，每个项目独立，固新建项目之前，安装 Scrapy
+
+   - 创建新项目（命令行输入）
+
+     `scarpy startprojrct myspider`  myspider 为项目名称
+
+   - 项目目录结构如图（spiderbaidu 为项目名称）
+
+     ![spider文件结构](git_picture/spider文件结构.png)
+
+2. 项目文件介绍
+
+   - __scarpy.cfg__
+
+     项目配置文件
+
+   - __spiderBaidu__
+
+     项目的 Python 模块，将会从这里引用代码
+
+   - __spiderBaidu / items.py__
+
+     项目目标文件
+
+   - __spiderBaidu / piplines.py__
+
+     项目管道文件
+
+   - __spiderBaidu / settings.py__
+
+     项目配置文件
+
+   - __spiderBaidu / spider__
+
+     存储爬虫代码目录
+
+3. 明确目标
+
+   说明：抓取 `http://www.itcast.cn/channel/teacher.shtml` 所有讲师的姓名、职称、个人介绍
+
+   - 新建 spiderItcast 项目 `scrapy startproject spiderItcast` 命令行输入
+
+     ![spiderItcast文件结构](git_picture/spiderItcast文件结构.png)
+
+4. 制作 Item
+
+   说明：item 定义结构化数据字段，用来保存爬虫的数据，有点像 dict（字典），但是提供了一些额外的保护减少错误。<br>打开 `spiderItcast/spiderItcast` 的 item.py 文件
+
+   - 代码演示
+
+     ```python
+     import scrapy
+     
+     
+     class SpideritcastItem(scrapy.Item):
+         # define the fields for your item here like:
+         # name = scrapy.Field()
+     
+         # 讲师 名字
+         name = scrapy.Field()
+     
+         # 讲师 职称
+         name = scrapy.Field()
+     
+         # 讲师个人 介绍
+         name = scrapy.Field()
+     ```
+
+     解释：继承 scrapy.Item 类，使用 `scrapy.Field()` 定义保存数据
+
+5. 制作爬虫
+
+   说明：在当前目录 `SpriderProject/spiderItcast` 输入命令 `scrapy genspider Itcast www.itcast.cn` ，将在spider文件夹下创建 Itcast.py 文件用于爬虫，
+
+   - 默认代码
+
+     ```python
+     import scrapy
+     
+     
+     class ItcastSpider(scrapy.Spider):
+         name = 'Itcast'
+         allowed_domains = ['www.itcast.cn']
+         start_urls = ['http://www.itcast.cn/']
+     
+         def parse(self, response):
+             pass
+     ```
+
+     解释：继承 `scrapy.Spider` 类，强制三个属性，和一个方法
+
+   - 属性解释
+
+     1. name
+
+        爬虫识别名，必须唯一，在不同的爬虫定义不同的名字
+
+     2. allowde_domains
+
+        搜索的域名范围，爬虫约束区域，规定爬虫只爬取这个域名下的网页，不存在 URL 会被忽略
+
+     3. start_urls
+
+        爬取的 URL 元组 / 列表。爬虫从这里开始抓取数据，所以，第一次下载的数据将会从这些 URLS 开始。其他子 URL 将会从这些起始 URL 中继承性生成
+
+     4. `parse(self, response)`
+
+        解析方法：每个 URL 下载完成后将会被调用，调用的时候传入从每个 URL 传回的 Response 对象作为唯一参数。
+
+        作用：解析网页数据 `response.body`（二进制网页数据），提取结构化数据（item）<br> 生成下一页的 URL请求
+
+   - 启动爬虫
+
+     在项目目录执行 `scrapy crawl Itcast`
+
+   
 
 ## 待续......
 
