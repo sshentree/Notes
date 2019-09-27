@@ -4475,10 +4475,10 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
          name = scrapy.Field()
      
          # 讲师 职称
-         name = scrapy.Field()
+         title = scrapy.Field()
      
          # 讲师个人 介绍
-         name = scrapy.Field()
+         info = scrapy.Field()
      ```
 
      解释：继承 scrapy.Item 类，使用 `scrapy.Field()` 定义保存数据
@@ -4524,11 +4524,122 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
         作用：解析网页数据 `response.body`（二进制网页数据），提取结构化数据（item）<br> 生成下一页的 URL请求
 
-   - 启动爬虫
+   - 构建爬虫代码
 
-     在项目目录执行 `scrapy crawl Itcast`
+     1. 将爬取的数据全部存入文件中，代码演示
 
+        说明：response 为响应文件，`response.body`  __为二进制__ 
    
+        ```python
+        # -*- coding: utf-8 -*-
+        import scrapy
+        
+        
+        class BaiduSpider(scrapy.Spider):
+            name = 'baidu'
+            allowed_domains = ['www.itcast.com']
+            start_urls = ['http://www.itcast.com/']
+        
+            def parse(self, response):
+                print(type(response))
+                print(response)
+                with open('content.html', 'wb') as f:
+                    f.write(response.body)
+                    
+        运行结果
+        <class 'scrapy.http.response.html.HtmlResponse'>
+        <200 http://www.itcast.com/>
+        ```
+   
+     2. 爬取网页数据，并进行提取，使用 item.py 文件中的属性 __name、title、info__
+   
+        说明：导入 item ，根节点为项目文件夹（spiderItcast）,但是不用谢，直接写二级的 spidertcast
+   
+        ```python
+        # -*- coding: utf-8 -*-
+        import scrapy
+        # 导入 item.py 文件
+        from spiderItcast.items import SpideritcastItem
+        
+        
+        class ItcastSpider(scrapy.Spider):
+            name = 'Itcast'
+            allowed_domains = ['www.itcast.cn']
+            start_urls = ['http://www.itcast.cn/channel/teacher.shtml#ajavaee']
+        
+            def parse(self, response):
+        
+                # 匹配规则
+                # 根节点 /html/body/div[1]/div[5]/div[2]/div[3]/ul/li/div[2]
+                # name 节点 .h3
+                # title 节点 .h4
+                # info 节点 .p
+        
+                # 通过 scarpy 自带的 xpath 提取数据
+                # xpath 返回值为 列表
+        
+                # 根节点列表
+                teacher_list = response.xpath('/html/body/div[1]/div[5]/div[2]/div[3]/ul/li/div[2]')
+        
+                # 定义一个列表 存放信息
+                teacher_item = []
+        
+                for each in teacher_list:
+        
+                    # 遍历 匹配信息 / xpath 返回值为列表
+                    # name 为 xpath 对象（<Selector xpath='./h4/text()' data='高级讲师'>）
+                    # 转换为 unicode 字符串：extract() 方法
+        
+                    name = each.xpath('./h3/text()').extract()
+                    title = each.xpath('./h4/text()').extract()
+                    info = each.xpath('./p/text()').extract()
+        
+                    # print(name)
+                    # print(title)
+                    # print(info)
+        
+                    # 创建一个 SpideritemItcast 对象 将数据封装进去
+                    item = SpideritcastItem()
+        
+                    item['name'] = name[0]
+                    item['title'] = title[0]
+                    item['info'] = info[0]
+        
+                    # 将数据 存放列表中
+                    teacher_item.append(item)
+        	    
+                # 将数据返回有用
+                return teacher_item
+        ```
+   
+   - 启动爬虫
+   
+     说明：在项目目录中执行， scrapy 保存信息最简单有 4 中，使用 `-o` 表示输出文件格式 __.json、.jl、.xml、.csv__ 
+     
+     __.jl__ 好像就是 __.json__ 没有了最外已成的 `[]` 一行显示一条信息 <br> __存入文件格式 `.csv` 有错误，原因不晓得__ 
+     
+     1.  `scrapy crawl Itcast` 正常执行
+     2. `scrapy crawl Itcast -o conten.xml`
+     
+   - 结束信息
+   
+     运行之后，如果打印的日志出现 `[scrapy] INFO: Spider closed (finished)`，代表执行完成。 之后当前文件夹中就出现了一个 content.xxx 文件，里面就是爬取的网页后后提取的信息。
+   
+6. 扩展 `yield` 语法
+
+   - `yield` 与 `return`  相似，只是每次使用 `next(f)` 
+
+     ```python
+     def func():
+         for i in range(5):
+             yield i
+             
+     f = func()
+     print(next(f))
+     
+     运行结果
+     0
+     ```
 
 ## 待续......
 
