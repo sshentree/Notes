@@ -4321,7 +4321,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      可以当作自定义扩展下载功能的组件
 
-   - Spider Middlewares（Soider 中间插件）
+   - Spider Middlewares（Spider 中间插件）
 
      可以理解为是一个可以扩展和操作引擎的 Spider 中间通信的功能组件（比如进入 Spider 的 Responses 和从 Spider 出去的 Request）
 
@@ -4423,7 +4423,14 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      ![spider文件结构](git_picture/spider文件结构.png)
 
-2. 项目文件介绍
+2. settings.py 文件
+
+   说明：很重要，项目的设置文件，都在其中设置
+
+   - 管道文件设置
+   - 等等......
+
+3. 项目文件介绍
 
    - __scarpy.cfg__
 
@@ -4449,7 +4456,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      存储爬虫代码目录
 
-3. 明确目标
+4. 明确目标
 
    说明：抓取 `http://www.itcast.cn/channel/teacher.shtml` 所有讲师的姓名、职称、个人介绍
 
@@ -4457,7 +4464,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      ![spiderItcast文件结构](git_picture/spiderItcast文件结构.png)
 
-4. 制作 Item
+5. 制作 Item
 
    说明：item 定义结构化数据字段，用来保存爬虫的数据，有点像 dict（字典），但是提供了一些额外的保护减少错误。<br>打开 `spiderItcast/spiderItcast` 的 item.py 文件
 
@@ -4483,7 +4490,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      解释：继承 scrapy.Item 类，使用 `scrapy.Field()` 定义保存数据
 
-5. 制作爬虫
+6. 制作爬虫
 
    说明：在当前目录 `SpriderProject/spiderItcast` 输入命令 `scrapy genspider Itcast www.itcast.cn` ，将在spider文件夹下创建 Itcast.py 文件用于爬虫，
 
@@ -4529,7 +4536,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      1. 将爬取的数据全部存入文件中，代码演示
 
         说明：response 为响应文件，`response.body`  __为二进制__ 
-   
+
         ```python
         # -*- coding: utf-8 -*-
         import scrapy
@@ -4550,11 +4557,11 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
         <class 'scrapy.http.response.html.HtmlResponse'>
         <200 http://www.itcast.com/>
         ```
-   
-     2. 爬取网页数据，并进行提取，使用 item.py 文件中的属性 __name、title、info__
-   
-        说明：导入 item ，根节点为项目文件夹（spiderItcast）,但是不用谢，直接写二级的 spidertcast
-   
+
+     2. 爬取网页数据（spider 文件夹下的 Itcast.py），并进行提取，使用 item.py 文件中的属性 __name、title、info__
+
+        说明：导入 item ，根节点为项目文件夹（spiderItcast）,但是不用写，直接写二级的 spidertcast
+
         ```python
         # -*- coding: utf-8 -*-
         import scrapy
@@ -4611,9 +4618,9 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
                 # 将数据返回有用
                 return teacher_item
         ```
-   
+
    - 启动爬虫
-   
+
      说明：在项目目录中执行， scrapy 保存信息最简单有 4 中，使用 `-o` 表示输出文件格式 __.json、.jl、.xml、.csv__ 
      
      __.jl__ 好像就是 __.json__ 没有了最外已成的 `[]` 一行显示一条信息 <br> __存入文件格式 `.csv` 有错误，原因不晓得__ 
@@ -4622,10 +4629,12 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      2. `scrapy crawl Itcast -o conten.xml`
      
    - 结束信息
-   
+
      运行之后，如果打印的日志出现 `[scrapy] INFO: Spider closed (finished)`，代表执行完成。 之后当前文件夹中就出现了一个 content.xxx 文件，里面就是爬取的网页后后提取的信息。
-   
-6. 扩展 `yield` 语法
+
+7. 扩展 `yield` 语法
+
+   说明：yield 关键字，来实现函数作为 __生成器__ 使用，爬虫会使用 `yield` 关键字，联合管道一起使用
 
    - `yield` 与 `return`  相似，只是每次使用 `next(f)` 
 
@@ -4639,6 +4648,84 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      
      运行结果
      0
+     ```
+
+8. Pychram 使用脚本启动爬虫程序
+
+   - Python 模块 `from scrapy import cmdline`
+
+     ```python
+     from scrapy import cmdline
+     
+     
+     cmdline.execute('scrapy crawl Itcast -o content-1.xml'.split())
+     ```
+
+9.  Piplines 的使用（管道）
+
+   - 修改 spider 文件夹下的 Itcast.py 文件
+
+     说明：注释掉 存放整个数据的列表（teacher_item）、操作语句，和 return 关键字，增加 `yield` 关键字的使用
+
+     ```python
+     
+             # 定义一个列表 存放信息
+             # teacher_item = []
+     
+             for each in teacher_list:
+     
+                 # 遍历 匹配信息 / xpath 返回值为列表
+                 # name 为 xpath 对象（<Selector xpath='./h4/text()' data='高级讲师'>）
+                 # 转换为 unicode 字符串：extract() 方法
+     
+                 name = each.xpath('./h3/text()').extract()
+                 title = each.xpath('./h4/text()').extract()
+                 info = each.xpath('./p/text()').extract()
+     
+                 # print(name)
+                 # print(title)
+                 # print(info)
+     
+                 # 创建一个 SpideritemItcast 对象 将数据封装进去
+                 item = SpideritcastItem()
+     
+                 item['name'] = name[0]
+                 item['title'] = title[0]
+                 item['info'] = info[0]
+     
+                 # 将数据 存放列表中
+                 # teacher_item.append(item)
+                 
+                 # 使用 yield 关键字
+                 yield item
+     
+             # return teacher_item
+     ```
+
+   - 管道文件（piplines.py）
+
+     ```python
+     import json
+     
+     class SpideritcastPipeline(object):
+         # __init__ 初始化函数 可写、可不写
+         # def __init__(self):
+         #     pass
+     
+         # 函数 process_item() 必须写
+         def process_item(self, item, spider):
+             # item 为 unicde 编码字符串
+             #
+             # 将其转换为 字典（dict()）
+             #
+             # 转换为 python 字典 转换为 json
+             #
+             # 写入 json 文件
+     
+             with open('../Data_doc/data.json', 'a', encoding='utf-8') as f:
+                 f.write(json.dumps(dict(item), ensure_ascii=False) + '\n')
+     
+             return item
      ```
 
 ## 待续......
