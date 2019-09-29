@@ -4535,7 +4535,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      1. 将爬取的数据全部存入文件中，代码演示
 
-        说明：response 为响应文件，`response.body`  __为二进制__ 
+        说明：response 为响应文件，`response.body`  __为二进制（byte）__ ，`response.text` 为 __字符串（str）__
 
         ```python
         # -*- coding: utf-8 -*-
@@ -4727,6 +4727,107 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      
              return item
      ```
+
+### Scrapy Shell  调试代码
+
+说明：[官方文档](https://scrapy-chs.readthedocs.io/zh_CN/1.0/topics/shell.html) \ [1.7.3 官方文档](https://docs.scrapy.org/en/latest/topics/shell.html)
+
+1. Scrapy Shell 介绍
+
+   - Scrapy 终端（Scrapy shell）
+
+     > scrapy 终端（scrapy shell）
+     >
+     > Scrapy  终端是一个一个交互式终端，供你在未启动 spider  的情况下尝试及调试你的爬取代码，其本意使用来测试提取数据代码，不过你可以将其作为正常的 Python 终端，在上面测试任何 Python 代码。<br> <br> 该终端是用来测试 __XPath、CSS 表达式__，查看它们的工作方式及从爬取的网页中提取数据，在编写的 spider 时，该终端提供了交互性测试你的表达式代码的功能，免去了每次修改后运行 spider 的麻烦。<br> <br> 一旦熟悉了 Scrapy 终端后，你会发现其在开发和调试 spider 时发挥的巨大作用 <br> <br> 如果你安装了 IPython ，Scrapy 终端将使用 IPython（代替标准 Python 终端）。IPython 终端与其相比功能更为强大 <br> 
+
+2. 启动 Scrapy shell
+
+   - 进入项目根目录，使用 shell 来启动 Scrapy 终端
+
+     `scarpy shell url`
+
+     解释：URL 是要爬取的网页地址
+
+   - 运行结构如下：
+
+     ```python
+     2019-09-29 13:54:48 [scrapy.extensions.telnet] INFO: Telnet console listening on 127.0.0.1:6023
+     2019-09-29 13:54:48 [scrapy.core.engine] INFO: Spider opened
+     2019-09-29 13:54:49 [scrapy.core.engine] DEBUG: Crawled (200) <GET http://www.itcast.cn/channel/teacher.shtml#ajavaee> (referer: None)
+     [s] Available Scrapy objects:
+     [s]   scrapy     scrapy module (contains scrapy.Request, scrapy.Selector, etc)
+     [s]   crawler    <scrapy.crawler.Crawler object at 0x0000026312494940>
+     [s]   item       {}
+     [s]   request    <GET http://www.itcast.cn/channel/teacher.shtml#ajavaee>
+     [s]   response   <200 http://www.itcast.cn/channel/teacher.shtml>
+     [s]   settings   <scrapy.settings.Settings object at 0x0000026312494860>
+     [s]   spider     <ItcastSpider 'Itcast' at 0x263127af2b0>
+     [s] Useful shortcuts:
+     [s]   fetch(url[, redirect=True]) Fetch URL and update local objects (by default, redirects are followed)
+     [s]   fetch(req)                  Fetch a scrapy.Request and update local objects
+     [s]   shelp()           Shell help (print this help)
+     [s]   view(response)    View response in a browser
+     In [1]: 
+     ```
+
+3. 使用终端
+
+   说明：Scrapy 终端仅仅是一个普通的 Python 终端（或 IPython）。其提供了一些额外的快捷方式
+
+   - `shelp()`
+
+     打印可用对象及快捷命令的帮助列表
+
+   - `fetch(request_or_to)`
+
+     根据给定的请求(request)或URL获取一个新的 response，并更新相关的对象
+
+   - `view(response)`
+
+     在本机的浏览器打开给定的response。 其会在 response 的 body 中添加一个 [<base> 标签](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base) ，使得外部链接(例如图片及css)能正确显示。 *注意，该操作会在本地创建一个临时文件，且该文件不会被自动删除*。
+
+4. 可操作的 Scrapy 对象
+
+   说明：Scrapy  终端会根据下载的页面会自动创建一些方便使用对象，例如：`Response` 对象及 `Selector` 对象（对 HTML 及 XML 内容）
+
+   - 可操作对象
+
+     ```python
+     [s] Available Scrapy objects:
+     [s]   scrapy     scrapy module (contains scrapy.Request, scrapy.Selector, etc)
+     [s]   crawler    <scrapy.crawler.Crawler object at 0x0000026312494940>
+     [s]   item       {}
+     [s]   request    <GET http://www.itcast.cn/channel/teacher.shtml#ajavaee>
+     [s]   response   <200 http://www.itcast.cn/channel/teacher.shtml>
+     [s]   settings   <scrapy.settings.Settings object at 0x0000026312494860>
+     [s]   spider     <ItcastSpider 'Itcast' at 0x263127af2b0>
+     ```
+
+   - 对象解释
+
+     1. __crawl__
+
+        当前的 crawl 对象（资料上都是这么说的，但是我觉的的好好解释一下，再续......）
+
+     2. __request__
+
+         Request 最后获取页面的对象。您可以 `replace()` 使用 `fetch(url)` 快捷方式修改此请求，也可以获取新请求（不离开 shell）
+
+     3. __response__
+
+        最后获取到的页面的 Response 对象
+
+     4. __settings__
+
+        当前 Scrapy 设置
+
+     5. __spider__
+
+        用于处理 URL 的 spider，~~Spider 没有找到当前的 URL 的 Spider ，为一个 Spider 对象~~ (真心读不懂)
+
+5. Response 对象介绍
+
+   说明：
 
 ## 待续......
 
