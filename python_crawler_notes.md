@@ -4827,7 +4827,174 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 5. Response 对象介绍
 
-   说明：
+   说明：当 shell 载入后，将得到一个包含 Response 数据本地 response 变量
+   
+   - 输入 `response.headers`
+   
+     说明：可以看到 response __报头__
+   
+     ```python
+     In [1]: response.headers
+     Out[1]: 
+     {b'Server': b'Tengine',
+      b'Content-Type': b'text/html',
+      b'Date': b'Mon, 30 Sep 2019 05:17:59 GMT',
+      b'Vary': b'Accept-Encoding',
+      b'Ali-Swift-Global-Savetime': b'1569820679',
+      b'Via': b'cache33.l2cn1832[103,200-0,M], cache53.l2cn1832[104,0], kunlun2.cn2466[175,200-0,M], kunlun7.cn2466[177,0]',
+      b'X-Cache': b'MISS TCP_MISS dirn:-2:-2',
+      b'X-Swift-Savetime': b'Mon, 30 Sep 2019 05:17:59 GMT',
+      b'X-Swift-Cachetime': b'0',
+      b'Timing-Allow-Origin': b'*',
+      b'Eagleid': b'7ce1a71b15698206790542179e'}
+     ```
+   
+   - 输入 `response.body` \ `response.text`
+   
+     说明：看以看到 response 报体，body 属性为二进制、text 属性为字符串
+   
+     就是网页源码
+   
+6. Selector 选择器
+
+   说明：输入 `response.selector` 时，将会获得一个 response 初始化的类 selector 的对象，此时可以通过 `response.selector.xpath()` \ `response.selector.css()` 来对 response 进行查询
+
+   - `xpath()`
+
+     传入 xpath 表达式，返回该表达式所有对应节点的 selector list 列表
+
+   - `extract()`
+
+     序列化该节点为 Unicode 字符串并返回 list __将 selector 对象，转换为 Unicode字符串__
+
+   - `css()`
+
+     传入 css 表达式，返回该表达式所对应的所有节点的 selecor list 列表（语法同 Beautiful Soup4）
+
+   - `re()`
+
+     传入正则表达式，返回 Unicode 字符串 list 列表
+
+7. 待续......
+
+   说明：现阶段，只是用它来进行验证 __数据提取的是否正确__
+
+### Item Pipeline
+
+说明：在 Item 中定义要提取的数据字段，即 Item 字段会在 spider 中提取，将会被传入Item Pipeline，Item Pipeline 组件按照定义的顺序处理 Item 数据字段。
+
+1. Item Pipeline 作用
+
+   - 验证爬虫数据（检查 Item 包含哪些字段，如 name 字段）
+   - 查重（丢弃）
+   - 爬虫结果保存文件中、数据库中
+
+2. 编写 Item Pipeline
+
+   说明：其中 `process_item()` 方法必须实现
+
+   - 启用 Item Pipeline 组件，必须将他添加到 setting.py 文件中 ITEM_PIPEINES 配置，数字为优先级（越小级别越高）
+
+     ```python
+     # Configure item pipelines
+     # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+     ITEM_PIPELINES = {
+        'spiderItcast.pipelines.SpideritcastPipeline': 300,
+     }
+     ```
+
+   - 编写 Item Pipeline
+
+     ```python
+     import something 
+     
+     class SpidersomethingPipeline(obeject):
+     
+         def __init__(self):
+             # 可选实现，做参数初始化
+             pass
+         
+         def process_item(self, item, spider):
+             # item (Item 对象)，被爬取的 item 数据
+             # spider（spider 对象），爬取 item 的 spider
+             # 这个方法必须实现，每个 Item Pipeline 组件都需要调用该方法
+             # 这个方法必须返回一个 Item 对象，被丢弃的 item 将不会将不会被 Pipeline 组件所处理
+             return item
+     
+         def open_spider(self, spider):
+             # spider（spider 对象），被开启的 spider
+             # 可选实现，当 spider 被开启时，这个方法被调用
+             pass
+     
+         def close_spider(self):
+             # spdeu（spdier 对象），被关闭的 spider
+             # 可选实现，当 spider 被关闭时，这个方法被调用
+             pass
+     ```
+
+### Spider
+
+说明：Spider 类定义了如何爬取某个网站，包括了爬取动作（是否跟进连接），以及如何如何从网页数据中提取结构化数据（Item）。<br> 总结：Spider 就是爬取指定 URL 动作以及如何提取数据的地方
+
+1. Class scrapy.Spider 是最基本的类，所有编写爬虫类必须继承此类
+
+   - 主要函数调用顺序
+
+     1. `__init__()` 
+
+        初始化爬虫名和 start_url 列表名
+
+     2. ` start_requests()` 调用 `make_requests_from_url()`
+
+        生成 Request 对象交给 Scrapy 下载并返回 response
+
+     3. `parse()` 
+
+        解析 response ，并返回 Item 或 新的 Request（需指定回调函数）。Item 传递给 Item Pipeline 持久化，而 Request 交由 Scrapy 下载，并由指定的回调函数处理（默认 prase() 函数），一直循环处理完所有 URL
+
+2. 解释 Spider 类的属性和方法
+
+   说明：__可以查看 `scrapy.Spider` 基础类__
+
+   - name
+
+     说明：定义 spider 名称字符串
+
+     如 spider 爬取 `www.xx.com`，该 spider 通常会被命名为 `spider`
+
+   - allow_domains
+
+     说明：包含 spider 允许爬取的域名（domans）的列表，可选
+
+     如 `www.xx.com`
+
+   - start_urls
+
+     说明：初始 URL 元组、列表，当没有定制的 URL 时，spider 将从该列表开始爬取
+
+     如 `['http://www.xx.cn/xx/xx.html']`
+
+   - start_requsets(self)
+
+     说明：该方法必须返回一个可以迭代对象（iterable），该对象包含了 spider 用于爬取（默认实现使用时 start_urls 的 url）的第一个 Request
+
+     当 spider 启动爬取并未指定 start_urls 时，该方法被调用
+
+   - parse(self, response)
+
+     说明：当请求 URL 返回页面没有指定回调函数时，默认的 Request 对象回调函数，用来处理返回的 response，以及生成 Item 或者 Requset 对象
+
+   - log(self, message[, level, component])
+
+     说明：使用scrapy.log.msg() 方法记录（log）message。
+
+3. 爬取的 URL 不止一个
+
+   说明：加入爬取的页面不止一个，而是多个有规律的 URL
+
+   - 使用 `scrapy.Request(url, callback=self.parse)`
+
+     callback 回调函数为 self.parse
 
 ## 待续......
 
