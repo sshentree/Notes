@@ -4877,7 +4877,35 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 7. 待续......
 
-   说明：现阶段，只是用它来进行验证 __数据提取的是否正确__
+   说明：现阶段，只是用它来进行验证 __数据提取的是否正确__ 
+
+### Item
+
+说明：定义需要提取的字段，继承 `scrapy.Item`
+
+1. 作用
+
+   - 定义要提取的字符串，如同字典（dict）相同
+
+   - 代码演示
+
+     ```python
+     import scrapy
+     
+     
+     class SpideritcastItem(scrapy.Item):
+         # define the fields for your item here like:
+         # name = scrapy.Field()
+     
+         # 讲师 名字
+         name = scrapy.Field()
+     
+         # 讲师 职称
+         title = scrapy.Field()
+     
+         # 讲师个人 介绍
+         info = scrapy.Field()
+     ```
 
 ### Item Pipeline
 
@@ -4930,6 +4958,81 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
              # spdeu（spdier 对象），被关闭的 spider
              # 可选实现，当 spider 被关闭时，这个方法被调用
              pass
+     ```
+   
+3. 下载图片（自定义 ImagePipeline）
+
+   说明：下载图片将继承 `ImagesPipeline`
+
+   - 导包说明
+
+     1. `from scrapy.utlis.project import get_project_settings`
+
+        可以直接获取 `setting.py` 文件变量
+
+     2. `from scrapy.piplines.images import ImagesPipeline`
+
+        下载图片要继承的类
+
+     3. `from scrapy import Request`
+
+   - 在 scarpy 的模块中有 images.py 的两个函数最为关键，需要重写
+
+     1. `def get_media_requests(self, item, info)`
+
+        ```python
+        def get_media_requests(self, item, info):
+                return [Request(x) for x in item.get(self.images_urls_field, [])]
+        ```
+
+     2. `def item_completed(self, results, item, info):`
+
+        ```python
+        def item_completed(self, results, item, info):
+            if isinstance(item, dict) or self.images_result_field in item.fields:
+                item[self.images_result_field] = [x for ok, x in results if ok]
+            return item
+        ```
+
+   - 重写代码
+
+     ```python
+     from scrapy.utlis.project import get_project_settings
+     from scarpy import Request
+     from scrapy.pipeline.images import ImagesPipeline
+     
+     import os
+     
+     
+     class ImagesPipeline(ImagesPipeline):
+         
+         # IMAGES_PAYH 在 setting 中设置的图片存储 路径
+         IMAGES_PATH = get_project_settings().get('IMAGES_PATH')
+     
+         # 发送请求图片的函数
+         def get_media_requests(self, item, info):
+             # 在spider 中获取的图片 统一资源定位符
+             image_url = item['image_url']
+             
+             # 发送 下载图片请求
+             yield Request(image_url)
+     
+         def item_completed(self, results, item, info):
+             
+             # 列表生成式
+             # 
+             # result 结构表示为 二元组 (succsee, image_info_or_failure)
+             # 
+             # 第一个元素为图片是否下载成功
+             # 第二个元素为字典，并且取 path 值
+             # 
+             # 感觉 image 就是 图片的响应数据
+             image = [x['path'] for ok, x in results if ok]
+     
+             # 将图片 重新命名
+             os.rename(self.IMAGES_PATH + '/' + image[0], self.IMAGES_PATH + '/' + item['name'] + '.jpg')
+     
+             return item
      ```
 
 ### Spider
@@ -4988,7 +5091,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      说明：使用scrapy.log.msg() 方法记录（log）message。
 
-3. 爬取的 URL 不止一个
+3. 爬取多个 URL （一次爬取多个 URL）
 
    说明：加入爬取的页面不止一个，而是多个有规律的 URL
 
