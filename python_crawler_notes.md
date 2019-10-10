@@ -5099,5 +5099,133 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      callback 回调函数为 self.parse
 
+### CrawlSpiders
+
+说明：CrawlSpider 是 Spider 的派生类，Spider 的设计原理则只是爬取 start_url 列表中的网页，而 CrawlSpider 类定义了一些规则（rule）来提供跟进 link 的方便机制，从爬取网页获取 link 并继续爬取的工作跟适合
+
+1. 创建 CrawlSpider 模块的快捷方式
+
+   - `scrapt genspider -t crawl xxx xxx.com`
+
+     `scrapy genspider -t crawl tencent tencent.com`
+
+   - crawlSpider 默认代码
+
+     说明：不能重写 `def parse()` 函数，需要另写函数处理默认函数 `defparse_item()`
+
+     ```python
+     import scrapy
+     from scrapy.linkextractors import LinkExtractor
+     from scrapy.spiders import CrawlSpider, Rule
+     
+     
+     class TencentSpider(CrawlSpider):
+         name = 'tencent'
+         allowed_domains = ['tencent.com']
+         start_urls = ['http://tencent.com/']
+     
+         rules = (
+             Rule(LinkExtractor(allow=r'Items/'), callback='parse_item', follow=True),
+         )
+     
+         def parse_item(self, response):
+             item = {}
+             #item['domain_id'] = response.xpath('//input[@id="sid"]/@value').get()
+             #item['name'] = response.xpath('//div[@id="name"]').get()
+             #item['description'] = response.xpath('//div[@id="description"]').get()
+             return item
+     ```
+
+2. CrawlSpider 和 Spider 对比
+
+   说明：CrawlSpider 继承于 Spider 类，除继承属性（name \ allowed_domains \ start_urls），还有一些新的属性、方法。
+
+   - 模块 scarpy.linkextractors
+
+     导入模块：`from scrapy.linkextractors import LinkExtractor`
+
+     说明：linkextractors 的目的很简答：提取连接
+
+     linkextractors 有唯一的公共方法 `extract_links()` ，它接受一个 Response 对象，并返回一个 scrapy.link 对象
+
+3. LinkExtractor 介绍
+
+   说明：LinkExtractor 需要实例化一次，并且 extract_link 方法会根据不同的 Response 多次调用提取连接
+
+   - LinkExtractor 参数
+
+     ```tex
+     def __init__(
+         self,
+         allow=(),
+         deny=(),
+         allow_domains=(),
+         deny_domains=(),
+         restrict_xpaths=(),
+         tags=('a', 'area'),
+         attrs=('href',),
+         canonicalize=False,
+         unique=True,
+         process_value=None,
+         deny_extensions=None,
+         restrict_css=(),
+         strip=True, restrict_text=None
+     )
+     ```
+
+   - 主要参数介绍
+
+     说明：[参考地址](https://www.jianshu.com/p/0775a4df1fe4)
+
+     1. allow:
+
+        满足 ‘（）’ 中正则表达式或正则表达式列表的值会被提取，如果为空，则全部匹配（一般没人用空的）
+
+     2. deny:
+
+        与 allow 相反，匹配正则表达式或正则表达式列表的不会被提取
+
+     3. allow_domains
+
+        域名或域名列表，该域名下的连接会被提取
+
+     4. deny_domains
+
+        与 allow_domains 相反
+
+     5. restrict_xpaths:
+
+        xpath 或 xpath 的列表，符合 xpath 的列表会被提取
+
+     6. restrict_css
+
+        符合 css 的
+
+     7. tags \ attrs
+
+        tag 或 tag 的 list，提取指定标签中的连接，默认 ('a', 'area')
+
+     8. process_value
+
+        回调函数，该函数会对每一个连接进行处理，回调函数要么返回一个处理后的连接，要么返回 None 表示忽略不做处理
+
+4. rules 介绍
+
+   说明：rules 中包含一个或者多个 Rule 对象，每一个 Rule 对爬取的网站定义了特定操作，如果多个 rule 匹配相同的连接，则会根据规则在集合中被定义的顺序，第一个会被使用。
+
+   - Rule 参数
+
+     ```tex
+     def __init__(
+         self,
+         link_extractor,
+         callback=None,
+         cb_kwargs=None,
+         follow=None,
+         process_links=None,
+         process_request=None
+     )
+     ```
+
 ## 待续......
 
