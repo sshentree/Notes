@@ -4746,6 +4746,8 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      `scarpy shell url`
 
+     `scrapy shell "https://tieba.baidu.com/f?ie=utf-8&kw=美女&fr=search"` __URL 一定要双引号才可以__
+
      解释：URL 是要爬取的网页地址
 
    - 运行结构如下：
@@ -5226,6 +5228,109 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
          process_request=None
      )
      ```
+     
+   - 代码实例
+   
+     ```python
+       rules = (
+             Rule(LinkExtractor(allow=r'Items/'), callback='parse_item', follow=True),
+         )
+     ```
+   
+   - 主要参数介绍
+   
+     1. link_extractor
+   
+        LinkExtractor 对象，用于定义需要提取的 URL
+   
+     2. callback
+   
+        爬取 URL 的回调函数，该函数接受 Response 对象，并返回 Item、Response() 或它们的子类 <br> __不要使用回调函数，CrawlSpider 使用 parse() 方法实现其逻辑__ （不是很明白）
+   
+     3. cb_kwargs
+   
+        字典，用作 **kwargs 参数，传递给 callback
+   
+     4. follow (布尔值)
+   
+        是否跟进，若 callback=None，则 follow 默认为 True，否则为 False
+   
+     5. process_links
+   
+        可调用对象，针对每一个 link_extractor 提取的 URL 会调用该对象，作为 URL 的预处方法
+   
+     6. process_request
+   
+        可调用对象，针对每一个 URL 构成的 Request 对象会调用，返回一个 Request 对象或 None，过滤 Request
+   
+5. 使用 CrawlSpider
+
+   说明：在没有创建 CrawlSpider 时，也可以使用。爬取百度贴吧的美女吧。
+
+   - 启动爬虫项目，输入爬取 URL
+
+     `scrapy shell "https://tieba.baidu.com/f?ie=utf-8&kw=美女吧&fr=search"`
+
+   - scrapy shell 变量
+
+     ```python
+     2019-10-11 10:56:07 [scrapy.core.engine] INFO: Spider opened
+     2019-10-11 10:56:08 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://tieba.baidu.com/f?ie=utf-8&kw=%E7%BE%8E%E5%A5%B3%E5%90%A7&
+     fr=search> (referer: None)
+     [s] Available Scrapy objects:
+     [s]   scrapy     scrapy module (contains scrapy.Request, scrapy.Selector, etc)
+     [s]   crawler    <scrapy.crawler.Crawler object at 0x0000013811DC4908>
+     [s]   item       {}
+     [s]   request    <GET https://tieba.baidu.com/f?ie=utf-8&kw=%E7%BE%8E%E5%A5%B3%E5%90%A7&fr=search>
+     [s]   response   <200 https://tieba.baidu.com/f?ie=utf-8&kw=%E7%BE%8E%E5%A5%B3%E5%90%A7&fr=search>
+     [s]   settings   <scrapy.settings.Settings object at 0x0000013811DC4438>
+     [s]   spider     <DefaultSpider 'default' at 0x138120d2e10>
+     [s] Useful shortcuts:
+     [s]   fetch(url[, redirect=True]) Fetch URL and update local objects (by default, redirects are followed)
+     [s]   fetch(req)                  Fetch a scrapy.Request and update local objects
+     [s]   shelp()           Shell help (print this help)
+     [s]   view(response)    View response in a browser
+     ```
+
+   - 导入模块
+
+     ```python
+     In [1]: from scrapy.linkextractors import LinkExtractor
+     
+     In [2]: from scrapy.spiders import CrawlSpider, Rule
+     ```
+
+   - 实例化 LinkExtractor 对象
+
+     ```python
+     In [3]: link_list = LinkExtractor(allow=('/p/\d+'))
+     ```
+
+   - LinkExtractor 接受 Response 对象，并提取正则表达式匹配的结果
+
+     ```python
+     In [4]: link_list.extract_links(response)
+     ```
+
+   - 匹配结果
+
+     说明：这则表达式匹配的结果，是真正发送的 URL 地址，不是网页源码的信息。<br> `href='/p/6265947374'` 但匹配结果给 `https://tieba.baidu.com/p/6265947374`
+
+     ```python
+     [Link(url='https://tieba.baidu.com/p/5006374769', text='【答疑解惑】误删误封绿色通道', fragment='', nofollow=False),
+      Link(url='https://tieba.baidu.com/p/6265947374', text='预祝仙女们国庆快乐', fragment='', nofollow=False),
+      Link(url='https://tieba.baidu.com/p/6231323901', text='【吧规】禁止广告，维护网络正能量', fragment='', nofollow=False),
+      Link(url='https://tieba.baidu.com/p/6211531754', text='【协办】夏日最美coser大赛（美女吧分会场）', fragment='', nofollow=False),
+     ...
+     ...
+     ]
+     ```
+
+### CrawlSpider 实例
+
+说明：豆瓣影评
+
+
 
 ## 待续......
 
