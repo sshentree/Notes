@@ -5239,6 +5239,8 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
    
    - 主要参数介绍
    
+     说明：Rules 对象可以有多个匹配规则
+   
      1. link_extractor
    
         LinkExtractor 对象，用于定义需要提取的 URL
@@ -5260,7 +5262,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
         可调用对象，针对每一个 link_extractor 提取的 URL 会调用该对象，作为 URL 的预处方法
    
      6. process_request
-   
+     
         可调用对象，针对每一个 URL 构成的 Request 对象会调用，返回一个 Request 对象或 None，过滤 Request
    
 5. 使用 CrawlSpider
@@ -5328,7 +5330,128 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ### CrawlSpider 实例
 
-说明：豆瓣影评
+说明：豆瓣影评 , 使用 User-Agent 否则回报 403 错误<br> [完整代码地址]()<br> 创建项目 `scrapy startproject SpiderDouban`
+
+1. Item 模块
+
+   - 提取数据
+
+     1. 影评作者 author
+     2. 标题 title
+     3. 评论内容
+
+   - 代码演示
+
+     ```python
+     import scrapy
+     
+     
+     class SpiderdoubanItem(scrapy.Item):
+         # define the fields for your item here like:
+         # name = scrapy.Field()
+     
+         # 影评作者
+         author = scrapy.Field()
+         # 标题（电影）
+         title = scrapy.Field()
+         # 评论内容
+         content = scrapy.Field()
+     ```
+
+2. 使用 scrapy shell 验证匹配规则
+
+   说明：一般情况下 <br> 匹配内容使用 __Xpath__ <br> 匹配深度连接使用 __正则表达式__
+
+   - 验证是否爬取网页成功
+
+     `response.text`
+
+   - 验证内容匹配规则
+
+     说明：使用 Xpath 匹配时，出现了匹配出错（浏览器中正确，程序中匹配不出来的问题)。提供一个解决办法，使用 __火狐浏览器插件 xPath Finder__ 不会出现匹配不上的问题，但是这个插件匹配会精确的每一个元素，所以自己需要修改一下。
+
+   - 验证深度连接匹配规则
+
+     说明：使用正则表达式，很简单，只要匹配 __连接__ 的部分信息，就可以提取出 URL
+
+3. douban (crawlspider) 模块
+
+   - 需设置的内容
+
+     1. 导入模块
+
+        ```python
+        from scrapy.linkextractors import LinkExtractor
+        from scrapy.spiders import CrawlSpider, Rule
+        from SpiderDouban.items import SpiderdoubanItem
+        ```
+
+     2. 设置 rules
+
+        说明：匹配连接
+
+        ```python
+        rules = (
+                Rule(LinkExtractor(allow=r'start=\d+'), callback='parse_item', follow=True),
+            )
+        ```
+
+     3. 设置匹配内容
+
+        说明：`extract()` 提取出匹配内容，匹配结果为列表
+
+        ```python
+        # 作者
+        author = each.xpath('./div/header/a[2]/text()').extract()
+        # 标题
+        title = each.xpath('./div/div/h2/a/text()').extract()
+        # 影评内容
+        content = each.xpath('./div/div/div[1]/div/text()').extract()
+        ```
+
+4. Pipelines 模块
+
+   说明：将数据存入文件中
+
+   - 代码演示
+
+     ```python
+     import json
+     
+     class SpiderdoubanPipeline(object):
+     
+         def __init__(self):
+             # 打开数据文件
+             self.file = open(file='Data_doc/yp.json', mode='w', encoding='utf-8')
+     
+     
+         def process_item(self, item, spider):
+             # 将 item 转为字典，再将字典转换为 Json 格式
+             info = json.dumps(obj=dict(item), ensure_ascii=False)
+             self.file.write(info + '\n')
+     
+             return item
+     
+     
+         def open_spider(self, spider):
+             pass
+     
+     
+         def close_spider(self):
+             # 数据文件关闭
+             self.file.close()
+             pass
+     ```
+
+5. 爬取结果
+
+   - json格式
+
+     说明：一个 item 对象
+
+     ```json
+     {"author": "你谁呀", "title": "此味只有天上有", "content": "\n\n                        假如你现在想看一部日本电影，又觉得大师们的片子太厚重，不易接近，新电影又拿不准看个啥能轻松娱乐赏心悦目又不失逼格，那么电影红花会就给你指条明路:《小森林夏秋篇》！就是一部不看不知道，一看真奇妙的佳片，去年全世界最好看的电影之一，不信？看完无感您回来插了战台烽...\n\n                         ("}
+     ```
 
 
 
