@@ -30,7 +30,13 @@ __git-branch理解示意图__
 
 - 版本创建
 
-  `git add file_name`
+  `git add file_name` ：将 file_name 文件添加到暂存区
+
+  `git add -A` ：添加所有改变的文件
+
+  `git add .` ：添加新文件和编辑过的文件，但不包括删除的文件
+
+  `git add -u` ：添加编辑过的和删除的文件，但不包括新添加的文件
 
   说明：add 添加到暂存区中
 
