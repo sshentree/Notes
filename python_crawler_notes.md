@@ -5103,7 +5103,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ### CrawlSpiders
 
-说明：CrawlSpider 是 Spider 的派生类，Spider 的设计原理则只是爬取 start_url 列表中的网页，而 CrawlSpider 类定义了一些规则（rule）来提供跟进 link 的方便机制，从爬取网页获取 link 并继续爬取的工作跟适合
+说明：CrawlSpider 是 Spider 的派生类，Spider 的设计原理则只是爬取 start_url 列表中的网页，而 CrawlSpider 类定义了一些规则（rule）来提供跟进 link 的方便机制，从爬取网页获取 link 并继续爬取的工作更适合。<br> __CrawlSpider 的 start_urls 是不会做处理的，它只是为了获取深度 Link，start_urls 的信息是后面获取的深度 Link  __
 
 1. 创建 CrawlSpider 模块的快捷方式
 
@@ -5259,7 +5259,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
    
      5. process_links
    
-        可调用对象，针对每一个 link_extractor 提取的 URL 会调用该对象，作为 URL 的预处方法
+        可调用对象，针对每一个 link_extractor 提取的 URL 会调用该对象，作为 URL 的预处方法，过流 
    
      6. process_request
      
@@ -5327,10 +5327,39 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      ...
      ]
      ```
+   
+6. Logging 日志信息
+
+   说明：Scrapy 提供了 log 功能，可以通过 logging 使用
+
+   - Logging 使用，在 setting 中设置
+
+     ```python
+     LOG_FILE = 'xxx.log'
+     LOG_LEVEL = 'INFO'
+     ```
+
+   - Log levels 日志信息等级（由高到低）
+
+     1. CRITICAL 严重错误
+     2. ERROR 一般错误
+     3. WARNING 警告信息
+     4. INFO 一般信息
+     5. DEBUG 调试信息
+
+   - 设置等级会包含该等级一下信息
+
+   - Logging 设置
+
+     1. LOG_ENABLE 默认：TRUE，启用 logging
+     2. LOG_ENCODING 默认：UTF-8，log 使用编码格式
+     3. LOG_FILE 默认：None，在当前目录创建 .log 文件保存 log 信息
+     4. LOG_LEVEL 默认：DEBUG，log 最低级别
+     5. LOG_STDOUT 默认：False，如果为 TRUE，进程所有标准输出（及错误）都将会重定向到 log 中。如，执行 `print('hello')` 将会在 scrapy log 中显示
 
 ### CrawlSpider 实例
 
-说明：豆瓣影评 , 使用 User-Agent 否则回报 403 错误<br> [完整代码地址]()<br> 创建项目 `scrapy startproject SpiderDouban`
+说明：豆瓣影评 , 使用 User-Agent 否则回报 403 错误<br> [完整代码地址]()<br> 爬取的 <br> 创建项目 `scrapy startproject SpiderDouban`
 
 1. Item 模块
 
@@ -5452,6 +5481,39 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      ```json
      {"author": "你谁呀", "title": "此味只有天上有", "content": "\n\n                        假如你现在想看一部日本电影，又觉得大师们的片子太厚重，不易接近，新电影又拿不准看个啥能轻松娱乐赏心悦目又不失逼格，那么电影红花会就给你指条明路:《小森林夏秋篇》！就是一部不看不知道，一看真奇妙的佳片，去年全世界最好看的电影之一，不信？看完无感您回来插了战台烽...\n\n                         ("}
      ```
+
+### CrawlSpider 实例
+
+说明：爬取某网站，返回的 URL 地址错误（不可访问），使用 Rule 的 `process_links='function'` 参数调用函数预处理 LinkExtractor 对象的 extract_links() 提取出的 URL。<br> __获取当前响应 Response 的 URL 为 `response.url`__ <br> __Rule 对象的参数 follow 为是否跟进该 URL 的 Response，就是该 URL 已经发送，他的响应 Response 是否继续提取 URL__ 
+
+1. 基本步骤
+
+   - 创建项目
+
+     `scrapy startproject SpiderDGsun`
+
+   - 设置 Item 数据字段
+
+     1. title：问题
+     2. num：问题编号
+     3. content：问题内容
+     4. state：问题状态（是否处理）
+
+   - 创建 CrawlSpider 
+
+     `scarpy genspider -t crawl DGSun xxx.com`
+
+   - 设置 setting 文件
+
+     1. 关闭 robot 协议
+     2. 报头添加 User-Agent
+     3. 修改了 Item 的一个东西（等会再写）
+
+2. 运行 scrapy shell "URL"
+
+   说明：验证爬虫响应文件、验证提取字段、验证提取 URL
+
+   
 
 
 
