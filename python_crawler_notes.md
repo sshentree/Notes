@@ -5357,7 +5357,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      4. LOG_LEVEL 默认：DEBUG，log 最低级别
      5. LOG_STDOUT 默认：False，如果为 TRUE，进程所有标准输出（及错误）都将会重定向到 log 中。如，执行 `print('hello')` 将会在 scrapy log 中显示
 
-### CrawlSpider 实例
+### CrawlSpider 实例 1
 
 说明：豆瓣影评 , 使用 User-Agent 否则回报 403 错误<br> [完整代码地址]()<br> 爬取的 <br> 创建项目 `scrapy startproject SpiderDouban`
 
@@ -5482,9 +5482,9 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      {"author": "你谁呀", "title": "此味只有天上有", "content": "\n\n                        假如你现在想看一部日本电影，又觉得大师们的片子太厚重，不易接近，新电影又拿不准看个啥能轻松娱乐赏心悦目又不失逼格，那么电影红花会就给你指条明路:《小森林夏秋篇》！就是一部不看不知道，一看真奇妙的佳片，去年全世界最好看的电影之一，不信？看完无感您回来插了战台烽...\n\n                         ("}
      ```
 
-### CrawlSpider 实例
+### CrawlSpider 实例 2 
 
-说明：爬取某网站，返回的 URL 地址错误（不可访问），使用 Rule 的 `process_links='function'` 参数调用函数预处理 LinkExtractor 对象的 extract_links() 提取出的 URL。<br> __获取当前响应 Response 的 URL 为 `response.url`__ <br> __Rule 对象的参数 follow 为是否跟进该 URL 的 Response，就是该 URL 已经发送，他的响应 Response 是否继续提取 URL__ 
+说明：爬取某网站 ，[源码地址]()<br> <br>__返回的 URL 地址错误（不可访问），使用 Rule 的 `process_links='function'` 参数调用函数预处理 LinkExtractor 对象的 extract_links() 提取出的 URL，在 4 中，有代码演示。__<br>  <br> __获取当前响应 Response 的 URL 为 `response.url`__ <br> <br>__Rule 对象的参数 follow 为是否跟进该 URL 的 Response，就是该 URL 已经发送，他的响应 Response 是否继续提取 URL__  <br> <br> __这个网站的反爬虫机制，研究了一上午：1. 爬虫返回的页面数据和网页的页面数据不一样，这样会导致提取数据（Xpath）提取不到数据，本人解决办法：读取爬虫网页原始数据，找出匹配规则。2.处理状态，标签会变，本人解决办法：使用 Xpath 的匹配规则 “ 或 ” -->  " | "__ 
 
 1. 基本步骤
 
@@ -5509,11 +5509,80 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      2. 报头添加 User-Agent
      3. 修改了 Item 的一个东西（等会再写）
 
-2. 运行 scrapy shell "URL"
+2. 运行 scrapy shell "URL"，提取链接
 
    说明：验证爬虫响应文件、验证提取字段、验证提取 URL
 
+   - 提取需要跟进的 URL（页面链接）
    
+     `link_list = LinkExtractor(allow=(r'question/\d+/\d+.shtml'))`
+   
+   - 提取不跟进的 URL（问题链接）
+   
+     `link_list = LinkExtractor(allow=(r'question/report\?page=\d+'))`
+   
+3. 在 scrapy shell 提取数据字段
+
+   说明：URL 为 2 中不跟进的 URL 的 Response 中提取
+
+   - 提取问题标题
+
+     ` response.selector.xpath('//head/title/text()').extract()`
+
+   - 提取问题编号
+
+     `response.selector.re(r'编号:(\d+)')`
+
+   - 提取问题状态
+
+     说明：问题状态的标签会有变化，所以使用或
+
+     `response.selector.xpath('//span[@class="qblue"]/text() | //span[@class="qgrn"]/text() | //span[@class="qred"]/text()').extract()`
+
+4. crawlSpider 
+
+   - 代码
+
+     ```python
+     class DgsunSpider(CrawlSpider):
+         name = 'DGsun'
+         allowed_domains = ['wz.sun0769.com']
+         start_urls = ['http://wz.sun0769.com/index.php/question/report?page=']
+     
+         rules = (
+             Rule(LinkExtractor(allow=r'question/report\?page=\d+'), follow=True, process_links='deal_link'),
+             Rule(LinkExtractor(allow=r'question/\d+/\d+.shtml'), callback='parse_item', follow=None),
+         )
+         
+         def deal_link(self, links):
+             for link in links:
+                 # 操作 link 中的 URL
+                 #
+                 # 这里只是打印，没有对 link.url 进行修改
+                 # print(link.url)
+     
+         def parse_item(self, response):
+             item = {}
+             #item['domain_id'] = response.xpath('//input[@id="sid"]/@value').get()
+             #item['name'] = response.xpath('//div[@id="name"]').get()
+             #item['description'] = response.xpath('//div[@id="description"]').get()
+     
+             # 初始化 item
+             item = SpiderdgsunItem()
+     
+             title = response.xpath('//head/title/text()').extract()
+             num = Selector(response).re(r'编号:(\d+)')
+             content = response.xpath('//head/meta[@name="description"]/@content').extract()
+             state = response.xpath('//span[@class="qblue"]/text() | //span[@class="qgrn"]/text() | //span[@class="qred"]/text()').extract()
+     
+             item['title'] = title[0]
+             item['num'] = num[0]
+             item['content'] = content[0]
+             item['state'] = state[0]
+     
+     
+             yield item
+     ```
 
 
 
