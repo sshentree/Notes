@@ -5484,7 +5484,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ### CrawlSpider 实例 2 
 
-说明：爬取某网站 ，[源码地址]()<br> <br>__返回的 URL 地址错误（不可访问），使用 Rule 的 `process_links='function'` 参数调用函数预处理 LinkExtractor 对象的 extract_links() 提取出的 URL，在 4 中，有代码演示。__<br>  <br> __获取当前响应 Response 的 URL 为 `response.url`__ <br> <br>__Rule 对象的参数 follow 为是否跟进该 URL 的 Response，就是该 URL 已经发送，他的响应 Response 是否继续提取 URL__  <br> <br> __这个网站的反爬虫机制，研究了一上午：1. 爬虫返回的页面数据和网页的页面数据不一样，这样会导致提取数据（Xpath）提取不到数据，本人解决办法：读取爬虫网页原始数据，找出匹配规则。2.处理状态，标签会变，本人解决办法：使用 Xpath 的匹配规则 “ 或 ” -->  " | "__ 
+说明：爬取某网站，使用 CrawlSpider 、Spider 两种方式进行操作    [源码地址](https://pan.baidu.com/s/1Zew8XfZKBmumPnhxF0gSRA)<br> <br>__返回的 URL 地址错误（不可访问），使用 Rule 的 `process_links='function'` 参数调用函数预处理 LinkExtractor 对象的 extract_links() 提取出的 URL，在 4 中，有代码演示。__<br>  <br> __获取当前响应 Response 的 URL 为 `response.url`__ <br> <br>__Rule 对象的参数 follow 为是否跟进该 URL 的 Response，就是该 URL 已经发送，他的响应 Response 是否继续提取 URL__  <br> <br> __这个网站的反爬虫机制，研究了一上午：1. 爬虫返回的页面数据和网页的页面数据不一样，这样会导致提取数据（Xpath）提取不到数据，本人解决办法：读取爬虫网页原始数据，找出匹配规则。2.处理状态，标签会变，本人解决办法：使用 Xpath 的匹配规则 “ 或 ” -->  " | "__ 
 
 1. 基本步骤
 
@@ -5548,12 +5548,15 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
          name = 'DGsun'
          allowed_domains = ['wz.sun0769.com']
          start_urls = ['http://wz.sun0769.com/index.php/question/report?page=']
-     
+     	
+         # 第一个 Rule 为提取 页面链接， 继续跟进
+         # 第二个 Rule 为提取 问题链接，且使用 parse_item 作为回调函数提取 数据字段，不跟进
          rules = (
              Rule(LinkExtractor(allow=r'question/report\?page=\d+'), follow=True, process_links='deal_link'),
              Rule(LinkExtractor(allow=r'question/\d+/\d+.shtml'), callback='parse_item', follow=None),
          )
          
+         # 为处理 页面链接（服务器返回 URL 有误，即反爬虫机制）
          def deal_link(self, links):
              for link in links:
                  # 操作 link 中的 URL
@@ -5583,8 +5586,70 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      
              yield item
      ```
+   
+5. 使用 Spider 对上述网站进行爬取
 
+   - spider 代码演示
 
+     ```python
+     import scrapy
+     from scrapy.selector import Selector
+     from SpiderDGSun.items import SpiderdgsunItem
+     
+     
+     class DgsunSpider(scrapy.Spider):
+         name = 'DGsunSpider'
+         allowed_domains = ['wz.sun0769.com']
+     
+         # 拼接 URL 地址
+         offset = 0
+         url = 'http://wz.sun0769.com/index.php/question/report?page='
+         start_urls = [url + str(offset)]
+     
+         def parse(self, response):
+             # 提取问题链接，返回为 单纯列表
+             links = Selector(response).re(r'http://wz.sun0769.com/html/question/\d+/\d+.shtml')
+     
+             for link in links:
+                 # 问题链接，回调函数使用 parse_item，提取数据字段
+                 yield scrapy.Request(url=link, callback=self.parse_item)
+     
+             # 页面链接，回调函数使用 parse，提取问题链接
+             self.offset += 30
+             if self.offset <= 148710:
+                 yield scrapy.Request(url=self.url + str(self.offset), callback=self.parse)
+     
+     
+         def parse_item(self, response):
+             item = {}
+             #item['domain_id'] = response.xpath('//input[@id="sid"]/@value').get()
+             #item['name'] = response.xpath('//div[@id="name"]').get()
+             #item['description'] = response.xpath('//div[@id="description"]').get()
+     
+             # 初始化 item
+             item = SpiderdgsunItem()
+     
+             title = response.xpath('//head/title/text()').extract()
+             num = Selector(response).re(r'编号:(\d+)')
+             content = response.xpath('//head/meta[@name="description"]/@content').extract()
+             state = response.xpath('//span[@class="qblue"]/text() | //span[@class="qgrn"]/text() | //span[@class="qred"]/text()').extract()
+     
+             item['title'] = title[0]
+             item['num'] = num[0]
+             item['content'] = content[0]
+             item['state'] = state[0]
+     
+     
+             yield item
+     ```
+
+6. 提取数据结果
+
+   - 图片链接暂无法处理
+
+### Scrapy 模拟登录
+
+说明：
 
 ## 待续......
 
