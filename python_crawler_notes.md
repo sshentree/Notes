@@ -4276,7 +4276,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ##  scrapy 模块
 
-说明：[官方文档](https://docs.scrapy.org/en/latest/intro/tutorial.html) <br>
+说明：[官方文档](https://docs.scrapy.org/en/latest/intro/tutorial.html)  [中文文档](https://scrapy-cookbook.readthedocs.io/zh_CN/latest/scrapy-11.html) <br>
 
 > Scrapy 是一个 Python 编写的 __开源网络爬虫框架__ 。它是一个被设计用于爬取网络数据、提取结构性数据的程序框架。该框架主要由 *Scrapinghub 公司* 进行维护
 
@@ -5081,9 +5081,9 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
    - start_requsets(self)
 
-     说明：该方法必须返回一个可以迭代对象（iterable），该对象包含了 spider 用于爬取（默认实现使用时 start_urls 的 url）的第一个 Request
+     说明：该方法必须返回一个可以迭代对象（iterable），该对象包含了 spider 用于爬取（默认实现使用时 start_urls 的 url）的第一个 Request 的 Response，提交方式为 GET
 
-     当 spider 启动爬取并未指定 start_urls 时，该方法被调用
+     当 spider 启动爬取，该方法被调用，读取 start_urls 内的 URL，为每个 URL 生成一个 Request 对象，交给 scrapy 下载并返回 Response，该方法仅调用一次
 
    - parse(self, response)
 
@@ -5649,7 +5649,48 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ### Scrapy 模拟登录
 
-说明：
+说明：网站登录，进入登录页面时，进入一个 URL 地址，输入用户名、密码，点击登录时，会将数据（用户名、密码，一些其他字段），提交到另一个 URL 地址，然后网页再次跳转到一个新的 URL 地址，最后登录成功。
+
+1. 登录流程，以  github 网站为例
+
+   - 进入登录页面 'https://github.com/login'
+
+     ![模拟登录页面](git_picture/模拟登录页面.png)
+
+   - 输入非正确的用户账号，点击登录，其中 form 表单向 https://github.com/session 此 URL 提交数据如下
+
+     ![模拟登录form提交数据](git_picture/模拟登录form提交数据.png)
+
+     __其中 login 为 用户名、password 为密码、timestamp 为 Unix 时间戳，其他的不知道是什么，但是也不是所有都必须需要提交。__
+
+   - 在 HTML 的源码数据，可以验证到以上数据
+
+     ![html源码提交数据](git_picture/html源码提交数据.png)
+
+2. 网站反爬虫手段（此处只讨论对 form 表单的操作）
+
+   说明：网站有没有反爬虫机制不是评价一个网站的好坏标准，但是以数据为主的网站一般都会有反爬虫机制
+
+   - 一类网站
+
+     没有附属的字段，只有用户名、密码
+
+   - 二类网站
+
+     就如同 github 网站，有附属字段，和用户名、密码，随 form 一起提交（时间戳等）
+
+   - 三类网站
+
+     就如同知乎网站，有附属字段，随 form 表单一起提交，但是它还会对其进行加密
+
+   - 如上所说
+
+     1. 三类网站最难爬取数据
+     2. __所有提交的数据字段，在 HTML 源码中的 form 表单中，都可以找到__
+
+3. Resquest \ Response
+
+   说明：`from scrapy import Request`    `import scrapy.http.Response`
 
 ## 待续......
 
