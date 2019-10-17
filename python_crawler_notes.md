@@ -5647,7 +5647,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
    - 图片链接暂无法处理
 
-### Scrapy 模拟登录
+### Request \ Response 登录流程
 
 说明：网站登录，进入登录页面时，进入一个 URL 地址，输入用户名、密码，点击登录时，会将数据（用户名、密码，一些其他字段），提交到另一个 URL 地址，然后网页再次跳转到一个新的 URL 地址，最后登录成功。
 
@@ -5691,6 +5691,238 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 3. Resquest \ Response
 
    说明：`from scrapy import Request`    `import scrapy.http.Response`
+   
+   - Resquest 模块
+   
+     1. 部分源码
+   
+        ```python
+        class Request(object_ref):
+        
+            def __init__(self, url, callback=None, method='GET', headers=None, body=None,
+                         cookies=None, meta=None, encoding='utf-8', priority=0,
+                         dont_filter=False, errback=None, flags=None, cb_kwargs=None):
+        
+                self._encoding = encoding  # this one has to be set first
+                self.method = str(method).upper()
+                self._set_url(url)
+                self._set_body(body)
+                assert isinstance(priority, int), "Request priority not an integer: %r" % priority
+                self.priority = priority
+        
+                if callback is not None and not callable(callback):
+                    raise TypeError('callback must be a callable, got %s' % type(callback).__name__)
+                if errback is not None and not callable(errback):
+                    raise TypeError('errback must be a callable, got %s' % type(errback).__name__)
+                assert callback or not errback, "Cannot use errback without a callback"
+                self.callback = callback
+                self.errback = errback
+        
+                self.cookies = cookies or {}
+                self.headers = Headers(headers or {}, encoding=encoding)
+                self.dont_filter = dont_filter
+        
+                self._meta = dict(meta) if meta else None
+                self._cb_kwargs = dict(cb_kwargs) if cb_kwargs else None
+                self.flags = [] if flags is None else list(flags)
+        ```
+   
+     2. 常用参数
+   
+        - url
+   
+          需要请求的 URL
+   
+        - callback
+   
+          指定处理返回的 Response 的回调函数
+   
+        - method
+   
+          请求方式，默认为 GET，可以设置为 POST、PUT 等
+   
+        - headers
+   
+          请求的报头，一般不用写，包含一下内容
+   
+          ```tex
+          GET / HTTP/1.1
+          Host: tieba.baidu.com
+          Connection: keep-alive
+          Cache-Control: max-age=0
+          Upgrade-Insecure-Requests: 1
+          User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36
+          Sec-Fetch-Mode: navigate
+          Sec-Fetch-User: ?1
+          Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+          Sec-Fetch-Site: none
+          Accept-Encoding: gzip, deflate, br
+          Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+          ```
+   
+        - meta
+   
+          比较常用，在不同请求之间传递数据使用，为 dict（字典）类型
+   
+          meta 是一个字典类型，主要作用是传递数据的，`meat = {key: value}`, 如果想在下一个函数中取出 value 值，就可以使用 Request 的参数 meta 传递给下一个函数，即下一个函数的 Response 就会有 `response.meta` 
+   
+          简单来说，爬虫的数据字段，必须要是使用两个解析函数（parse）进行提取，第一个解析函数处理的 item 数据怎样才可以传递个下一个 parse 呢？这是 Request 的参数 meta 就排上用处了。
+   
+          ```python
+          # 上一个 parse 提取完字段，发送的请求，回调 parse_2 函数
+          scarpy.Request(url=url, meat={'item': item}, callback=self.parse_2)
+          
+          # 下一个 parse_2,使用 meta
+          def parse_2(self, response):
+              # 取出 meta 参数数据
+              item = response.meta['item']
+          ```
+   
+        - cookie
+   
+          登录网站后的验证信息
+   
+        - encoding
+   
+          编码形式，使用默认总是可以的
+   
+        - dont_filter
+   
+          表明请求不由调度器过滤。当你想执行多次相同请求时，忽略重复过滤器。默认值为 False
+   
+        - errback
+   
+          指定错误处理函数
+   
+   - Response 模块
+   
+     1. 部分代码
+   
+        ```python
+        class Response(object_ref):
+        
+            def __init__(self, url, status=200, headers=None, body=b'', flags=None, request=None):
+                self.headers = Headers(headers or {})
+                self.status = int(status)
+                self._set_body(body)
+                self._set_url(url)
+                self.request = request
+                self.flags = [] if flags is None else list(flags)
+        ```
+   
+     2. 主要参数
+   
+        - url
+   
+          响应体的 URL
+   
+        - status
+   
+          响应状态码
+   
+        - headers
+   
+          响应报头
+   
+          ```tex
+          {b'Content-Type': b'text/html; charset=UTF-8',
+           b'Date': b'Thu, 17 Oct 2019 01:26:20 GMT',
+           b'P3P': b'CP=" OTI DSP COR IVA OUR IND COM "',
+           b'Server': b'Apache',
+           b'Set-Cookie': b'BAIDUID=D01297F0898391D3A879F89B7F40CEAC:FG=1; expires=Fri, 16-Oct-20 01:26:20 GMT; max-age=31536000; path=/; domain=.baidu.com; version=1',
+           b'Tracecode': b'15798839461010195466101709',
+           b'Vary': b'Accept-Encoding',
+           b'X-Xss-Protection': b'1; mode=block'}
+          ```
+   
+        - body
+   
+          响应体，response.body 为二进制
+   
+4. 发送 POST 请求
+
+   说明：__POST 请求，有别有模拟登录__
+
+   - 使用 `yield scrapy.FormResquest(url, formdata, callback)`
+
+     1. url 为爬取的地址
+     2. formdata 为字典，是提交的数据字段（提交的数据的 URL 是另一个，上面已经说明）
+     3. callback 回调函数
+
+   - 如果希望程序最开始在爬取 start_urls 时，就使用 POST，可以重写 start_request() 方法
+
+     说明：直接使用 POST 方法，爬取第一个 URL 几乎不怎么用，都是首先，使用 GET 请求，获取登录页面，在使用 POST 提交数据
+
+     ```python
+     import scrapy
+     
+     
+     class xxxSpider(scrapy.Spider):
+         name = 'xxx'
+         allowed_domains = ['www.xxx.com']
+         start_urls = ['http://www.xxx.com/']
+     
+         def start_request(self):
+             url = self.start_urls[0]
+             yield scarpy.FormRequest(url=url, formdata={key_11: value_1, key_2: value_2}, callback=self.parse)
+             
+         def parse(self, response):
+            pass
+     ```
+
+### scarpy 模拟登录
+
+说明：网站登录大致分为 3 类，一类：登录只需要用户名、密码即可登录（现在来所特别少了）；二类：登录时，除了用户名、密码，还需要附带属性；三类：登录时，用户名、密码、附带属性，还给属性进行加密，使其在浏览器端无法看清附带属性是什么（这类网站就不是十分好弄了）。__以上网站提交数据时，都是使用 POST 方式__
+
+1. 模拟登录（POST 请求）与 Ajax 后表单提交区别
+
+   说明：__提交数据的 URL 和当前的页面 URL 一般情况都不一样__
+
+   - Ajax 或表单提交 `scrapy.FormRequest(url, formdata, callback)`
+
+     1. URL
+
+        表单或 Ajax 提交地址
+
+     2. formdata
+
+        提交的数据，数据类型为字典（dict）
+
+     3. callback
+
+        回调函数
+
+   - 模拟登录 `scrapy.FormRequest.from_Response(response, url, formdata, callback)`
+
+     说明：__看源码，好像这个 URL 不用写，可以自动提取 form 表单的提交的 URL__
+
+     1. response
+
+        登录页面响应文件
+
+     2. ~~url~~
+
+        ~~账号提交地址~~
+
+     3. ~~formdata~~
+
+        提交数据，数据类型为字典（dict）
+
+     4. callback
+
+        回调函数
+
+2. 一类网站（只提供用户名、密码）
+
+   - 使用 scarpy.FormRequest.from_Response 方法进行提交数据，代码演示
+
+3. 二类网站（提供账号、附属字段）
+
+   - 使用 scarpy.FormRequest.from_Response 方法进行提交数据，代码演示
+
+4. 三类网站（账号、附属字段加密）
+
+   - 使用 cookie 值登录（无奈之举）
 
 ## 待续......
 
