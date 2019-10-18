@@ -1146,7 +1146,7 @@ __请求行__、__请求头__、__空行__、__请求数据__
 
    - 本人理解（就爬虫而言）
 
-     就 Ajax 而言是一种不需要刷整个新页面就可以更新部分页面数据，但是，只要刷新了页面（不管时是全部页面还是部分页面），那一定获取了新的数据，有新的数据就一定会有新的且唯一 URL 地址来标识。但是本人不理解的浏览器地址栏的信息有的会发生变化，有的不会变化，但 2 者页面数据都有部分跟新，而整张页面没有刷新，实际你使用抓包工具时，你会发现，实际当你每次点击加载更多的时候，都有一个新的请求发送出去（对应新的 URL 地址），对应新的响应文件。感觉，Ajax 的技术，时加载格式一样的数据使用频发，只要网页使用 Ajax 技术的，绝大部是 JSON 格式。
+     就 Ajax 而言是一种不需要刷整个新页面就可以更新部分页面数据，但是，只要刷新了页面（不管时是全部页面还是部分页面），那一定获取了新的数据，有新的数据就一定会有新的且唯一 URL 地址来标识。但是本人不理解的浏览器地址栏的信息有的会发生变化，有的不会变化，但 2 者页面数据都有部分跟新，而整张页面没有刷新，实际你使用抓包工具时，你会发现，实际当你每次点击加载更多的时候，都有一个新的请求发送出去（对应新的 URL 地址），对应新的响应文件。感觉，Ajax 的技术，是加载格式一样的数据使用频发，只要网页使用 Ajax 技术的，绝大部是 JSON 格式。
 
 2. 解析 Ajax 的页面加载
 
@@ -5904,7 +5904,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
         ~~账号提交地址~~
 
-     3. ~~formdata~~
+     3. formdata
 
         提交数据，数据类型为字典（dict）
 
@@ -5916,13 +5916,109 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
    - 使用 scarpy.FormRequest.from_Response 方法进行提交数据，代码演示
 
+     ```python
+     import scrapy
+     
+     
+     class ExampleSpider(scrapy.Spider):
+         name = 'example'
+         allowed_domains = ["example.com"]
+         start_urls = ["http://www.example.com/PLogin.do"]
+     
+         def parse(self, response):
+             # POST 方式提交数据 formdata，注意参数有 response
+             yield scrapy.FormRequest.from_response(
+                     response,
+                     formdata = {'email' : 'value_1', 'password' : 'value_2'}
+                     callback = self.parse_page
+                 )
+     
+         def parse_page(self, response):
+             pas
+     ```
+
+     
+
 3. 二类网站（提供账号、附属字段）
 
    - 使用 scarpy.FormRequest.from_Response 方法进行提交数据，代码演示
 
+     ```python
+     import scrapy
+     
+     
+     class ExampleSpider(scrapy.Spider):
+         name = 'example'
+         allowed_domains = ["example.com"]
+         start_urls = ["http://www.example.com/PLogin.do"]
+     
+         def parse(self, response):
+             # 提取隐藏字段
+             _xsrf = response.xpath("//_xsrf").extract()[0]
+             # POST 账号信息和隐藏字段
+             yield scrapy.FormRequest.from_response(
+                     response,
+                     formdata = {'email' : 'value_1', 'password' : 'value_2', '_xsrf' = _xsrf}，
+                     callback = self.parse_page
+                 )
+     
+         def parse_page(self, response):
+             pas
+     ```
+
 4. 三类网站（账号、附属字段加密）
 
-   - 使用 cookie 值登录（无奈之举）
+   - 使用 cookie 值登录（无奈之举），因为网站反爬虫技术，模拟登录失败，所以只能使用 cookie 直接网站得页面。
+   
+     ```python
+     import scrapy
+     
+     
+     class ExampleSpider(scrapy.Spider):
+         name = "example"
+         allowed_domains = ["example.com"]
+         start_urls = [
+             'http://www.example.com/1',
+             'http://www.example.com/2',
+             'http://www.example.com/3',
+         ]
+     # cookie 是假的
+         cookies = {
+             "anonymid": "ixrna3fysufnwv",
+             "_r01_": "1",
+             "ap": "327550029",
+             "JSESSIONID": "abciwg61A_RvtaRS3GjOv",
+             "depovince": "GW"
+         }
+     
+         def start_requests(self):
+             for url in self.start_urls:
+                 # 这块使用 formRequest 类，但是我觉得 Request 类就可以，因为不需要提交数据
+                 yield scrapy.FormRequest(url, cookies=self.cookies, callback=self.parse_page)
+     
+         def parse_page(self, response):
+             pass
+     ```
+
+### Downloader Middlewares（反爬虫机制）
+
+说明：有些网站使用不同得繁杂性规则防止爬虫访问，绕过这些规则有时比较困难，如有需要，那就联系商业支持
+
+[官方文档](http://doc.scrapy.org/en/master/topics/practices.html#avoiding-getting-banned)
+
+1. 通常防止反爬虫主要有一下几个方法
+
+   - 动态设置 User-Agent （随机切换 User-Agent，模拟不同用户浏览器信息）
+
+   - 禁止 Cookie （不启动 cookie middleware，不向 Server 发送 cookie，一些网站通过 cookie 发现爬虫行为）
+
+     通过 `COOKIES_ENABLED` 控制 CookieMiddleware 开启或关闭
+
+   - 设置延迟下载（就是延迟访问，防止访问过于频繁，设置为 2 秒，或者更高）
+
+     正常用户，一般访问网站网页，大约每 10 几秒访问一个网页，所以模拟用户，也应该尽量贴近用户得使用习惯，没有什么用户，一秒可以访问 10 几个网站页面的。
+
+   - 待续......
 
 ## 待续......
 
