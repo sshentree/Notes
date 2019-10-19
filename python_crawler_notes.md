@@ -5101,7 +5101,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      callback 回调函数为 self.parse
 
-### CrawlSpiders
+### CrawlSpiders（log 日志信息）
 
 说明：CrawlSpider 是 Spider 的派生类，Spider 的设计原理则只是爬取 start_url 列表中的网页，而 CrawlSpider 类定义了一些规则（rule）来提供跟进 link 的方便机制，从爬取网页获取 link 并继续爬取的工作更适合。<br> __CrawlSpider 的 start_urls 是不会做处理的，它只是为了获取深度 Link，start_urls 的信息是后面获取的深度 Link  __
 
@@ -5347,7 +5347,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      4. INFO 一般信息
      5. DEBUG 调试信息
 
-   - 设置等级会包含该等级一下信息
+   - 设置等级会包含该等级以下信息
 
    - Logging 设置
 
@@ -6004,7 +6004,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 说明：有些网站使用不同得繁杂性规则防止爬虫访问，绕过这些规则有时比较困难，如有需要，那就联系商业支持
 
-[官方文档](http://doc.scrapy.org/en/master/topics/practices.html#avoiding-getting-banned)
+[反爬虫文档](http://doc.scrapy.org/en/master/topics/practices.html#avoiding-getting-banned)    [下载中间件文档](http://doc.scrapy.org/en/master/topics/downloader-middleware.html)
 
 1. 通常防止反爬虫主要有一下几个方法
 
@@ -6018,7 +6018,50 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
      正常用户，一般访问网站网页，大约每 10 几秒访问一个网页，所以模拟用户，也应该尽量贴近用户得使用习惯，没有什么用户，一秒可以访问 10 几个网站页面的。
 
-   - 待续......
+   - 使用 IP 地址池，VPN 和 代理 IP， 当前大部分网站是根据 IP 来禁止爬虫的（某个 IP 短时间内不正常的访问了大量数据，这个 IP 有可能就是爬虫）
+   
+   - Google Cache 和 Baidu Cache （搜索引起快照），还可以通过搜索引擎服务器缓存的页面数据来获取需要的数据（好像就是爬取搜索引起获取的页面数据）
+   
+   - 使用 Crawlera （专用爬虫的代理组件），正确配置和设置下载 _中间件_ 后，scrapy 项目的所有 Request 请求都将通过 Crawlera 发送到服务器。__有待研究__
+   
+2. 下载中间件介绍（Downloader Middlewares）
+
+   说明：下载中间件是处于引擎（crawler engine）和下载器（crawler download）之间的一组组件，可以有多个下载中间件被加载运行
+
+   - 当引擎（Engin）将请求（Request）传递给下载器（Download）过程中，下载中间（Downloader Middlewares）件可以对请求进行处理（修改 Resquest 报头信息，增加代理（proxy）等）。
+   - 当下载器（Downloader）完成 HTTP 请求，传递响应给引擎（Engin），下载中间件可以对响应进行处理（对响应文件进行解压等）
+
+3. 设置下载中间件
+
+   - 激活下载中间件组件，将其加入到 setting 文件的 DOWNLOADER_MIDDLEWARES 设置中。其中该设置为一个字典（dict），键入（key）为中间件路径：值（value）为优先级（level）
+
+   - setting 文件 DOWNLOADER_MIDDLEWARES 设置演示
+
+     ```python
+     # Enable or disable downloader middlewares
+     # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
+     DOWNLOADER_MIDDLEWARES = {
+         'SpiderBaidu.middlewares.SpiderbaiduDownloaderMiddleware': 543,
+     }
+     ```
+
+     解释：`SpiderBaidu.middlewares.SpiderbaiduDownloaderMiddleware` 为中间件路径（SpiderBaidu 文件夹下的 middlewares 文件的 SpiderbaiduDownloaderMiddleware 类），`543` 为此中间组件的优先级别
+
+4. 定义中间组件
+
+   说明：待续
+
+### Settings（仔细阅读） 
+
+说明：Scrapy 设置（settings）提供了定制 Scrapy 组件的方法。可以控制包括核心（core）、插件（extension）、pipeline 和 spider 组件。
+
+[setting 文档](https://scrapy-chs.readthedocs.io/zh_CN/1.0/topics/settings.html)
+
+1. 获取 Setting 的设定值
+
+   说明：
+
+[参考地址](https://scrapy-chs.readthedocs.io/zh_CN/1.0/topics/settings.html#topics-settings-ref)
 
 ## 待续......
 
