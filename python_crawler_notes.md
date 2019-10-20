@@ -6004,7 +6004,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 说明：有些网站使用不同得繁杂性规则防止爬虫访问，绕过这些规则有时比较困难，如有需要，那就联系商业支持
 
-[反爬虫文档](http://doc.scrapy.org/en/master/topics/practices.html#avoiding-getting-banned)    [下载中间件文档](http://doc.scrapy.org/en/master/topics/downloader-middleware.html)
+[反爬虫文档](http://doc.scrapy.org/en/master/topics/practices.html#avoiding-getting-banned)    [下载中间件文档](http://doc.scrapy.org/en/master/topics/downloader-middleware.html)     [下载中间件文档](https://scrapy-chs.readthedocs.io/zh_CN/0.24/topics/downloader-middleware.html)
 
 1. 通常防止反爬虫主要有一下几个方法
 
@@ -6033,7 +6033,9 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 3. 设置下载中间件
 
-   - 激活下载中间件组件，将其加入到 setting 文件的 DOWNLOADER_MIDDLEWARES 设置中。其中该设置为一个字典（dict），键入（key）为中间件路径：值（value）为优先级（level）
+   - 激活下载中间件组件
+
+     将其加入到 setting 文件的 DOWNLOADER_MIDDLEWARES 设置中。其中该设置为一个字典（dict），键入（key）为中间件路径：值（value）为优先级（level）
 
    - setting 文件 DOWNLOADER_MIDDLEWARES 设置演示
 
@@ -6046,10 +6048,118 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
      ```
 
      解释：`SpiderBaidu.middlewares.SpiderbaiduDownloaderMiddleware` 为中间件路径（SpiderBaidu 文件夹下的 middlewares 文件的 SpiderbaiduDownloaderMiddleware 类），`543` 为此中间组件的优先级别
+     
+   - 定义下载组件的执行顺序
+
+     1. DOWNLOADER_MIDDLEWARES 设置会与 Scrapy 定义的 DOWNLOADER_MIDDELWARES_BASE 设置合并（但不是覆盖），而后根据顺序（order：优先级）进行排序，最后得到启用中间件的有序列表：第一个中间件最靠近引擎，最后一个中间那件最靠近下载器
+
+     2. 如何分配中间件顺序
+
+        根据想要防止中间的位置选择一个优先级。每一个中间件执行不同动作，中间件可能会依赖于之前（或之后）执行的中间件，因此顺序很重要
+
+   - 禁止中间组件
+
+     将优先级设置为 `None`
 
 4. 定义中间组件
 
-   说明：待续
+   说明：在 setting 类开启 `DOWNLOADER_MIDDLEWARES` 设置
+   
+   - setting 说明
+   
+     ```python
+     DOWNLOADER_MIDDLEWARES = {
+         'SpiderBaidu.middlewares.SpiderbaiduDownloaderMiddleware': 543,
+     }
+     ```
+   
+     `'SpiderBaidu.middlewares.SpiderbaiduDownloaderMiddleware': 543,` 这个创建项目是已近默认存在，你可以完全重新写，也可以在这个基础上进行修改
+   
+     中间组件类继承（object）`class SpiderbaiduDownloaderMiddleware(object)`
+   
+   -  __process_request(request, spider) 方法__ 必须有，当每个 request 通过下载中间件时，该方法被调用 <br> 参数 <br>     request：Request 对象（处理的 request）<br>     spider：Spider 对象（该 request 对应的 spider）     
+     1. process_request() 必须返回其中之一： 返回 None 、返回一个 Response 对象、返回一个 Request 对象或raise IgnoreRequest 
+        - 如果其返回 None ，Scrapy 将继续处理该 request ，执行其它的中间件的相应方法，直到合适的下载器处理函数（download handler）被调用，该 request 被执行（response被下载）。
+        - 如果其返回 Response 对象，Scrapy 将不会调用任何其它的 process_request() 或 process_exception() 方法，或相应地下载函数， 只会返回该 response ，这时中间件的 process_response() 方法则会在每个response 返回时被调用
+        - 如果其返回 Request 对象，Scrapy 则停止调用 process_request() 方法并重新调度返回的 request。当新返回的 request 被执行后， 相应地中间件将会根据下载的 response 被调用
+        - 如果其 raise 一个 IgnoreRequest 异常，则安装的下载中间件的 process_exception() 方法会被调用。如果没有任何一个方法处理该异常， 则 reques t的 errback(Request.errback) 方法会被调用。如果没有代码处理抛出的异常， 则该异常被忽略且不记录(不同于其他异常那样)。
+   - __process_response(request, response, spider) 方法__ ，当下载完 HTTP 请求时，传递响应给引擎时被调用 <br> 参数 <br>     request：Resquest 对象（respons 所对应的 request） <br>     response Response 对象（被处理的 response） <br>     spider Spider 对象（response 所对用的 spider）
+     1. process_request() 必须返回以下其中之一： 返回一个 Response 对象、 返回一个 Request 对象或raise一个 IgnoreRequest 异常。
+        - 如果返回一个 Response （可以与传入的 response 相同，也可以是全新的对象）， 该 response 会被在链中的其它中间件的 process_response() 方法处理
+        - 如果返回一个 Request 对象，则中间件链停止， 返回的 request 会被重新调度下载。处理类似于 process_request() 返回 request 所做的那样。
+        - 如果抛出一个 IgnoreRequest 异常，则调用 request 的 errback(Request.errback)。 如果没有代码处理抛出的异常，则该异常被忽略且不记录（不同于其他异常那样）。
+   
+5. 使用案例
+
+   说明：使用下载中间动态改变 User-Agent，和添加 IP 代理 <br> [设置 User-Agent 文档](https://blog.csdn.net/weixin_43430036/article/details/84851714#headers_34)
+
+   - 在 setting 文件中，配置 User-Agent 和 Proxies（IP 代理）
+
+     1. Uesr-Agent (fake-useragent 模块内置许多浏览器的 User_Agent)
+
+        ```python
+        USER_AGENTS = [
+            "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 2.0.50727; Media Center PC 6.0)",
+            "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 1.0.3705; .NET CLR 1.1.4322)",
+            "Mozilla/4.0 (compatible; MSIE 7.0b; Windows NT 5.2; .NET CLR 1.1.4322; .NET CLR 2.0.50727; InfoPath.2; .NET CLR 3.0.04506.30)",
+            "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN) AppleWebKit/523.15 (KHTML, like Gecko, Safari/419.3) Arora/0.3 (Change: 287 c9dfb30)",
+            "Mozilla/5.0 (X11; U; Linux; en-US) AppleWebKit/527+ (KHTML, like Gecko, Safari/419.3) Arora/0.6",
+            "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.2pre) Gecko/20070215 K-Ninja/2.1.1",
+            "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9) Gecko/20080705 Firefox/3.0 Kapiko/3.0",
+            "Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5"
+        ]
+        ```
+
+     2. 添加 IP 代理
+
+        ```python
+        PROXIES = [
+            {'ip_port': '111.8.60.9:8123', 'user_passwd': 'user1:pass1'},
+            {'ip_port': '101.71.27.120:80', 'user_passwd': 'user2:pass2'},
+            {'ip_port': '122.96.59.104:80', 'user_passwd': 'user3:pass3'},
+            {'ip_port': '122.224.249.122:8088', 'user_passwd': None},
+        ]
+        ```
+
+        解释：PROXIES 为列表，每一个 IP 代理为字典，ip_port 为 ip 加端口号，user_passwd 为用户名及密码，没有密码验证时，直接设为 None
+
+     3. 代码演示
+
+        ```python
+        import random
+        import base64
+        
+        # 导入 setting 设置的变量
+        from settings import USER_AGENTS
+        from settings import PROXIES
+        
+        # 随机获取 setting 设置的 User-Agent
+        class RandomUserAgent(object):
+            def process_request(self, request, spider):
+        	    # 在 setting 设置的 USER_AGENT 列表，随机取值 User-Agent 值        
+                useragent = random.choice(USER_AGENTS)
+            
+        		# 设置 request 的报头的 User-Agent
+        		# 不会改写 scrapy.Request 中 headers 中的设置的 User-Agent
+                # 都是用这个，但是没有修改啊？？
+                request.headers.setdefault("User-Agent", useragent)
+                
+                # 会改写 scarpy.Request 中的 User-Agent
+        	   # request.headers['User-Agent'] = useragent
+        class RandomProxy(object):
+            def process_request(self, request, spider):
+                proxy = random.choice(PROXIES)
+        
+                if proxy['user_passwd'] is None:
+                    # 没有代理账户验证的代理使用方式
+                    request.meta['proxy'] = "http://" + proxy['ip_port']
+                else:
+                    # 对账户密码进行base64编码转换
+                    base64_userpasswd = base64.b64encode(proxy['user_passwd'])
+                    # 对应到代理服务器的信令格式里
+                    request.headers['Proxy-Authorization'] = 'Basic ' + base64_userpasswd
+                    request.meta['proxy'] = "http://" + proxy['ip_port']
+        ```
 
 ### Settings（仔细阅读） 
 
