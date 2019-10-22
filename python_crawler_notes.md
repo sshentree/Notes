@@ -6002,7 +6002,7 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 ### Downloader Middlewares（反爬虫机制）
 
-说明：有些网站使用不同得繁杂性规则防止爬虫访问，绕过这些规则有时比较困难，如有需要，那就联系商业支持
+说明：有些网站使用不同得繁杂性规则防止爬虫访问，绕过这些规则有时比较困难，如有需要，那就联系商业支持。反爬虫更换 IP 和 User-Agent 爬取不需要登录的网站可以，但是需要登录的网站可以么？？cookie 、重定向不是防止这些的么？？
 
 [反爬虫文档](http://doc.scrapy.org/en/master/topics/practices.html#avoiding-getting-banned)    [下载中间件文档](http://doc.scrapy.org/en/master/topics/downloader-middleware.html)     [下载中间件文档](https://scrapy-chs.readthedocs.io/zh_CN/0.24/topics/downloader-middleware.html)
 
@@ -6165,13 +6165,35 @@ XPath 是一门技术，而Python 对这门技术提供了 lxml 这个库。
 
 说明：Scrapy 设置（settings）提供了定制 Scrapy 组件的方法。可以控制包括核心（core）、插件（extension）、pipeline 和 spider 组件。
 
-[setting 文档](https://scrapy-chs.readthedocs.io/zh_CN/1.0/topics/settings.html)
+[settings 文档](https://scrapy-chs.readthedocs.io/zh_CN/1.0/topics/settings.html)
 
-1. 获取 Setting 的设定值
+1. 获取 setting 设定值
 
-   说明：
+   说明：设定可以通过多种方式设置，每个方式具有不同的优先级，下面以优先级降序的方式给处优先级
 
-[参考地址](https://scrapy-chs.readthedocs.io/zh_CN/1.0/topics/settings.html#topics-settings-ref)
+   - 命令行选项（Command line Option）（最高优先级）
+   - 每个 Spider 的设置
+   - 项目设定模块（Project settings module）
+   - 命令默认设定模块（Default settings per-command）
+   - 全局默认设定模块（Default global settings）（优先级最低）
+
+2. 命令行选项
+
+   说明：命令行传入的参数具有最高优先级，可以使用 command-line 先选 `-s` 或 `-set` 来覆盖一个或多个选项
+
+   - 例子
+
+     `scrapy crawl myspider -s LOG_FILE=scrapy.log`
+
+3. 项目设定模块（Project settings module）
+
+   说明：项目设定模块是 Scrapy 项目标准配置文件
+
+4. 导入 setting 设置
+
+   - 导入 settings 模块的属性
+
+     `from settings import xxx`
 
 ## 待续......
 
