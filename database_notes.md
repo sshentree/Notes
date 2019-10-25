@@ -224,5 +224,332 @@
 
      实体表的属性在关系表中存在，且可以标识实体表的每一个实体对象
 
+### Navicat 操作
+
+说明：[参考文档](https://www.navicat.com.cn/support/online-manual)    启动数据库 `mysql -h hostname -P port -u username -p password` 。一般直接使用 `mysql -u root -p` ，因为是连接自己的主机，使用默认的端口号，密码为空，所以简单。可以输入 `mysql --help` ，查看帮助
+
+1. 用户连接
+
+   - 如图
+
+     ![navicat操作界面连接](git_picture/navicat操作界面连接.png)
+
+2. 创建数据库
+
+   - 如图
+
+     ![navicat操作界面创建](git_picture/navicat操作界面创建.png)
+
+3. 创建表
+
+   - 如图
+
+     ![navicat创建表](git_picture/navicat创建表.png)
+
+### 逻辑删除
+
+说明：使用一个字段标记是否删除
+
+1. 数据的重要性，要根据实际开发决定
+2. 对于重要的数据，并不希望物理删除，一旦删除，数据无法找回。
+3. 对于重要的数据，会设置一个 isDelete 的属性（列），类型为 bit ，表示逻辑删除。
+4. 大量增长的非重要数据，可以进行物理删除。
+
+## 命令脚本操作
+
+### 数据库、表的创建删除等操作
+
+说明：使用命令窗口对 mysql 进行操作   [mysql 语法文档](https://dev.mysql.com/doc/refman/8.0/en/)
+
+1. 显示当前 mysql 中的所有数据库
+
+   - `show databases;`
+
+     ```sql
+     mysql> show databases;
+     +--------------------+
+     | Database           |
+     +--------------------+
+     | information_schema |
+     | mysql              |
+     | performance_schema |
+     | python1            |
+     | sys                |
+     +--------------------+
+     5 rows in set (0.00 sec)
+     ```
+
+2. 删除数据库
+
+   - `drop database python1`
+
+     ```sql
+     mysql> drop database python1;
+     Query OK, 0 rows affected (2.46 sec)
+     
+     mysql> show databases;
+     +--------------------+
+     | Database           |
+     +--------------------+
+     | information_schema |
+     | mysql              |
+     | performance_schema |
+     | sys                |
+     +--------------------+
+     4 rows in set (0.00 sec)
+     ```
+
+3. 创建数据库
+
+   - `create database python3 charset=utf8;` 需要指定编码格式
+
+     ```sql
+     mysql> create database python3;
+     Query OK, 1 row affected (0.01 sec)
+     
+     mysql> show databases;
+     +--------------------+
+     | Database           |
+     +--------------------+
+     | information_schema |
+     | mysql              |
+     | performance_schema |
+     | python3            |
+     | sys                |
+     +--------------------+
+     5 rows in set (0.00 sec)
+     ```
+
+4. 切换使用数据库
+
+   - `use python3`
+
+   - `select database();` 查看当前使用的数据库
+
+     ```sql
+     mysql> use python3;
+     Database changed
+     mysql> select database();
+     +------------+
+     | database() |
+     +------------+
+     | python3    |
+     +------------+
+     1 row in set (0.00 sec)
+     ```
+
+5. 查看数据库的表
+
+   - `show tables;` 当前数据库没有表
+
+     ```sql
+     mysql> show tables;
+     Empty set (0.01 sec)
+     ```
+
+6. 创建表
+
+   - `create table 表名(列类型 [是否自动增长] 约束 默认值\是否为空);` 多列使  ',' 分割
+
+     ```sql
+     mysql> create table students(
+         -> id int auto_increment primary key not null,
+         -> name varchar(10) not null,
+         -> gender bit(1) default b'1',
+         -> birthday date);
+     Query OK, 0 rows affected (0.43 sec)
+     ```
+
+     解释：使用 bit 表明占用几个 bit 为，值为 b'1' 标记为二进制数值
+
+7. 查看表的结构
+
+   - `desc 表名`
+
+     ```sql
+     mysql> show tables;
+     +-------------------+
+     | Tables_in_python3 |
+     +-------------------+
+     | students          |
+     +-------------------+
+     1 row in set (0.00 sec)
+     
+     mysql> desc students;
+     +----------+-------------+------+-----+---------+----------------+
+     | Field    | Type        | Null | Key | Default | Extra          |
+     +----------+-------------+------+-----+---------+----------------+
+     | id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+     | name     | varchar(10) | NO   |     | NULL    |                |
+     | gender   | bit(1)      | YES  |     | b'1'    |                |
+     | birthday | date        | YES  |     | NULL    |                |
+     +----------+-------------+------+-----+---------+----------------+
+     4 rows in set (0.00 sec)
+     ```
+
+8. 删除表
+
+   - `drop table 表名`
+
+     ```sql
+     mysql> show tables;
+     +-------------------+
+     | Tables_in_python3 |
+     +-------------------+
+     | students          |
+     | test              |
+     +-------------------+
+     2 rows in set (0.00 sec)
+     
+     mysql> drop table test;
+     Query OK, 0 rows affected (0.13 sec)
+     
+     mysql> show tables;
+     +-------------------+
+     | Tables_in_python3 |
+     +-------------------+
+     | students          |
+     +-------------------+
+     1 row in set (0.00 sec)
+     ```
+
+9. 更改表名
+
+   - `rename table name to new_name`
+
+     ```sql
+     mysql> show tables;
+     +-------------------+
+     | Tables_in_python3 |
+     +-------------------+
+     | students          |
+     | test              |
+     +-------------------+
+     2 rows in set (0.00 sec)
+     
+     mysql> rename table test to new_test;
+     Query OK, 0 rows affected (0.97 sec)
+     
+     mysql> show tables;
+     +-------------------+
+     | Tables_in_python3 |
+     +-------------------+
+     | new_test          |
+     | students          |
+     +-------------------+
+     2 rows in set (0.00 sec)
+     ```
+
+10. 修改表中的属性、属性定义
+
+    说明：对于表的修改，会有很多麻烦，最好在构建表的时候多一些考虑。表中一旦存在数据，修改表的结构会引来一堆错误，也有可能数据丢失，所以对于表的修改慎重操作   [参考文档](https://dev.mysql.com/doc/refman/5.5/en/alter-table.html#alter-table-add-drop-column) <br> __删除这块应该看一下官方文档__
+
+    - `alter table 表名 add | change | modify | drop 列名 类型 [默认值] 约束`
+
+    - 在 students 增加 age 列 <br>`alter table students add column age int not null;`
+
+      ```sql
+      mysql> alter table students add column age int not null;
+      Query OK, 0 rows affected (2.71 sec)
+      Records: 0  Duplicates: 0  Warnings: 0
+      
+      mysql> desc students;
+      +----------+-------------+------+-----+---------+----------------+
+      | Field    | Type        | Null | Key | Default | Extra          |
+      +----------+-------------+------+-----+---------+----------------+
+      | id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+      | name     | varchar(10) | NO   |     | NULL    |                |
+      | gender   | bit(1)      | YES  |     | b'1'    |                |
+      | birthday | date        | YES  |     | NULL    |                |
+      | age      | int(11)     | NO   |     | NULL    |                |
+      +----------+-------------+------+-----+---------+----------------+
+      5 rows in set (0.00 sec)
+      ```
+
+    - 在 students 修改 age 列名字段的数据类型 <br> `alter table students modify age varchar(10)`
+
+      ```sql
+      mysql> alter table students modify age varchar(10);
+      Query OK, 0 rows affected (2.67 sec)
+      Records: 0  Duplicates: 0  Warnings: 0
+      
+      mysql> desc students;
+      +----------+-------------+------+-----+---------+----------------+
+      | Field    | Type        | Null | Key | Default | Extra          |
+      +----------+-------------+------+-----+---------+----------------+
+      | id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+      | name     | varchar(10) | NO   |     | NULL    |                |
+      | gender   | bit(1)      | YES  |     | b'1'    |                |
+      | birthday | date        | YES  |     | NULL    |                |
+      | age      | varchar(10) | YES  |     | NULL    |                |
+      +----------+-------------+------+-----+---------+----------------+
+      5 rows in set (0.00 sec)
+      ```
+
+      解释：` alter table students change age age int;` 使用 change 修改字段定义
+
+    - 在 students 修改列名。__注意：修改列名，需要重新写明列定义__ <br> `alter table students change age grade int not null;`
+
+      ```sql
+      mysql> alter table students change age grade int not null;
+      Query OK, 0 rows affected (2.53 sec)
+      Records: 0  Duplicates: 0  Warnings: 0
+      
+      mysql> desc students;
+      +----------+-------------+------+-----+---------+----------------+
+      | Field    | Type        | Null | Key | Default | Extra          |
+      +----------+-------------+------+-----+---------+----------------+
+      | id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+      | name     | varchar(10) | NO   |     | NULL    |                |
+      | gender   | bit(1)      | YES  |     | b'1'    |                |
+      | birthday | date        | YES  |     | NULL    |                |
+      | grade    | int(11)     | NO   |     | NULL    |                |
+      +----------+-------------+------+-----+---------+----------------+
+      5 rows in set (0.00 sec)
+      ```
+
+    - 在 students 删除 grade 列 <br> ` alter table students drop column grade` 
+
+      ```sql
+      mysql> alter table students drop column grade;
+      Query OK, 0 rows affected (2.55 sec)
+      Records: 0  Duplicates: 0  Warnings: 0
+      
+      mysql> desc students;
+      +----------+-------------+------+-----+---------+----------------+
+      | Field    | Type        | Null | Key | Default | Extra          |
+      +----------+-------------+------+-----+---------+----------------+
+      | id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+      | name     | varchar(10) | NO   |     | NULL    |                |
+      | gender   | bit(1)      | YES  |     | b'1'    |                |
+      | birthday | date        | YES  |     | NULL    |                |
+      +----------+-------------+------+-----+---------+----------------+
+      4 rows in set (0.00 sec)
+      ```
+
+11. 查看表的创建语句
+
+    - `show create table students`
+
+      ```sql
+      mysql> show create table students;
+      +----------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      | Table    | Create Table                                                                                                                                                                                                                 |
+      +----------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      | students | CREATE TABLE `students` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `name` varchar(10) NOT NULL,
+        `gender` bit(1) DEFAULT b'1',
+        `birthday` date DEFAULT NULL,
+        PRIMARY KEY (`id`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=latin1 |
+      +----------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      1 row in set (0.00 sec)
+      ```
+
+      解释：`ENGINE=InnoDB DEFAULT CHARSET=latin1` 引擎使用 InnoDB（引擎不同，导致底层数据结构不同），数据库的编码格式使用 latin1
+
+
+
 # 非关系型数据库
 
