@@ -279,7 +279,31 @@
      5 rows in set (0.00 sec)
      ```
 
-2. 删除数据库
+2. 显示 mysql 版本、当前时间
+
+   - 显示版本号 `select version();`
+
+   - 显示当前时间 `select now();`
+
+     ```sql
+     mysql> select version();
+     +-----------+
+     | version() |
+     +-----------+
+     | 5.7.21    |
+     +-----------+
+     1 row in set (0.00 sec)
+     
+     mysql> select now();
+     +---------------------+
+     | now()               |
+     +---------------------+
+     | 2019-10-26 09:12:16 |
+     +---------------------+
+     1 row in set (0.00 sec)
+     ```
+
+3. 删除数据库
 
    - `drop database python1`
 
@@ -299,7 +323,7 @@
      4 rows in set (0.00 sec)
      ```
 
-3. 创建数据库
+4. 创建数据库
 
    - `create database python3 charset=utf8;` 需要指定编码格式
 
@@ -320,7 +344,7 @@
      5 rows in set (0.00 sec)
      ```
 
-4. 切换使用数据库
+5. 切换使用数据库
 
    - `use python3`
 
@@ -338,7 +362,7 @@
      1 row in set (0.00 sec)
      ```
 
-5. 查看数据库的表
+6. 查看数据库的表
 
    - `show tables;` 当前数据库没有表
 
@@ -347,7 +371,7 @@
      Empty set (0.01 sec)
      ```
 
-6. 创建表
+7. 创建表
 
    - `create table 表名(列类型 [是否自动增长] 约束 默认值\是否为空);` 多列使  ',' 分割
 
@@ -362,7 +386,7 @@
 
      解释：使用 bit 表明占用几个 bit 为，值为 b'1' 标记为二进制数值
 
-7. 查看表的结构
+8. 查看表的结构
 
    - `desc 表名`
 
@@ -387,7 +411,7 @@
      4 rows in set (0.00 sec)
      ```
 
-8. 删除表
+9. 删除表
 
    - `drop table 表名`
 
@@ -413,7 +437,7 @@
      1 row in set (0.00 sec)
      ```
 
-9. 更改表名
+10. 更改表名
 
    - `rename table name to new_name`
 
@@ -440,7 +464,7 @@
      2 rows in set (0.00 sec)
      ```
 
-10. 修改表中的属性、属性定义
+11. 修改表中的属性、属性定义
 
     说明：对于表的修改，会有很多麻烦，最好在构建表的时候多一些考虑。表中一旦存在数据，修改表的结构会引来一堆错误，也有可能数据丢失，所以对于表的修改慎重操作   [参考文档](https://dev.mysql.com/doc/refman/5.5/en/alter-table.html#alter-table-add-drop-column) <br> __删除这块应该看一下官方文档__
 
@@ -527,7 +551,7 @@
       4 rows in set (0.00 sec)
       ```
 
-11. 查看表的创建语句
+12. 查看表的创建语句
 
     - `show create table students`
 
@@ -549,7 +573,285 @@
 
       解释：`ENGINE=InnoDB DEFAULT CHARSET=latin1` 引擎使用 InnoDB（引擎不同，导致底层数据结构不同），数据库的编码格式使用 latin1
 
+### 数据操作
 
+说明：数据操作是基于数据库下的表的操作， 以上面建立的 students表为例
+
+1. 查询
+
+   - `select * from 表名` 
+
+     说明：查询表的所有数据 ，* 表示所有
+
+2. 单条插入数据
+
+   说明：__二进制数据，在界面显示效果不一样，在win10 的 comd 中 b'0' 就像没有，b'1'  为一个框__
+
+   - `insert into 表名 value(值1, 值2...)` <br>`insert into 表名(列1, 列2...) value(值1, 值2...)`
+
+     说明：__插入数据顺序按照表的属性顺序填写，自动增长的属性也添加数据，一般使用 0 填充，插入成功后已自动增长数据为准__
+
+     ![mysql二进制数据验证](git_picture/mysql二进制数据验证.png)
+
+   -  全列插入 `insert into students value(0, 'tom', 1, '1990-1-1', 0);`
+
+     ```sql
+     mysql> insert into students value(0, 'tom', 1, '1990-1-1', 0);
+     Query OK, 1 row affected (2.27 sec)
+     
+     mysql> select * from students;
+     +----+------+--------+------------+----------+
+     | id | name | gender | birthday   | isDelete |
+     +----+------+--------+------------+----------+
+     |  1 | tom  |       | 1990-01-01 |          |
+     +----+------+--------+------------+----------+
+     1 row in set (0.00 sec)
+     ```
+
+   - 部分列插入 `insert into students(name) value('jack');`
+
+     说明：__没有指定的列属性 1.允许为空，2.自增列，3.有默认值__
+
+     ```sql
+     mysql> insert into students(name) value('jack');
+     Query OK, 1 row affected (2.25 sec)
+     
+     mysql> select * from students;
+     +----+------+--------+------------+----------+
+     | id | name | gender | birthday   | isDelete |
+     +----+------+--------+------------+----------+
+     |  1 | tom  |       | 1990-01-01 |          |
+     |  2 | jack |       | NULL       |          |
+     +----+------+--------+------------+----------+
+     2 rows in set (0.01 sec)
+     ```
+
+3. 一次性插入多条数据（Mysql 特有的性质）
+
+   - `insert into 表名 value(值1, 值2...) ,(值1, 值2...)...` <br>`insert into 表名(列1, 列2...) value(值1, 值2...), (值1, 值2...)...`
+
+   - 全列插入 `insert into students value(0, '孙悟空', 1, '1991-1-1', 0), (0, '猪八戒', 1, '1991-3-2', 0), (0, '唐三藏', 1, '1995-5-5', 0), (0, '沙僧', 1, '1992-2-2', 0);`
+
+     ```sql
+     mysql> insert into students value(0, '孙悟空', 1, '1991-1-1', 0), (0, '猪八戒', 1, '1991-3-2', 0), (0, '唐三藏', 1, '1995-5-5', 0), (0, '沙僧', 1, '1992-2-2', 0);
+     Query OK, 4 rows affected (0.05 sec)
+     Records: 4  Duplicates: 0  Warnings: 0
+     
+     mysql> select * from students;
+     +----+--------+--------+------------+----------+
+     | id | name   | gender | birthday   | isDelete |
+     +----+--------+--------+------------+----------+
+     |  1 | tom    |       | 1990-01-01 |          |
+     |  2 | jack   |       | NULL       |          |
+     |  3 | 孙悟空 |       | 1991-01-01 |          |
+     |  4 | 猪八戒 |       | 1991-03-02 |          |
+     |  5 | 唐三藏 |       | 1995-05-05 |          |
+     |  6 | 沙僧   |       | 1992-02-02 |          |
+     +----+--------+--------+------------+----------+
+     6 rows in set (0.29 sec)
+     ```
+
+   - 部分列插入 `insert into students(name) value('哪吒'), ('二郎神'), ('托塔天王');`
+
+     ```sql
+     mysql> insert into students(name) value('哪吒'), ('二郎神'), ('托塔天王');
+     Query OK, 3 rows affected (2.24 sec)
+     Records: 3  Duplicates: 0  Warnings: 0
+     
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |          |
+     |  7 | 哪吒     |       | NULL       |          |
+     |  8 | 二郎神   |       | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     9 rows in set (0.00 sec)
+     ```
+
+4. 修改数据操作
+
+   说明：对现有数据进行修改
+
+   - `update 表名 set 列1=值1, 列2=值2... where 条件`
+
+     说明：__可以一次修改一行，也可以一次修改多行，关键看 where 条件满足什么，如果没有写 where 表中数据就全部被修改__
+
+   - 修改一行数据 `update students set gender=b'0' where name='哪吒';`
+
+     ```sql
+     mysql> update students set gender=b'0' where name='哪吒';
+     Query OK, 1 row affected (0.39 sec)
+     Rows matched: 1  Changed: 1  Warnings: 0
+     
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |          |
+     |  7 | 哪吒     |        | NULL       |          |
+     |  8 | 二郎神   |       | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     9 rows in set (0.00 sec)
+     ```
+
+   - 不写 where 条件 `update students set isDelete=1;`
+
+     ```sql
+     mysql> update students set isDelete=1;
+     Query OK, 9 rows affected (2.23 sec)
+     Rows matched: 9  Changed: 9  Warnings: 0
+     
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |         |
+     |  2 | jack     |       | NULL       |         |
+     |  3 | 孙悟空   |       | 1991-01-01 |         |
+     |  4 | 猪八戒   |       | 1991-03-02 |         |
+     |  5 | 唐三藏   |       | 1995-05-05 |         |
+     |  6 | 沙僧     |       | 1992-02-02 |         |
+     |  7 | 哪吒     |        | NULL       |         |
+     |  8 | 二郎神   |       | NULL       |         |
+     |  9 | 托塔天王 |       | NULL       |         |
+     +----+----------+--------+------------+----------+
+     9 rows in set (0.00 sec)
+     ```
+
+5. 删除（物理是删除、逻辑删除）
+
+   - 物理删除 `delete from 表名 where 条件`
+
+   - 物理删除 `delete from students where id=8;`
+
+     ```sql
+     mysql> delete from students where id=8;
+     Query OK, 1 row affected (2.32 sec)
+     
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |          |
+     |  7 | 哪吒     |        | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     8 rows in set (0.00 sec)
+     ```
+
+     解释：id=8 的数据没有，也恢复不了
+
+   - 逻辑删除 ` update students set isDelete=1 where id=6; `
+
+     说明：逻辑删除使用列属性标记，实际上就是修改数据
+
+     ```sql
+     mysql> update students set isDelete=1 where id=6;
+     Query OK, 1 row affected (2.23 sec)
+     Rows matched: 1  Changed: 1  Warnings: 0
+     
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |         |
+     |  7 | 哪吒     |        | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     8 rows in set (0.00 sec)
+     ```
+
+     解释：使用属性 isDelete 标记数据是否被删除
+
+### 备份与恢复
+
+说明：项目迁移，就是将数据移到另一个服务器
+
+1. 备份
+
+   说明：Linux 进入 __超级管理员__ --> __进入 mysql 数据库目录（数据存放目录）__ <br> windows 不用（前提将 mysql 加入环境变量中），都不用进入 Mysql 用户交互界面
+
+   - 运行 `mysqldump -h 主机 -P 端口号 -u root -p 数据库名 > path\xx.sql`
+
+     ```sql
+     # 开始备份
+     D:\>mysqldump -u root -p python3 > C:\Users\SS沈\Desktop\bak.sql
+     Enter password:
+     # 备份完成
+     D:\>
+     ```
+
+     解释：我这是客户端与服务器在一台主机上（win10），端口号默认，所以没有写
+
+2. 数据恢复
+
+   说明：__数据备份只对表的备份，不对数据库备份， 所以恢复时，需要创建数据库，再对数据进行恢复__
+
+   - 连接 mysql，创建数据库
+
+   - 退出 mysql 交互界面
+
+   - 运行 `mysql -h 主机 -P 端口号 -u root -p 数据库名 < path\xx.sql`
+
+     ```sql
+     # 开始恢复数据
+     D:\>mysql -u root -p py3 < C:\Users\SS沈\Desktop\bak.sql
+     Enter password:
+     # 恢复完成
+     
+     # 进入 mysql 交互界面
+     D:\>mysql -u root -p
+     
+     # 进入之前创建好的数据库 py3
+     mysql> use py3
+     Database changed
+     mysql> show tables;
+     +---------------+
+     | Tables_in_py3 |
+     +---------------+
+     | students      |
+     +---------------+
+     1 row in set (0.00 sec)
+     
+     # 查看表的的数据
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |         |
+     |  7 | 哪吒     |        | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     8 rows in set (0.00 sec)
+     ```
 
 # 非关系型数据库
 
