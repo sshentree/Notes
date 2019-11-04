@@ -1556,7 +1556,7 @@ mysql> select * from students;
 
 说明：实体与实体之间有 3 种对应关系，这些关系也需要被存储下来 <br>           视图是用于完成查询语句的封装 <br> 		  事务可以保证复杂的增删改查操作有效 <br> 		  当数据巨大时，为提高查询速度可以通过索引实现
 
-### 关系
+### 关系（关系字段建立）
 
 说明：已有 __学生表__，在创建 __科目表__ 和 __成绩表__
 
@@ -1612,9 +1612,99 @@ mysql> select * from students;
 
         ![数据库表关系理解](git_picture/数据库表关系理解.png)
 
-   - 代码演示（外键引用）
+   - 代码演示（关系也是数据字段）
 
+     说明：先建立关系在加入引用外键，要保持外键的有效性，添加一种约束
      
+     1. 建立 scores 表（建立关系字段，没有添加外键约束）
+     
+        ```sql
+        mysql> create table scores(
+            -> id int auto_increment primary key,
+            -> stuid int,
+            -> subid int,
+            -> score decimal(5,2));
+        Query OK, 0 rows affected (2.43 sec)
+        
+        mysql> desc scores;
+        +-------+--------------+------+-----+---------+----------------+
+        | Field | Type         | Null | Key | Default | Extra          |
+        +-------+--------------+------+-----+---------+----------------+
+        | id    | int(11)      | NO   | PRI | NULL    | auto_increment |
+        | stuid | int(11)      | YES  |     | NULL    |                |
+        | subid | int(11)      | YES  |     | NULL    |                |
+        | score | decimal(5,2) | YES  |     | NULL    |                |
+        +-------+--------------+------+-----+---------+----------------+
+        4 rows in set (0.00 sec)
+        ```
+     
+     2. 添加外键
+     
+        说明：引用外键必须存在
+     
+        ```sql
+        mysql> alter table scores add constraint students_score foreign key(stuid) references students(id);
+        Query OK, 0 rows affected (2.86 sec)
+        Records: 0  Duplicates: 0  Warnings: 0
+        
+        mysql> alter table scores add constraint subject_score foreign key(subid) references subjects(id);
+        Query OK, 0 rows affected (2.66 sec)
+        Records: 0  Duplicates: 0  Warnings: 0
+        
+        mysql> desc scores;
+        +-------+--------------+------+-----+---------+----------------+
+        | Field | Type         | Null | Key | Default | Extra          |
+        +-------+--------------+------+-----+---------+----------------+
+        | id    | int(11)      | NO   | PRI | NULL    | auto_increment |
+        | stuid | int(11)      | YES  | MUL | NULL    |                |
+        | subid | int(11)      | YES  | MUL | NULL    |                |
+        | score | decimal(5,2) | YES  |     | NULL    |                |
+        +-------+--------------+------+-----+---------+----------------+
+        4 rows in set (0.00 sec)
+        ```
+     
+        解释： `alter table 表名1 add constraint 约束名 foreign key(约束字段) references 表名2(引用约束字段);`  约束名：自定义，但是不能重复
+     
+     3. 在建立 scores 表时，添加引用约束
+     
+        ```sql
+        mysql> create table scores(
+            -> id int auto_increment primary key,
+            -> foreign key(stuid) references students(id),
+            -> foreign key(subid) references subjects(id),
+            -> score decimal(5,2));
+        Query OK, 0 rows affected (2.43 sec)
+        ```
+     
+   - 向 scores 表插入数据
+   
+     1. 插入正确的数据（插入多条数据）
+   
+        ```sql
+        mysql> insert into scores value(0,1,2,98.1);
+        Query OK, 1 row affected (2.31 sec)
+        ```
+   
+     2. 插入非正确数据
+   
+        ```sql
+        mysql> insert into scores value(0,15,2,98.1);
+        ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`python3`.`scores`, CONSTRAINT `students_score` FOREIGN KEY (`stuid`) REFERENCES `students` (`id`))
+        ```
+   
+   - 外键的级联操作
+   
+     说明：在删除 students 表的数据时，如果这个 id 值在 scores 中已经存在，则会抛出异常。推荐使用逻辑删除（isDelete 字段），可以解决这个问题。__可以创建表时指定级联操作，也可以在创建表后修改外键的级联操作__
+   
+     1. 语法
+   
+   
+   
+   
+   
+   
+   
+   
 
 # 非关系型数据库
 
