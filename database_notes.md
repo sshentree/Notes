@@ -1697,14 +1697,156 @@ mysql> select * from students;
      说明：在删除 students 表的数据时，如果这个 id 值在 scores 中已经存在，则会抛出异常。推荐使用逻辑删除（isDelete 字段），可以解决这个问题。__可以创建表时指定级联操作，也可以在创建表后修改外键的级联操作__
    
      1. 语法
+     
+        `alter table 表1 add constraint 约束名 foreign key(列1) references 表2(列名) on update 级联类型[restrict, cascade, set null, noaction];` <br>`alter table 表1 add constraint 约束名 foreign key(列1) references 表2(列名) on delete 级联类型[restrict, cascade, set null, noaction];`
+     
+     2. 级联操作类型
+     
+        - restrict （限制）：默认值，抛出异常
+        - cascade （级联）：如果主表的记录删除，则从表的相关记录都将被删除
+        - set null ：将外键设置为空
+        - no action：什么都不做
+     
+     3. 以上这几种做法，都不好，最好使用逻辑删除
    
+
+### 关联查询（3种）
+
+说明：查询数据存在多张表时，使用连接查询，表的属性太长，可使用 `as` 简写名称。 <br>__连接查询就是把之前查询一张表，转换为多张表一起查询，[inner, left, right] 实际就是查询字段来自（from） 多张表了，有多个字段了，其他语句执行顺序不变__
+
+1. 连接查询分类如下
+
+   - 如表
+
+     | 连接方式 | 语法           | 查询结果集显示                                            |
+     | -------- | -------------- | --------------------------------------------------------- |
+     | 内连接   | A inner join B | 表 A 与 表 B 向匹配的行，会出现在结果集中                 |
+     | 左连接   | A left join B  | A 和 B 相同行，外加 A 表中独有的数据，未对应的数据用 null |
+     | 右连接   | A right join B | A 和 B 相同行，外加 B 表中独有的数据，未对应的数据用 null |
+
+     
+
+2. 内敛查询实例
+
+   - 查询内容
+
+     | 学生姓名 | 科目名称 | 分数 |
+     | -------- | -------- | ---- |
+     |          |          |      |
+
+   - 分析数据来源及关系
+
+     1. 学生姓名 --> students（学生表），级联关系 students.id = scaores.stuid
+     2. 科目名称 --> subjects（科目表），级联关系 subjects.id = scaores.subid
+     3. 分数 --> scores（分数表），同上
+
+   - 查询语句
+
+     ```sql
+     mysql> select students.name,subjects.title,scores.score from scores
+         -> inner join students on scores.stuid=students.id
+         -> inner join subjects on scores.subid=subjects.id;
+         
+     +--------+--------+--------+
+     | name   | title  | score  |
+     +--------+--------+--------+
+     | tom    | c      |  98.10 |
+     | tom    | java   | 100.00 |
+     | tom    | python |  50.33 |
+     | jack   | c      |  99.33 |
+     | jack   | java   |  88.92 |
+     | 孙行者 | java   |  88.62 |
+     +--------+--------+--------+
+     6 rows in set (2.28 sec)
+     ```
+
+   - 解释
+
+     scores 表储存关系，所以 scores 表的数据没有多余数据，当实体关系为 (1: n) 时，关系存储在 n 的表中
    
-   
-   
-   
-   
-   
-   
+3. 外联查询实例
+
+   说明：使用右连接实例
+
+   - 先显示两表对应数据，在显示右表独有数据，为对应上的数据使用 null 填充
+
+   - 查询 score 表连接 students 表
+
+     ```sql
+     mysql> select * from scores
+         -> right join students on scores.stuid=students.id;
+         
+     +------+-------+-------+--------+----+----------+--------+------------+----------+
+     | id   | stuid | subid | score  | id | name     | gender | birthday   | isDelete |
+     +------+-------+-------+--------+----+----------+--------+------------+----------+
+     |    1 |     1 |     2 |  98.10 |  1 | tom      |       | 1990-01-01 |         |
+     |    3 |     1 |     3 | 100.00 |  1 | tom      |       | 1990-01-01 |         |
+     |    4 |     1 |     4 |  50.33 |  1 | tom      |       | 1990-01-01 |         |
+     |    5 |     2 |     2 |  99.33 |  2 | jack     |       | NULL       |          |
+     |    6 |     2 |     3 |  88.92 |  2 | jack     |       | NULL       |          |
+     |    7 |    10 |     3 |  88.62 | 10 | 孙行者   |       | NULL       |          |
+     | NULL |  NULL |  NULL |   NULL |  3 | 孙悟空   |       | 1991-01-01 |          |
+     | NULL |  NULL |  NULL |   NULL |  4 | 猪八戒   |       | 1991-03-02 |          |
+     | NULL |  NULL |  NULL |   NULL |  5 | 唐三藏   |       | 1995-05-05 |          |
+     | NULL |  NULL |  NULL |   NULL |  6 | 沙僧     |       | 1992-02-02 |         |
+     | NULL |  NULL |  NULL |   NULL |  7 | 哪吒     |        | NULL       |          |
+     | NULL |  NULL |  NULL |   NULL |  9 | 托塔天王 |       | NULL       |          |
+     | NULL |  NULL |  NULL |   NULL | 11 | 唐太宗   |       | NULL       |          |
+     +------+-------+-------+--------+----+----------+--------+------------+----------+
+     13 rows in set (2.23 sec)
+     ```
+
+4. 练习
+
+   - 查询学生的姓名、平均分
+
+     说明：__级联查询当作 from 级别（从哪个表来的数据就行），其他执行顺序不表__
+
+     ```sql
+     mysql> select students.name,avg(scores.score) from scores
+         -> inner join students on scores.stuid=students.id
+         -> group by students.id;
+         
+     +--------+-------------------+
+     | name   | avg(scores.score) |
+     +--------+-------------------+
+     | tom    |         82.810000 |
+     | jack   |         94.125000 |
+     | 孙行者 |         88.620000 |
+     +--------+-------------------+
+     3 rows in set (2.28 sec)
+     ```
+
+   - 查询男生姓名、总分
+
+     说明：在 scores 表中，查询字段 name, sum(score)，关联 students，where 男生，group by name，order by 排序
+
+     ```sql
+     mysql> select students.name,sum(scores.score) from scores
+         -> inner join students on students.id=scores.stuid
+         -> where students.gender=1
+         -> group by students.name
+         -> order by sum(scores.score);
+         
+     +--------+-------------------+
+     | name   | sum(scores.score) |
+     +--------+-------------------+
+     | 孙行者 |             88.62 |
+     | jack   |            188.25 |
+     | tom    |            248.43 |
+     +--------+-------------------+
+     3 rows in set (2.26 sec)
+     ```
+
+     解释：__如果按姓名分组，名字相同的可能会出现误差，应该按主键分组__
+
+### 自关联查询
+
+说明：
+
+
+
+
 
 # 非关系型数据库
 
