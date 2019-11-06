@@ -1839,14 +1839,131 @@ mysql> select * from students;
      ```
 
      解释：__如果按姓名分组，名字相同的可能会出现误差，应该按主键分组__
+     
+   - 查询科目名称、平均分
+   
+     1. 分析：科目名称来自于 subjects.title。分数来自于 scores.score，平均分为 avg(scores,score)。两张表连接为 subjects.id = scores.subid 。平均分是一定要分组的为 group by subjects.title
+   
+     2. ```sql
+        mysql> select subjects.title,avg(scores.score) from scores
+            -> inner join subjects on subjects.id=scores.subid
+            -> group by subjects.title
+            -> order by avg(scores.score);
+        +--------+-------------------+
+        | title  | avg(scores.score) |
+        +--------+-------------------+
+        | python |         50.330000 |
+        | java   |         92.513333 |
+        | c      |         98.715000 |
+        +--------+-------------------+
+        3 rows in set (2.23 sec)
+        ```
 
 ### 自关联查询
 
-说明：
+说明：将有相似结构的表，合成一个表
 
+1. 介绍
 
+   - 减少开销
 
+     在数据库中，创建一张表的开销是非常大的，而一张表使用大量数据（大量实体对象：行），开销远小于创建一张表。
 
+   - 使用要求
+
+     要求具有相似结构的多张表，__相似结构__ ，相差一两个字段无所谓，有的表实体没有字段可以添加上去，设为 null
+
+   - 自关联使用广泛
+
+2. 图解
+
+   - 相似结构的多张表
+
+     ![相似结构的多张表](git_picture/相似结构的多张表.png)
+
+   - 合成一张表
+
+     ![合成一张表](git_picture/合成一张表.png)
+
+3. 实现 __省、市、区县 合并一张表的插入_
+
+   - 代码实现
+
+     1. 正确
+
+        ```sql
+        mysql> create table areas(
+            -> id int auto_increment primary key not null,
+            -> title varchar(20),
+            -> pid int,
+            -> foreign key(pid) references areas(id));
+        Query OK, 0 rows affected (2.49 sec)
+        
+        mysql> desc areas;
+        +-------+-------------+------+-----+---------+----------------+
+        | Field | Type        | Null | Key | Default | Extra          |
+        +-------+-------------+------+-----+---------+----------------+
+        | id    | int(11)     | NO   | PRI | NULL    | auto_increment |
+        | title | varchar(20) | YES  |     | NULL    |                |
+        | pid   | int(11)     | YES  | MUL | NULL    |                |
+        +-------+-------------+------+-----+---------+----------------+
+        3 rows in set (2.24 sec)
+        ```
+
+     2. 错误
+
+        ```sql
+        mysql> create table areas(
+            -> id int auto_increment primary key not null,
+            -> title varchar(20),
+            -> foreign key(pid) references areas(id)
+            -> );
+        ERROR 1072 (42000): Key column 'pid' doesn't exist in table
+        ```
+
+        解释：要先创建 pid 字段，然后再用用外键
+
+4. __插入数据__
+
+   - 命令
+
+     `source xxx.sql;`
+
+   - 使用命令行进行插入数据 __报错__
+
+     1. 错误信息
+
+        ```txt
+        as_ibfk_1` FOREIGN KEY (`pid`) REFERENCES `areas` (`id`))
+        ERROR 1406 (22001): Data too long for column 'title' at row 1
+        ERROR 1366 (HY000): Incorrect string value: '\xAE\xB6\xE6\xB8\xA0\xE5...' for column 'title' at row 1
+        ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`python3`.`areas`, CONSTRAINT `areas_ibfk_1` FOREIGN KEY (`pid`) REFERENCES `areas` (`id`))
+        ERROR 1406 (22001): Data too long for column 'title' at row 1
+        ERROR 1406 (22001): Data too long for column 'title' at row 1
+        ERROR 1406 (22001): Data too long for column 'title' at row 1
+        ```
+
+     2. 有可能错误原因
+
+        - xxx.sql 与数据库表格编码格式不一样，但是我查看了一下，都是 utf8 编码格式，所以无法解决
+
+   - 使用 Navicat
+
+     1. 在数据库右击鼠标，出现导入 SQL 文件，执行正确
+
+        ```sql
+        mysql> select count(*) from areas;
+        +----------+
+        | count(*) |
+        +----------+
+        |     3508 |
+        +----------+
+        1 row in set (0.00 sec)
+        ```
+
+5. 查询数据
+
+   说明：
 
 # 非关系型数据库
 
