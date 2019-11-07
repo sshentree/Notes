@@ -1712,7 +1712,7 @@ mysql> select * from students;
 
 ### 关联查询（3种）
 
-说明：查询数据存在多张表时，使用连接查询，表的属性太长，可使用 `as` 简写名称。 <br>__连接查询就是把之前查询一张表，转换为多张表一起查询，[inner, left, right] 实际就是查询字段来自（from） 多张表了，有多个字段了，其他语句执行顺序不变__
+说明：查询数据存在多张表时，使用连接查询，表的属性太长，可使用 `as` 简写名称。 <br>__连接查询就是把之前查询一张表，转换为多张表一起查询，[inner, left, right] 实际就是查询字段来自（from） 多张表了，有多个字段了，其他语句执行顺序不变，其中应查询存放关系字段的表，在连接其他表__
 
 1. 连接查询分类如下
 
@@ -1879,6 +1879,8 @@ mysql> select * from students;
 
    - 相似结构的多张表
 
+     说明：__(省: 市) 为 (1: n)关系，所以关系存放在市的表中__
+
      ![相似结构的多张表](git_picture/相似结构的多张表.png)
 
    - 合成一张表
@@ -1963,7 +1965,203 @@ mysql> select * from students;
 
 5. 查询数据
 
-   说明：
+   说明：两种方法：__子查询、连接查询__，但是不推荐使用子查询
+   
+   - 合并表介绍
+     1. 合并表是 3 张表数据合在一张表，虽然存储再一张表中，但是查询时，分开查询，就是查省时，areas 表变成 province 表，查市时，areas 表变成 city 表，这样在逻辑上会显得清晰
+   
+   - 子查询
+   
+     查询属于辽宁省的市
+   
+     1. 先下查询辽宁省的 id
+   
+        ```sql
+        mysql> select province.id from areas as province where title='辽宁省';
+        +--------+
+        | id     |
+        +--------+
+        | 210000 |
+        +--------+
+        1 row in set (0.00 sec)
+        ```
+   
+     2. 再查询 pid=辽宁id 的市
+   
+        ```sql
+        mysql> select city.id,city.title from areas as city where pid=(select province.id from areas as province where title='辽宁省');
+        +--------+----------+
+        | id     | title    |
+        +--------+----------+
+        | 210100 | 沈阳市   |
+        | 210200 | 大连市   |
+        | 210300 | 鞍山市   |
+        | 210400 | 抚顺市   |
+        | 210500 | 本溪市   |
+        | 210600 | 丹东市   |
+        | 210700 | 锦州市   |
+        | 210800 | 营口市   |
+        | 210900 | 阜新市   |
+        | 211000 | 辽阳市   |
+        | 211100 | 盘锦市   |
+        | 211200 | 铁岭市   |
+        | 211300 | 朝阳市   |
+        | 211400 | 葫芦岛市 |
+        +--------+----------+
+        14 rows in set (0.00 sec)
+        ```
+   
+   - 连接查询
+   
+     1. 先连接表（省表和市表连接）
+   
+        `from areas as province inner join areas as city on province.id=city.pid `
+   
+     2. 查询 省的id、省名称、市id、 市名
+   
+        `select province.id as proid,province.title as protitle,city.id as cid,city.title as ctitle`
+   
+     3. 查询条件
+   
+        `where province.title='辽宁省'`
+   
+     4. 查询结果
+   
+        ```sql
+        mysql> select province.id as proid,province.title as protitle,city.id as cid,city.title as ctitle
+            -> from areas as province inner join areas as city on province.id=city.pid
+            -> where province.title='辽宁省';
+        +--------+----------+--------+----------+
+        | proid  | protitle | cid    | ctitle   |
+        +--------+----------+--------+----------+
+        | 210000 | 辽宁省   | 210100 | 沈阳市   |
+        | 210000 | 辽宁省   | 210200 | 大连市   |
+        | 210000 | 辽宁省   | 210300 | 鞍山市   |
+        | 210000 | 辽宁省   | 210400 | 抚顺市   |
+        | 210000 | 辽宁省   | 210500 | 本溪市   |
+        | 210000 | 辽宁省   | 210600 | 丹东市   |
+        | 210000 | 辽宁省   | 210700 | 锦州市   |
+        | 210000 | 辽宁省   | 210800 | 营口市   |
+        | 210000 | 辽宁省   | 210900 | 阜新市   |
+        | 210000 | 辽宁省   | 211000 | 辽阳市   |
+        | 210000 | 辽宁省   | 211100 | 盘锦市   |
+        | 210000 | 辽宁省   | 211200 | 铁岭市   |
+        | 210000 | 辽宁省   | 211300 | 朝阳市   |
+        | 210000 | 辽宁省   | 211400 | 葫芦岛市 |
+        +--------+----------+--------+----------+
+        14 rows in set (0.00 sec)
+        ```
+   
+   - 连接查询（areas 的 省、市、区 联合查询）
+   
+     1. 查询语句
+   
+        说明：查询存放 __关系字段__ 的表，再连接其他表
+   
+        ```sql
+        mysql> select province.title as protitle,city.title as cititle,county.title as cotitle from areas as city
+            -> inner join areas as province on city.pid=province.id
+            -> inner join areas as county on city.id=county.pid
+            -> where province.title='辽宁省';
+        ```
+   
+     2. 查询结果
+   
+        ```sql
+        +----------+----------+------------------------+
+        | protitle | cititle  | cotitle                |
+        +----------+----------+------------------------+
+        | 辽宁省   | 沈阳市   | 市辖区                 |
+        | 辽宁省   | 沈阳市   | 和平区                 |
+        | 辽宁省   | 沈阳市   | 沈河区                 |
+        | 辽宁省   | 沈阳市   | 大东区                 |
+        | 辽宁省   | 沈阳市   | 皇姑区                 |
+        | 辽宁省   | 沈阳市   | 铁西区                 |
+        | 辽宁省   | 沈阳市   | 苏家屯区               |
+        ```
+
+### 视图
+
+1. 介绍
+
+   - 视图是从一个或多个基本表（或视图）导出的表。
+   - 与基本表不同，它是个虚拟表。即数据库只存放视图的定义，而不存放视图对应的数据，这些数据仍存放在原来的基本表中
+   - 一旦基本表数据发生变化，从视图中查询的数据也随之变化
+   - 视图一经定义，就可以与基本一样被查询、被删除，也可以在一个是视图上，再定义一个视图，但对视图的更新（增、删、改）操作有一定限制
+
+2. 目的
+
+   - 对于复杂的查询，多次使用，维护时一件麻烦的事情
+   - 解决：定义视图，对查询进行一个分装
+
+3. 语法
+
+   - `create view 视图 as SQL查询语句;`
+
+     视图一般加 `v_` 表明是视图，多个表重名字段，不查询、取别名
+
+   - 先写好 查询语句
+
+     ```sql
+     mysql> select students.id as stuid,students.name, students.gender,subjects.title,scores.score from scores
+         -> inner join students on students.id=scores.stuid
+         -> inner join subjects on subjects.id=scores.subid
+         -> where students.isDelete=0;
+     +-------+--------+--------+-------+-------+
+     | stuid | name   | gender | title | score |
+     +-------+--------+--------+-------+-------+
+     |     2 | jack   |       | c     | 99.33 |
+     |     2 | jack   |       | java  | 88.92 |
+     |    10 | 孙行者 |       | java  | 88.62 |
+     +-------+--------+--------+-------+-------+
+     3 rows in set (0.02 sec)
+     ```
+
+   - 再创建视图
+
+     ```sql
+     mysql> create view v_stu_sub_sco as
+         -> select students.id as stuid,students.name, students.gender,subjects.title,scores.score from scores
+         -> inner join students on students.id=scores.stuid
+         -> inner join subjects on subjects.id=scores.subid
+         -> where students.isDelete=0;
+     Query OK, 0 rows affected (2.35 sec)
+     
+     mysql> select * from v_stu_sub_sco;
+     +-------+--------+--------+-------+-------+
+     | stuid | name   | gender | title | score |
+     +-------+--------+--------+-------+-------+
+     |     2 | jack   |       | c     | 99.33 |
+     |     2 | jack   |       | java  | 88.92 |
+     |    10 | 孙行者 |       | java  | 88.62 |
+     +-------+--------+--------+-------+-------+
+     3 rows in set (0.21 sec)
+     ```
+
+   - 修改视图
+
+     ```sql
+     mysql> alter view v_stu_sub_sco as
+         -> select students.id as stuid,students.name, students.gender,subjects.title,scores.score from scores
+         -> inner join students on students.id=scores.stuid
+         -> inner join subjects on subjects.id=scores.subid
+         -> where students.isDelete=1;
+     Query OK, 0 rows affected (2.27 sec)
+     
+     mysql> select * from v_stu_sub_sco;
+     +-------+------+--------+--------+--------+
+     | stuid | name | gender | title  | score  |
+     +-------+------+--------+--------+--------+
+     |     1 | tom  |       | c      |  98.10 |
+     |     1 | tom  |       | java   | 100.00 |
+     |     1 | tom  |       | python |  50.33 |
+     +-------+------+--------+--------+--------+
+     3 rows in set (0.00 sec)
+     ```
+
+### 事物
+
+说明：
 
 # 非关系型数据库
 
