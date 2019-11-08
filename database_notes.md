@@ -1968,7 +1968,8 @@ mysql> select * from students;
    说明：两种方法：__子查询、连接查询__，但是不推荐使用子查询
    
    - 合并表介绍
-     1. 合并表是 3 张表数据合在一张表，虽然存储再一张表中，但是查询时，分开查询，就是查省时，areas 表变成 province 表，查市时，areas 表变成 city 表，这样在逻辑上会显得清晰
+     
+   1. 合并表是 3 张表数据合在一张表，虽然存储再一张表中，但是查询时，分开查询，就是查省时，areas 表变成 province 表，查市时，areas 表变成 city 表，这样在逻辑上会显得清晰
    
    - 子查询
    
@@ -2161,7 +2162,337 @@ mysql> select * from students;
 
 ### 事物
 
-说明：
+说明：当一个业务逻辑需要多条 sql 语句完成时，如果其中一条 sql 语句出现错误，则希望整个操作都退回，宝座逻辑的正确性。__表的类型必须是 InnoDB 、 BDB 类型，才可以使用事务__。<br>修改表的类型 `alter table '表名' engine=InnoDB;`
+
+1. 介绍
+
+   - 事务
+
+     所谓事务使用户定义的一个数据库操作序列，这些操作要么全做，要么全都不做，是一个不可分割的工作单位
+
+   - 定义事务 3 条语句
+
+     1. `begin`
+     2. `commit`
+     3. `rollback`
+     4. 事务通常是以 `begin` 开始，以 `commit` 或 `roolback` 结束。<br>`commit` 表时提交，即提交事务所有操作，具体地说加将事务中所有对数据库的更新写回到磁盘上的物理数据中去，事务正常结束。<br> `rollback` 表时回滚，即在事务运行过程中发生某种故障，事务不能正常执行，系统将事务中对数据库的所有已完成操作全部撤回，回滚到是恶u开始执行的状态
+
+   - 事务的 4 大特性（简称 ACID）
+
+     1. 原子性（Atomicity）
+
+        事务是数据库的逻辑工作单位，事务中包含诸多操作，要么都做，要么全部做，即事务的群不操作在数据库中是不可分的，
+
+     2. 一致性（Consistency）
+
+        多个并行执行的事务，其执行结果必须与按某一顺序串行执行的结果相一致 <br> 某公司在银行有 A，B 两个账号，现在想从 A 账号中取出 1 万，存入 B 中，那么就定义一个事务，该事务包括 2 个操作，第一个操作是从 A 账号取出 1 万，第二个操作向 B 存入 1 万。这两个操作要么全做，要么全不做。全做、全不做，数据库都处于一致性状态。如果只做一个操作，则逻辑上就发生错误，减少或增加 1 万，这是数据库处于不一致状态。__可见一致性核原子性是密切相关的__
+
+     3. 隔离性（Isolation）
+
+        一个事务执行不能被其他事务干扰。即一个事务的内被操作及使用的数据对其他并发事务时隔离的，并发执行的事务之间不能相互干扰
+
+     4. 持续性（Durability）
+
+        持续性也称持久性，指一个事务一旦提交，他对数据库中数据的改变应该是永久性的。接下来的其他操作或者发生故障不应对其执行结果产生任何影响
+
+2. 使用事务的情况
+
+   说明：当数据库更改时，包括：insert \ update \ delete
+
+   - 事务操作流程图
+
+     ![事务操作](git_picture/事务操作.png)
+
+   - 代码演示
+
+     说明：__此处将打开 2 个命令行窗口，看来模拟不同的用户，进而展示事务的操作原理。定义用户 A，B__
+
+     1. 数据库原始数据
+
+        ```sql
+        mysql> select * from subjects;
+        +----+--------+
+        | id | title  |
+        +----+--------+
+        |  2 | c      |
+        |  3 | java   |
+        |  4 | python |
+        +----+--------+
+        3 rows in set (2.26 sec)
+        ```
+
+     2. 用户 A，事务，修改数据
+
+        - 修改、查询
+
+          说明：__此条数据被上锁__，其他改变此条数据的操作是不被允许的
+
+          ```sql
+          mysql> begin;
+          Query OK, 0 rows affected (0.00 sec)
+          
+          mysql> update subjects set title='c/c++' where id=2;
+          Query OK, 1 row affected (0.00 sec)
+          Rows matched: 1  Changed: 1  Warnings: 0
+          
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c/c++  |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.00 sec)
+          ```
+
+          解释：用户 A，数据显示已被修改，但是没有提交
+
+     3. 用户 B 查看 subjects；
+
+        - 查询
+
+          ```sql
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c      |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.01 sec)
+          ```
+
+          解释：用户 B，数据没有修改，所以，事务在没有提交时，修改在内存的临时表中
+
+     4. 用户 A，回滚
+
+        - 用户 A，回滚：撤销修改、查询
+
+          ```sql
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c      |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.00 sec)
+          ```
+
+        - 对比用户 B 数据
+
+          ```sql
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c      |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.00 sec)
+          ```
+
+        - 解释，用户 B 还是没有变化
+
+     5. 用户 A， 再次修改数据
+
+        - 事务定义、修改数据、提交、查询
+
+          ```sql
+          mysql> begin;
+          Query OK, 0 rows affected (0.00 sec)
+          
+          mysql> update subjects set title='c/c++' where id=2;
+          Query OK, 1 row affected (0.00 sec)
+          Rows matched: 1  Changed: 1  Warnings: 0
+          
+          mysql> commit;
+          Query OK, 0 rows affected (0.05 sec)
+          
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c/c++  |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.00 sec)
+          ```
+
+        - 对比用户 B
+
+          ```sql
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c/c++  |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.00 sec)
+          ```
+
+          解释：用户 B 数据显示修改，所以提交之后，数据写入磁盘（物理存储），数据正式修改成功
+
+### 索引
+
+说明：当表的数据量比较大时（索引建立，要根据实际情况来判断，且的有大量数据支撑），查询会比较耗时。建立索引是加快查询速度的有效手段
+
+1. 介绍
+
+   - 索引能快速定位到要查找的内容
+
+   - 数据库有默认索引，数据库存储是按照主键存储
+   - 索引虽然能够加快数据库查询，但需要占用一定的存储空间，当基本更新时，索引要进行相应的维护，这些都增加了数据库的负担。
+   - 再没建立索引时，where 是每一行逐条数据进行查找（就算找到了，where 还是会进行逐行查找，知道找完，返回查询信息），当你建立索引时，是根据 where 条件对哪一列进行筛选（频率大），对哪一列，建立索引
+   - 索引可以对单列建立索引，也可以对多列建立一个索引，索引对等值有用，对范围来说，索引没用
+   - 范围、or 是终断索引的逻辑运算符
+
+2. 索引数据类型
+
+   - 通常数据类型越小越好，越小的数据类型通常在磁盘、内存和 cpu 缓存占用更少的空间，处理起来更快
+   - 越简单的数据类型，越好。数型类型数据比字符，处理开销更小，因为字符串比较复杂
+   - 避免 NULL，索引列因该指明 NOT NULL，除非你想存储 NULL。在 Mysql 中，含有 NULL 的列很难进行查询优化，因为它使得索引、索引的统计信息以及比较运算更加复杂。__最好用 0、一个特殊的值或者一个空字符串代替 空值__
+
+3. 语法
+
+   - 查看表的索引  <br>`show index from '表名'`
+
+     说明：表的默认索引为 主键
+
+     ```sql
+     mysql> show index from students;
+     +----------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+     | Table    | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
+     +----------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+     | students |          0 | PRIMARY  |            1 | id          | A         |           9 |     NULL | NULL   |      | BTREE      |         |               |
+     +----------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+     1 row in set (0.06 sec)
+     ```
+
+   - 创建索引
+
+     说明：最好查一下官方文档 [官方文档](https://dev.mysql.com/doc/refman/5.6/en/create-index.html)
+
+     1. 索引，不能再 primary key 上建立。很好理解，primary key 是默认索引
+
+     2. `create index index_name on tabl_name(col_name[(length)])`
+
+        index_name ：索引名字（自定义）<br> tabl_name：表名 <br> col_name：表的列名 <br> length：定义长度（不用写）
+
+     3. 删除索引
+
+        `drop index [index_name] on tabl_name`
+
+     4. 实现创建索引
+
+        ```sql
+        mysql> create index index_name on test(name);
+        Query OK, 0 rows affected (0.29 sec)
+        Records: 0  Duplicates: 0  Warnings: 0
+        
+        mysql> show index from test;
+        +-------+------------+------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+        | Table | Non_unique | Key_name   | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
+        +-------+------------+------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+        | test  |          0 | PRIMARY    |            1 | id          | A         |           0 |     NULL | NULL   |      | BTREE      |         |               |
+        | test  |          1 | index_name |            1 | name        | A         |           0 |     NULL | NULL   |      | BTREE      |         |               |
+        +-------+------------+------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+        2 rows in set (0.00 sec)
+        ```
+
+     5. 实现删除索引（默认主键索引，删不去）
+
+        - 删除自定义索引
+
+          ```sql
+          mysql> drop index index_name on test;
+          Query OK, 0 rows affected (0.10 sec)
+          Records: 0  Duplicates: 0  Warnings: 0
+          
+          mysql> show index from test;
+          +-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+          | Table | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
+          +-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+          | test  |          0 | PRIMARY  |            1 | id          | A         |           0 |     NULL | NULL   |      | BTREE      |         |               |
+          +-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+          1 row in set (0.00 sec)
+          ```
+
+        - 不能删除主键索引
+
+          ```sql
+          mysql> drop index primaty on test;
+          ERROR 1091 (42000): Can't DROP 'primaty'; check that column/key exists
+          ```
+
+### 索引性能对比
+
+1. 查看执行时间
+
+   - 开启时间监控
+
+     `set profiling=1;`
+
+   - 执行语句
+
+   - 查看语句运行时间
+
+     `show profiles;`
+
+2. 对 areas 表，创建索引（col_name=title）
+
+   - 实验
+
+     ```sql
+     # 开启语句执行时间监控
+     mysql> set profiling=1;
+     Query OK, 0 rows affected, 1 warning (0.06 sec)
+     
+     # 查询语句
+     mysql> select * from areas where title='呼和浩特市';
+     +--------+------------+--------+
+     | id     | title      | pid    |
+     +--------+------------+--------+
+     | 150100 | 呼和浩特市 | 150000 |
+     +--------+------------+--------+
+     1 row in set (0.01 sec)
+     
+     # 创建索引
+     mysql> create index index_title on areas(title);
+     Query OK, 0 rows affected (0.51 sec)
+     Records: 0  Duplicates: 0  Warnings: 0
+     
+     # 查询语句
+     mysql> select * from areas where title='呼和浩特市';
+     +--------+------------+--------+
+     | id     | title      | pid    |
+     +--------+------------+--------+
+     | 150100 | 呼和浩特市 | 150000 |
+     +--------+------------+--------+
+     1 row in set (0.03 sec)
+     
+     # 执行时间对比
+     mysql> show profiles;
+     +----------+------------+---------------------------------------------+
+     | Query_ID | Duration   | Query                                       |
+     +----------+------------+---------------------------------------------+
+     |        1 | 0.01842175 | select * from areas where title='?????????' |
+     |        2 | 0.50237800 | create index index_title on areas(title)    |
+     |        3 | 0.02832325 | select * from areas where title='?????????' |
+     +----------+------------+---------------------------------------------+
+     3 rows in set, 1 warning (0.00 sec)
+     ```
+
+   - 结果
+
+     没有建立索引查询时间较短，不知为何。正常情况下，应该是建立索引的查询时间短啊 ！！！:blonde_woman:
 
 # 非关系型数据库
 
