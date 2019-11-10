@@ -2535,13 +2535,33 @@ mysql> select * from students;
 
    - 如表
 
-     | 类型 | 部分代表 | 特点 |
-     | ---- | -------- | ---- |
-     |      |          |      |
-
+     | 类型             | 部分代表                                                     | 特点                                                         |
+     | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+     | 列存储           | Cassandra <br> Hupertable                                    | 是按照列存储数据的，最大特点是方便存储结构化和半结构化数据。方便数据压缩，对针对某一列或者某几列的查询有非常大的 IO 优势 |
+| 文档存储         | MongoDB <br> CouchDB                                         | 文档存储一般用类似 JSON 的格式存储，存储内容是文档型的。这样就有机会对某些字段建立索引，实现关系数据库的某些功能 |
+     | (key-value) 存储 | Tokyo Cabinet / tyrant <br> Berkeley DB <br> MemcacheDB <br> Redis | 可以通过 key 快速查询到 value。一般来说，不管是不是 value 格式，照单全收（Redis 还有其它功能） |
+     | 图存储           | Neo4J <br> FlockDB <br>                                      | 图像关系最佳存储。使用传统关系型数据库来解决的话性能低下，而且设计使用不方便 |
+     | 对象存储         | db4o <br> versant                                            | 通过类似面向对象的语法操作数据库，通过对象的方式存取数据     |
+     | xml 数据库       | Berkeler DB XML <br> BaseX                                   | 高效的存储 XML 数据，并支持 XML 的内部查询语法，比如 XQuery，Xpath |
      
 
 ## MongDB
+
+### 理论介绍
+
+1. 介绍
+   - MongoDB 是一种基于 __分布式__ 文件存储的 NoSQL 的数据库
+   - 由 c++ 语言编写，运行稳定、性能高
+   - 目的在于为 WEB 应用提供可扩展的高性能的数据库存查询决方案
+2. 特点
+   - __模式自由__：可以把不同结构的文档存储在同一个数据库中
+   - __面向集合的存储__：适合存储 JSON 风格文件的形式
+   - __完整的索引支持__：对任何属性都可索引
+   - __复制和高可用性__：支持服务器之间的数据复制，支持 --> 从模式及服务器之间相互复制。复制的主要目的是提供冗余及自动故障转移
+   - __自动分片__：支持云级别的伸缩性：自动分片功能支持水平的数据库集群，可以动态添加额外的机器
+   - __丰富的查询__：支持丰富的查询表达式，查询指令使用 JSON 形式的标记，可以轻易查询文档中内嵌对象及数据
+   - __快速就地更新__：查询优化器会分析查询表达式，并生成一个高效的查询计划
+   - __高效的传统的存储方式__：支持二进制数据及大型对象（如，照片）
 
 ### MongoDB 安装
 
@@ -2564,6 +2584,242 @@ mysql> select * from students;
      2. 重新输入
 
         `mongod.exe --config "(配置文件路径)mongod.cfg" --install`
+
+### 启动 MongoDB 
+
+说明：启动分为两种方法，因为安装分为两种方式，这里只介绍一种（感觉启动简单）
+
+1. 初始化 `mongod.cfg` 文件的启动方法
+
+   - 启动 MOngoDB，__使用管理员权限__
+
+     `net start MongoDB`
+
+   - 客户端连接
+
+     `mongo`
+
+   - 关闭 MongoDB
+
+     `net stop MongoDB`
+
+2. 查看 MongoDB 基本操作
+
+   - 查看当前数据库
+
+     ```sql
+     > db;
+     test
+     ```
+
+   - 查看当前数据库信息
+
+     ```sql
+     > db.stats;
+     function (scale) {
+             return this.runCommand({dbstats: 1, scale: scale});
+         }
+     ```
+
+   - 查看当前所有数据库
+
+     ```sql
+     > show databases;
+     admin   0.000GB
+     config  0.000GB
+     local   0.000GB
+     ```
+
+   - 退出
+
+     ```sql
+     quit()
+     ```
+
+     
+
+### 基本操作（重点）
+
+1. 主要内容
+
+   - MongoDB 将数据存储为一个文档，数据结构由键值（key-value） 对组成
+   - MongoDB 文档类似于 JSON 对象，字段值可以包含其他文档、数组、文档数据
+   - 安装管理 MongoDB 环境
+   - 完成数据库、集合管理
+   - 数据的增、删、改、查
+
+2. 与 SQL 名词对比
+
+   - 如表
+
+     | SQL 术语 / 概念 | MongoDB 术语 / 概念 | 解释 / 说明                            |
+     | --------------- | ------------------- | -------------------------------------- |
+     | database        | database            | 数据库                                 |
+     | table           | collection          | 数据库 表 / 集合                       |
+     | row             | document            | 数据记录行 / 文件                      |
+     | column          | field               | 数据字段 / 域                          |
+     | index           | index               | 索引                                   |
+     | table joins     |                     | 表连接 / MongoDB 不支持                |
+     | primary key     | primary key         | 主键 / MongoDB 自动将 _id 字段设为主键 |
+
+   - MongoDB 组成 3 元素
+
+     1. __数据库__
+     2. __集合__：集合就是关系型数据库的 __表__
+     3. __文档__：文档对应着关系型数据的 __行__
+
+   - 文档 <br> 就是一个对象，由键值对构成，是 Json 的扩展 Dson 形式 
+
+     `{'id': 0, name': '老王', 'gender': 1, age: 100}`
+
+   - 集合 <br> 类似于关系数据库中的表，存储多个文档，文档结构不固定，可以存储多个文档在集合中
+
+     ```json
+     {'id': 0, name': '老王', 'gender': 1, age: 100}
+     {'id': 0, name': '小王', 'gender': 1}
+     {'id': 0, name': '张三',  age: 99}
+     {'id': 0, name': '李四', 'gender': 0, age: 90}
+     ```
+
+   - 数据库 <br> 是一个集合的物理存储。一个数据库中可以包含多个集合 <br> 一个服务器通常包含多个数据库
+
+3. 基本语法操作
+
+   - __数据库操作__
+
+     1. 启动 MongoDB 服务，进入客户端
+
+        ```sql
+        C:\WINDOWS\system32>net start MongoDB
+        MongoDB 服务正在启动 ..
+        MongoDB 服务已经启动成功。
+        
+        # 进入客户端
+        C:\WINDOWS\system32>mongo
+        ```
+
+     2. 查看所有数据库，以及当前使用的数据库， 和切换数据库
+
+        说明：当查看所有数据库是，并没有 test 数据库，这是因为 __默认数据库为 test，如果没有创建新的数据库，集合将存储 test 数据库中，切换数据库，则指向数据库，但不创建，直到插入数据或者创建集合时数据库才会被创建，所以，查看所有数据库，并没有默认数据库 test，是因为 test 数据库没有数据__
+
+        ```sql
+        # 查看所有数据库
+        > show databases;
+        admin   0.000GB
+        config  0.000GB
+        local   0.000GB
+        
+        # 查看当前使用的数据库
+        > db;
+        test
+        
+        # 切换数据库
+        use '数据库'
+        ```
+
+     3. 删除数据库
+
+        说明：删除当前指向数据库，如果数据库不存在什么也不做
+
+        ```sql
+        db.dropDatabase();
+        ```
+
+   - __创建集合__
+
+     1. 语法讲解
+
+        - 基本语法
+
+          `db.createCollection(name, [options])`
+
+        - name 是创建集合的名称
+
+        - options 是一个文档类型数据，如 {capped: true, size: 10} （指定 集合上线，超将其之前覆盖），用于指定集合配置
+
+        - options 参数可选，所以一般只需要指定集合名称，不限制集合大小
+
+          `db.createCollection("stu")`
+
+     2. 创建集合（先创建数据库）
+
+        - 创建集合（数据库）
+
+          ```sql
+          > use python3
+          switched to db python3
+          > db.createCollection("stu", {capped: true, size: 5});
+          { "ok" : 1 }
+          ```
+
+        - 创建集合（没有约束）
+
+          `db.createCollection("stu")`
+
+          1. 参数 name 为集合名称，__必写__
+          2. 参数 {capped: true} :默认值为 false ，表示不设置上限，ture 表示设置上限
+          3. 参数 {size：10} 表示设置集合上限大小（capped 为 ture），当文档达到一定数目，就会覆盖前面数据
+
+   - __查看数据库集合__ 及 __删除集合__
+
+     1. 语法
+
+        ```sql
+        # 查看数据库集合
+        > show collections;
+        stu
+        
+        # 删除数据库集合
+        > db.stu.drop();
+        true
+        
+        # 再次查看数据库集合
+        > show collections;
+        # 返回为空
+        ```
+
+4. 支持数据类型
+
+   - 下表为 MongoDB 常见几种数据类型
+
+     | 数据类型  | 含义                                         |
+     | --------- | -------------------------------------------- |
+     | Object ID | 文档 ID                                      |
+     | String    | 字符串，最常用，必须是有效的 UTF-8           |
+     | Boolean   | 存储一个布尔值  [true, false]                |
+     | integer   | 整数可以是 32 位，或者是 64 位，取决于服务器 |
+     | Double    | 存储浮点值                                   |
+     | Arrarys   | 数组或者列表，多个值存储到一个键里           |
+     | Object    | 用于嵌入式的文档，即一个值，为一个文档       |
+     | Null      | 存储 Null 值                                 |
+     | Timestamp | 时间戳                                       |
+     | Date      | 存储当前日期或者时间的 UNIX 时间格式         |
+
+   - 解释数据类型的含义
+
+     1.  object id
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
