@@ -2640,6 +2640,8 @@ mysql> select * from students;
 
 ### 基本操作（重点）
 
+说明：数据库的创建，集合的创建与删除
+
 1. 主要内容
 
    - MongoDB 将数据存储为一个文档，数据结构由键值（key-value） 对组成
@@ -2778,9 +2780,12 @@ mysql> select * from students;
         # 返回为空
         ```
 
-4. 支持数据类型
 
-   - 下表为 MongoDB 常见几种数据类型
+### 支持数据类型
+
+1. 下表为 MongoDB 常见几种数据类型
+
+   - 如表
 
      | 数据类型  | 含义                                         |
      | --------- | -------------------------------------------- |
@@ -2795,11 +2800,377 @@ mysql> select * from students;
      | Timestamp | 时间戳                                       |
      | Date      | 存储当前日期或者时间的 UNIX 时间格式         |
 
-   - 解释数据类型的含义
+2. 解释数据类型的含义
 
-     1.  object id
+   - Object ID
+     1. 每一个文档都有的一个属性，为 _id ，保证每一个文档的唯一性
+     2. 可以自己设置 _id 插入文档（一般不自己设置）
+     3. 如果没有提供，MongoDB 为每一个文档提供一个独特的 _id ，类型为 ObjectID
+     4. ObjectID 是一个 12 字节的十六进制数
+        - 前四个字节为当前时间
+        - 接下来 3 个字节为机器 ID
+        -  接下来的 2 个字节为 MongoDB 的服务进程 ID
+        - 最后 3 个为简单的增量值
 
+### 数据操作
+
+说明：插入，简单的查询，更新数据，保存，删除集合中数据
+
+1. 插入数据，查询集合数据
+
+   - 插入语法
+     1. `db.集合名称.insert(document)` 
+     2. document：为文档（就是 key-value 值）
+     3. 插入文档时，如果不指定 _id 参数，MongoDB 会为文档分配一个唯一的 ObjectID
+     4. __插入数据时，和创建数据库有点类似（创建了，数据库也不存在，只有在其中创建集合了，才可以检索到），可以先不创建集合，而是直接使用插入语句，就可以创建集合，并且插入数据，__
+   - 查询语法
+     1. `db.集合名称.find()`
+
+   - 例1
+
+     ```sql
+     > show databases;
+     admin    0.000GB
+     config   0.000GB
+     local    0.000GB
+     python3  0.000GB
+     
+     # 切换数据库
+     > use python3;
+     switched to db python3
+     
+     # 创建集合
+     > db.createCollection("stu");
+     { "ok" : 1 }
+     > show collections;
+     stu
+     
+     # 向集合插入数据
+     > db.stu.insert({"name": "tom", "gender": 1, "age": 99});
+     WriteResult({ "nInserted" : 1 })
+     
+     # 查询集合中数据
+     > db.stu.find();
+     { "_id" : ObjectId("5dc8b3c61e728fe09d9a3acf"), "name" : "tom", "gender" : 1, "age" : 99 }
+     ```
+
+     解释：_id 为 mongoDB 自动进行维护
+
+   - 例2
+
+     说明：文档（key-value），key  可以不使用 分号（""）
+
+     ```sql
+     # 先定义文档
+     > s1 = {name: "jack"};
+     { "name" : "jack" }
+     # 向文档添加属性
+     > s1.gender = 1;
+     1
+     
+     # 将文档插入集合中
+     > db.stu.insert(s1)
+     WriteResult({ "nInserted" : 1 })
+     
+     # 查询集合数据
+     > db.stu.find();
+     { "_id" : ObjectId("5dc8b3c61e728fe09d9a3acf"), "name" : "tom", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dc8b5911e728fe09d9a3ad2"), "name" : "jack", "gender" : 1 }
+     ```
+
+2. 更新数据
+
+   - 语法
+
+     1. `db.集合名称.update(<query>,<update>,{multi: <boolean>});`
+     2. 参数 query ：查询条件，类似 SQL 语句中的 where 部分
+     3. 参数 update ：更新操作符，类似 SQL 语句中的 update 中 set 部分
+     4. 参数 multi ：可选，默认时 false，表示只更新找到的第一条数据，值为 true，表示把满足条件的文档全部更新，需要和关键字 `$set` 一起使用
+
+   - 例 1 __（全文档更新，修改文档结构）__
+
+     说明：参数 query、update 是必须要的，参数 multi 是可选的（默认更新一条）
+
+     1. 集合数据
+
+        ```sql
+        # 查看集合的文档
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "race", "gender" : 0, "age" : 9 }
+        ```
+
+     2. 不使用 multi 参数（默认为 fasle）
+
+        说明：修改 name 为 "race" 的文档
+
+        ```sql
+        # 修改 name 为 "race" 的文档
+        > db.stu.update({name: "race"},{name: "Race"})
+        WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
         
+        # 查看集合文档
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+        解释：全文档修改，就是将整个文档全部修改，__仔细查看文档变化细节__
+
+   - 例 2 __（指定属性跟新 $set）__
+
+     说明：使用关键字 `$set`
+
+     1. 集合文档
+
+        ```sql
+        # 集合文档
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 100 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+     2. 修改 name : "tom" 的 age 属性
+
+        ```sql
+        # 修改指定属性
+        > db.stu.update({name: "tom"},{$set: {age: 19}});
+        WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+   - 例 3 （修改匹配到的多条文档）
+
+     说明：__参数 multi 为 true，指定修改的属性，好像不能修改全文档__
+
+     1. 集合文档
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+     2. 修改多个文档属性
+
+        ```sql
+        > db.stu.update({gender: 1},{$set: {age: 111}},{multi: true});
+        WriteResult({ "nMatched" : 2, "nUpserted" : 0, "nModified" : 2 })
+        
+        # 查看文档
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+3. 保存操作
+
+   - 语法
+
+     1. `db.集合名称.save(document)`
+     2. 如果文档 _id 已经存在，则发生修改
+     3. 如果文档 _id 不存在，则发生插入 
+
+   - 例 1
+
+     说明：自定义文档 _id 属性
+
+     1. 集合文档
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+     2. 保存一个 _id 不重复的文档
+
+        ```sql
+        # 先定义一个文档
+        > s = {_id:1234, name: "老王", gender: 1, age: 35};
+        { "_id" : 1234, "name" : "老王", "gender" : 1, "age" : 35 }
+        
+        # 保存文档
+        > db.stu.save(s);
+        WriteResult({ "nMatched" : 0, "nUpserted" : 1, "nModified" : 0, "_id" : 1234 })
+        
+        # 查询文档
+        > db.stu.find();                                 };
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "老王", "gender" : 1, "age" : 35 }
+        ```
+
+     3. 保存一个重复 _id 的文档
+
+        ```sql
+        # 查询文档
+        > db.stu.find();                                 };
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "老王", "gender" : 1, "age" : 35 }
+        
+        # 保存文档
+        > s = {_id:1234, name: "隔壁老王", gender: 1, age: 35};
+        { "_id" : 1234, "name" : "隔壁老王", "gender" : 1, "age" : 35 }
+        
+        # 查询文档
+        > db.stu.find();                                   35};
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "隔壁老王", "gender" : 1, "age" : 35 }
+        ```
+
+4. 删除
+
+   - 语法
+
+     1. `db.集合名.remove(<query>,{justOne: <boolean>})`
+     2. 参数 query：删除的文档条件，必须写，但是以为空 ，如 `{}`
+     3. 参数 justOne：可选，如果设为 true 或 1，表示删除一条，默认 fase，表示删除多条
+
+   - 例 1
+
+     1. 集合数据
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "隔壁老王", "gender" : 1, "age" : 35 }
+        ```
+
+     2. 删除一条数据
+
+        ```sql
+        # 删除一条数据
+        > db.stu.remove({age: 111}, {justOne: 1})
+        WriteResult({ "nRemoved" : 1 })
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "隔壁老王", "gender" : 1, "age" : 35 }
+        ```
+
+        解释：age:111 文档有两个，只删除了一个
+
+     3. 全部删除
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "隔壁老王", "gender" : 1, "age" : 35 }
+        
+        # 删除所有
+        > db.stu.remove({});
+        WriteResult({ "nRemoved" : 3 })
+        > db.stu.find();
+        >
+        ```
+
+        解释：条件 `{}` key-value 可以不写值，但必须有面（位置）
+
+### 关于 SIZE 的使用
+
+- 介绍
+
+  在创建集合时，指定 size 大小。当插入数据大于 size 时，后面的数据就会覆盖掉前面的数据
+
+- 实例
+
+  1. 创建一个集合，并设置 size 为 5
+
+     ```sql
+     > db.createCollection("stu", {capped: true, size: 5});
+     { "ok" : 1 }
+     > show collections;
+     stu
+     ```
+
+  2. 在集合 stu 中，插入 5 个文档
+
+     ```sql
+     # 定义数据
+     > s1 = {anme: "哪吒"}
+     { "anme" : "哪吒" }
+     > s2 = {name: "孙悟空"};
+     { "name" : "孙悟空" }
+     > s3 = {name: "玉皇大帝"};
+     { "name" : "玉皇大帝" }
+     > s4 = {name: "太上老君"};
+     { "name" : "太上老君" }
+     > s5 = {name: "猪八戒"};
+     { "name" : "猪八戒" }
+     
+     # 插入文档
+     > db.stu.insert(s1);
+     WriteResult({ "nInserted" : 1 })
+     > db.stu.insert(s2);
+     WriteResult({ "nInserted" : 1 })
+     > db.stu.insert(s3);
+     WriteResult({ "nInserted" : 1 })
+     > db.stu.insert(s4);
+     WriteResult({ "nInserted" : 1 })
+     > db.stu.insert(s5);
+     WriteResult({ "nInserted" : 1 })
+     
+     # 查询
+     > db.stu.find()
+     { "_id" : ObjectId("5dc8d15d1e728fe09d9a3ad6"), "anme" : "哪吒" }
+     { "_id" : ObjectId("5dc8d1651e728fe09d9a3ad7"), "name" : "孙悟空" }
+     { "_id" : ObjectId("5dc8d1691e728fe09d9a3ad8"), "name" : "玉皇大帝" }
+     { "_id" : ObjectId("5dc8d16d1e728fe09d9a3ad9"), "name" : "太上老君" }
+     { "_id" : ObjectId("5dc8d1701e728fe09d9a3ada"), "name" : "猪八戒" }
+     ```
+
+  3. 再插入 2 个文档
+
+     ```sql
+     # 插入一个文档
+     > db.stu.insert({name: "斗战神圣佛"});
+     WriteResult({ "nInserted" : 1 })
+     
+     # 查询
+     > db.stu.find()
+     { "_id" : ObjectId("5dc8d1651e728fe09d9a3ad7"), "name" : "孙悟空" }
+     { "_id" : ObjectId("5dc8d1691e728fe09d9a3ad8"), "name" : "玉皇大帝" }
+     { "_id" : ObjectId("5dc8d16d1e728fe09d9a3ad9"), "name" : "太上老君" }
+     { "_id" : ObjectId("5dc8d1701e728fe09d9a3ada"), "name" : "猪八戒" }
+     { "_id" : ObjectId("5dc8d1d51e728fe09d9a3adb"), "name" : "斗战神圣佛" }
+     
+     # 插入第二个文档
+     > db.stu.insert({name: "经坛使者"});
+     WriteResult({ "nInserted" : 1 })
+     # 查询
+     > db.stu.find()
+     { "_id" : ObjectId("5dc8d1691e728fe09d9a3ad8"), "name" : "玉皇大帝" }
+     { "_id" : ObjectId("5dc8d16d1e728fe09d9a3ad9"), "name" : "太上老君" }
+     { "_id" : ObjectId("5dc8d1701e728fe09d9a3ada"), "name" : "猪八戒" }
+     { "_id" : ObjectId("5dc8d1d51e728fe09d9a3adb"), "name" : "斗战神圣佛" }
+     { "_id" : ObjectId("5dc8d20f1e728fe09d9a3adc"), "name" : "经坛使者" }
+     ```
+
+     __解释：当达到 size 大小，在插入文档，就会替换最先插入的文档__
+
+     
+
+### 结束
+
+   
 
 
 
