@@ -2824,8 +2824,9 @@ mysql> select * from students;
      3. 插入文档时，如果不指定 _id 参数，MongoDB 会为文档分配一个唯一的 ObjectID
      4. __插入数据时，和创建数据库有点类似（创建了，数据库也不存在，只有在其中创建集合了，才可以检索到），可以先不创建集合，而是直接使用插入语句，就可以创建集合，并且插入数据，__
    - 查询语法
-     1. `db.集合名称.find()`
-
+     
+   1. `db.集合名称.find()`
+     
    - 例1
 
      ```sql
@@ -3166,7 +3167,439 @@ mysql> select * from students;
 
      __解释：当达到 size 大小，在插入文档，就会替换最先插入的文档__
 
+### 数据查询
+
+1. 基本查询
+
+   - 方法 `find()``
+
+     1. `db.集合名称.find({查询条件)`
+
+        ```sql
+        > db.stu.find({name: "猪八戒"});
+        { "_id" : ObjectId("5dc8d1701e728fe09d9a3ada"), "name" : "猪八戒" }
+        ```
+
+     2. 查询条件可以不写 `db.集合名称,.find()` ，表示查询集合所有数据
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8d1691e728fe09d9a3ad8"), "name" : "玉皇大帝" }
+        { "_id" : ObjectId("5dc8d16d1e728fe09d9a3ad9"), "name" : "太上老君" }
+        { "_id" : ObjectId("5dc8d1701e728fe09d9a3ada"), "name" : "猪八戒" }
+        { "_id" : ObjectId("5dc8d1d51e728fe09d9a3adb"), "name" : "斗战神圣佛" }
+        { "_id" : ObjectId("5dc8d20f1e728fe09d9a3adc"), "name" : "经坛使者" }
+        ```
+
+   - 方法 `findOne()`
+
+     1. `db.stu.findOne({查询条件})`  查询条件不写，查询集合中第一条数据
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+        { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+        { "_id" : ObjectId("5dca5228f3c285c4652590c9"), "name" : "java", "credit" : 3 }
+        { "_id" : ObjectId("5dca522cf3c285c4652590ca"), "name" : "linux", "credit" : 1 }
+        
+        # 查询
+        > db.stu.findOne();
+        {
+                "_id" : ObjectId("5dca521ff3c285c4652590c7"),
+                "name" : "python",
+                "credit" : 2
+        }
+        ```
+
+     2. `db.stu.findOne({条件})` 写条件则返回符合条件的第一个
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+        { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+        { "_id" : ObjectId("5dca5228f3c285c4652590c9"), "name" : "java", "credit" : 3 }
+        { "_id" : ObjectId("5dca522cf3c285c4652590ca"), "name" : "linux", "credit" : 1 }
+        
+        # 查询
+        > db.stu.findOne({credit: 3});
+        { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+        ```
+
+   - 查询结果格式化
+
+     1. `.pretty()`
+
+        ```sql
+        # 结果格式化
+        > db.stu.find().pretty();
+        {
+                "_id" : ObjectId("5dca521ff3c285c4652590c7"),
+                "name" : "python",
+                "credit" : 2
+        }
+        { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+        {
+                "_id" : ObjectId("5dca5228f3c285c4652590c9"),
+                "name" : "java",
+                "credit" : 3
+        }
+        {
+                "_id" : ObjectId("5dca522cf3c285c4652590ca"),
+                "name" : "linux",
+                "credit" : 1
+        }
+        ```
+
+2. 比较运算符
+
+   - 如表
+
+     | 含义     | 符号                        |
+     | -------- | --------------------------- |
+     | 等于     | __无__，默认就是等于        |
+     | 小于     | __$lt__ (less than)         |
+     | 小于等于 | __$lte__ (less than equal)  |
+     | 大于     | __$gt__ (great than)        |
+     | 大于等于 | __$gte__ (great than equal) |
+     | 不等于   | __$ne__ (not equal)         |
+
+   - 等于运算符
+
+     ```sql
+     > db.stu.find({name:"c"});
+     { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+     ```
+
+   - 小于运算符（可以不是数型）
+
+     ```sql
+     > db.stu.find({credit:{$lt:3}})
+     { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+     { "_id" : ObjectId("5dca522cf3c285c4652590ca"), "name" : "linux", "credit" : 1 }
+     ```
+
+   - 小于等于运算符
+
+     ```sql
+     > db.stu.find({credit:{$lte:2}})
+     { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+     { "_id" : ObjectId("5dca522cf3c285c4652590ca"), "name" : "linux", "credit" : 1 }
+     ```
+
+   - 大于运算符
+
+     ```sql
+     > db.stu.find({credit:{$gt:2}})
+     { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+     { "_id" : ObjectId("5dca5228f3c285c4652590c9"), "name" : "java", "credit" : 3 }
+     ```
+
+   - 大于等于运算符
+
+     ```sql
+     > db.stu.find({credit:{$gte:2}})
+     { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+     { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+     { "_id" : ObjectId("5dca5228f3c285c4652590c9"), "name" : "java", "credit" : 3 }
+     ```
+
+   - 不等于运算符（可以不是数型）
+
+     ```sql
+     > db.stu.find({credit:{$ne:3}})
+     { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+     { "_id" : ObjectId("5dca522cf3c285c4652590ca"), "name" : "linux", "credit" : 1 }
+     ```
+
+3. 逻辑运算符
+
+   说明：查询时可以有多个条件，多个条件需要使用 __逻辑运算符__ 连接
+
+   - __逻辑与__ ：默认使用逻辑与关系，就是 __逗号分割__
+
+     1. 例 （查询年龄小于20，并且 gender： 1）
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+        { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+        # 查询
+        > db.stu.find({age:{$lt:20}, gender: 1});
+        { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+        ```
+
+        注意：{} 的位置
+
+   - __逻辑或__ ：使用 `$or` 注意使用 `[]`
+
+     1. 例 （查询年龄小于 20，或者 gender：1）
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+        { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+        # 查询结果
+        > db.stu.find({$or:[{age:{$lt:20}}, {gender:1}]});
+        { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+        ```
+
+        注意：__[] 和 {} 的位置关系，和 逻辑与 不同__
+
+   - __逻辑或__ 、 __逻辑与__ 一起使用
+
+     1. 例（查询年龄小 20，或者大于 80 ，并且 gender：1）
+
+        ```sql
+        # 查询结果（好复杂）
+        > db.stu.find({$or:[{age:{$lt:20}}, {age:{$gt:80}}], gender: 1});
+        { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+        ```
+
+   - __范围运算符__ ：使用`$in`  \  `$nin`
+
+     1. 例（查询年龄是 35 或者 100 的）
+
+        ```sql
+        > db.stu.find({age:{$in:[35, 100]}});
+        { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+        ```
+
+     2. 例（查询年龄不是 19， 99， 35， 26的）
+
+        ```sql
+        > db.stu.find({age:{$nin:[19, 35, 99, 26]}});
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        ```
+
+   - __支持正则表达式__：使用 `//` 或者 `$regex`
+
+     说明：json 本身支持正则，所以 MongoDB 也支持
+
+     1. 例（查询 以 j 字母开头的 name）
+
+        ```sql
+        # 第一种
+        > db.stu.find({name:/^j/});
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        
+        # 第二种
+        >> db.stu.find({name:{$regex:"^j"}});
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        ```
+
+4. 自定义查询 
+
+   说明：最极致的查询方式
+
+   - 语法
+
+     使用 `$where` 后面写一个函数，返回满足条件的数据（使用 Javascript）
+
+   - 例
+
+     ```sql
+     > db.stu.find({$where:function(){return this.age>30}});
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     ```
+
+     解释：this 表示该集合，this.age 表示属性
+
+5. Limit 关键字
+
+   说明：可以类比 SQL 的关键字
+
+   - 介绍
+
+     使用 `limit()` ：用于读取指定数量的文档，如果没有指定参数，将获取全部数据
+
+   - 语法
+
+     `db.集合名称.find().limit(number)` number 表示文档数量
+
+   - 例（查询 3 条学生信息）
+
+     ```sql
+     # 查询 3 条数据
+     > db.stu.find().limit(3)
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     ```
+
+6. skip
+
+   - 介绍
+
+     使用 `skip()` ：用于指定跳过多少文档
+
+   - 语法
+
+     `db.集合名称.find().skip(number)` number：表示跳过的文档数，没有指定不跳过
+
+   - 例（一共 5 个数，跳过 3 个，结果可以查到 2 个）
+
+     ```sql
+     # 跳过 3 条数据
+     > db.stu.find().skip(3);
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     ```
+
+7. limit 和 skip 一起使用 可以起到与 SQL 分页功能
+
+   - 例（跳过 3 个数据，限制查询一个，就是得到第 4 个数据）
+
+     说明：skip 与 limit 使用部分先后顺序（本人感觉先使用 skip ，因为着用方便理解，先跳过，再查询）
+
+     ```sql
+     # 一共 5 条数据
+     > db.stu.find()
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
      
+     # 跳过 3 条，限制 1 条，结果为第 4 条
+     > db.stu.find().skip(3).limit(1);
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     
+     > db.stu.find().limit(1).skip(3);
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     ```
+
+8. 投影（显示想要的结果集）
+
+   - 语法
+
+     1. `db.集合名称.find({查询条件}, {字段1: 1字段2: 0})` 
+     2. 参数 0 ：表示不显示
+     3. 参数 1 ：表示显示
+
+   - 例（投影 姓名 年龄）
+
+     ```sql
+     > db.stu.find({},{name:1, age:1}).limit(2)
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "age" : 13 }
+     ```
+
+     解释：_id 默认为 1，默认显示，所以不显示 _id ，要将其设为 0，其他字段无所谓
+
+   - 例（不显示 _id）
+
+     ```sql
+     > db.stu.find({},{_id: 0,name:1, age:1}).limit(2)
+     { "name" : "tom", "age" : 19 }
+     { "name" : "jack", "age" : 13 }
+     ```
+
+9. 排序
+
+   说明：默认为升序
+
+   - 语法
+
+     1. `db.集合名称.find().sort(字段1:1, 字段2:-1)` 
+     2. 参数 1： 表示升序
+     3. 参数 -1： 表示降序
+
+   - 例（按照 性别 降序，再根据 年龄升序）
+
+     ```sql
+     > db.stu.find().sort({gender:-1, age:1});
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     ```
+
+10. 统计个数
+
+    - 语法
+
+      1. `db.集合名称.find({条件}).count()`
+      2. `db.集合名称.count({条件})` 可以简化，将条件写到 count() 中
+
+    - 例（查询 gender 为 1 的数量）
+
+      ```sql
+      # 正常写
+      > db.stu.find({gender:1}).count()
+      3
+      
+      # 简化写
+      > db.stu.count({gender:1})
+      3
+      ```
+
+    - 例（查询 年龄大于 30 的 数量）
+
+      ```sql
+      > db.stu.count({age:{$gt:30}})
+      2
+      ```
+
+11. 消除重复
+
+    说明：感觉有点鸡肋啊！！！
+
+    - 语法
+
+      1. `db.集合名称.distinct('去重字段',{条件})` __去重字段要加引号__
+
+    - 例（gender 为 1 的 name 去重）
+
+      ```sql
+      > db.stu.distinct('name',{gender:1});
+      [ "tom", "race", "mary" ]
+      ```
+
+    - 例（gender 去重）
+
+      说明：推荐条件占位
+
+      ```sql
+      # {条件}可以占位
+      > db.stu.distinct('gender',{});
+      [ 1, 0 ]
+      
+      # {条件} 可以不占位
+      > db.stu.distinct('gender');
+      [ 1, 0 ] 
+      ```
+
+##  MongoDB 高级操作
+
+说明：聚合、主从复制、分片、备份与恢复、MR
+
+### 聚合 aggregate
+
+1. 介绍
+
+   - 意义
+
+     聚合（aggregate）主要用于计算数据，类似于 SQL 中的 sum() 、avg()
+
+   - 语法
+
+     `db.集合名称.aggregate([{管道:{表达式}}])`
+
+2. 管道
+
+
 
 ### 结束
 
