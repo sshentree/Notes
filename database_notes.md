@@ -2826,7 +2826,7 @@ mysql> select * from students;
    - 查询语法
      
    1. `db.集合名称.find()`
-     
+   
    - 例1
 
      ```sql
@@ -3585,7 +3585,7 @@ mysql> select * from students;
 
 说明：聚合、主从复制、分片、备份与恢复、MR
 
-### 聚合 aggregate
+### 聚合 aggregate 介绍
 
 1. 介绍
 
@@ -3595,13 +3595,376 @@ mysql> select * from students;
 
    - 语法
 
-     `db.集合名称.aggregate([{管道:{表达式}}])`
+     `db.集合名称.aggregate([{管道1:{表达式}},{管道2:{表达式}}...])` 参数位列表
 
 2. 管道
 
+   - 管道再 Unix 和 Linux 中一般用于将当前命令得输出结果作为下一个命令得输入
+   - 在 MongoDB 中，管道具有相同得作用，文档处理完毕后，通过管道进行下一次处理
+   - MongoDB 常用管道
+     1. `$group`：将集合中的文档分组，可用于统计结果
+     2. `$match`：过滤数据，只输出符合条件的文档，__类似于 find()__
+     3. `project`：修改输入文档结构，如重命名、增加、删除字段、创建计算结果，__类似于 投影__
+     4. `$sort`：将输入文档排序后输出
+     5. `limit`：限制聚合管道返回的文档数
+     6. `skip`：跳过指定数量的文档，并返回余下的文档
+     7. `unwind`：将数组类型的字段进行拆分
+
+3. 表达式
+
+   - 作用
+
+     处理输入文档并输出
+
+   - 语法
+
+     `表达式:'$列名'`
+
+   - 常用表达式
+
+     1. `$sum`：计算总和，`$sum:1` 和 `count` 表示计数
+     2. `$avg`：计算平均值
+     3. `$min`：获取最小值
+     4. `$max`：获取最大值
+     5. `$push`：将结构文档插入一个数据中
+     6. `$first`：根据资源文档的排序获取第一个文档数据
+     7. `$last`：获取最后一个文档
+
+### $group
+
+1. 介绍
+
+   - 语法
+
+     ```sql
+     db.集合名称.aggregate([
+         {$group:
+         	{
+         		_id:'$字段'，
+         		counter:{表达式:'$字段'}
+         	}
+         }
+     ])
+     ```
+
+   - 解释
+
+     1. 参数 _id ：为要分组的 __字段__，使用某个字段的格式为 `$字段`, _id 参数名不能变
+     2. 参数 counter：为分组后输出结果，再次使用 __表达式处理__，这个参数可以随便更改
+
+2. 实例
+
+   - 例 1（统计男生、女生总人数）
+
+     ```sql
+     # 集合中所有数据
+     > db.stu.find();
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 进行聚合，统计个数
+     > db.stu.aggregate([{$group:{_id:'$gender', counter:{$sum:1}}}])
+     { "_id" : 0, "counter" : 2 }
+     { "_id" : 1, "counter" : 3 }
+     ```
+
+     解释：表达式  `$sum:1` 表示统计个数
+
+   - 例 2（统计男生、女生年龄的总和、平均值）
+
+     ```sql
+     # 集合数据
+     > db.stu.find()
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 按性别分组，统计男女生年龄总和
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$sum:'$age'}}}])
+     { "_id" : 0, "counter" : 39 }
+     { "_id" : 1, "counter" : 153 }
+     
+     # 按性别分组，统计男女生年龄平均值
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$avg:'$age'}}}])
+     { "_id" : 0, "counter" : 19.5 }
+     { "_id" : 1, "counter" : 51 }
+     ```
+
+   - 例 3 （按性别分组，取分组第一个文档、最后一个文档）
+
+     ```sql
+     # 集合数据
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 获取分组的，各组第一个文档
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$first:'$age'}}}])
+     { "_id" : 0, "counter" : 13 }
+     { "_id" : 1, "counter" : 19 }
+     
+     # 获取分组的，各组最后一个文档
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$last:'$age'}}}])
+     { "_id" : 0, "counter" : 26 }
+     { "_id" : 1, "counter" : 35 }
+     ```
+
+   - 例 4 （将分完组的目标字段值，添加进入数组中）
+
+     ```sql
+     # 将 age 字段，加入数组中
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$push:'$age'}}}])
+     { "_id" : 0, "counter" : [ 13, 26 ] }
+     { "_id" : 1, "counter" : [ 19, 99, 35 ] }
+     ```
+
+   - 例 5  （将分完组的文档，全部文档存入数组中）
+
+     ```sql
+     # 将整个文档存入数组中
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$push:'$$ROOT'}}}])
+     
+     # 分组，gender 为 0 的
+     { "_id" : 0, "counter" : [ { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }, { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 } ] }
+     
+     # 分组，gender 为 1 的
+     { "_id" : 1, "counter" : [ { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }, { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }, { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 } ] }
+     ```
+
+     解释：SQL 数据库，分组之后，无法在查看，单个数据内容，MongoDB 看一查看
+
+   - 例 6 （将集合数据分为一组，求学生总人数，平均年龄）Group by null
+
+     ```sql
+     > db.stu.aggregate([{$group:{_id:'null',counter:{$sum:1},avgAge:{$avg:'$age'}}}])
+     { "_id" : "null", "counter" : 5, "avgAge" : 38.4 }
+     ```
+
+### $match 
+
+1. 介绍
+
+   - 用于过滤，只输出符合条件的文档，使用 MongoDB 的标准查询操作
+
+   - 语法
+
+     ```sql
+     db.集合名称.aggreagte([
+         {$match:
+         	{
+         		字段：{MongoDB 标准条件表达式}
+         	}
+         }
+     ])
+     ```
+
+   - $mtch:{} 这个 {} 表达式和 MongoDB 的 find() 筛选语法一样（函数.....都可以）
+
+2. 实例
+
+   - 例 1 （查询年龄大于 20）
+
+     ```sql
+     > db.stu.aggregate([{$match:{age:{$gt:20}}}])
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     ```
+
+   - 例 2 （查询年龄大于 20 的 男女人数各多少）
+
+     ```sql
+     #查询年龄大于 20 的
+     > db.stu.aggregate([{$match:{age:{$gt:20}}}])
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 查询年龄大于 20 的男女人数
+     > db.stu.aggregate([{$match:{age:{$gt:20}}},{$group:{_id:'$gender', counter:{$sum:1}}}])
+     { "_id" : 0, "counter" : 1 }
+     { "_id" : 1, "counter" : 2 }
+     ```
+
+     解释：此条语句使用两个 __管道__ ，前一个的输出，为后一个的输入
+
+### $project
+
+说明：显示一部分字段，一般和其他管道一起使用
+
+1. 介绍
+
+   - 修改输入文档的结构，如重命名、增加、删除字段、创建计算结构
+
+   - 语法
+
+     ```sql
+     db.集合名称.aggregate([
+         {$project:
+         	{字段1:1,字段2:0...}
+         }
+     ])
+     ```
+
+   - 字段 1 表示显示，字段 0 表示不显示
+
+2. 实例
+
+   - 例 1 （查询年龄大于 20 的 姓名，年龄）
+
+     ```sql
+     > db.stu.aggregate([{$match:{age:{$gt:20}}},{$project:{_id:0, name:1, age:1}}])
+     { "name" : "race", "age" : 99 }
+     { "name" : "mary", "age" : 35 }
+     { "name" : "lunc", "age" : 26 }
+     ```
+
+### $sort
+
+1. 介绍
+
+   - 将输入文档排序后输出
+
+   - 语法
+
+     ```sql
+     db.集合名称.aggregate([
+         {$sort:
+         	{字段1:1,字段2:1}
+         }
+     ])
+     ```
+
+   - 1 为升序，-1 为降序
+
+2. 实例
+
+   - 例 1（查询男生、按年龄降序输出）
+
+     ```sql
+     > db.stu.aggregate([{$match:{gender:1}},{$sort:{age:-1}}])
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     ```
+
+### limit \ skip（一起使用：分页）
+
+说明：一起使用，skip 先使用
+
+1. 介绍
+
+   - limit 
+
+     限制聚合管道返回的文档数量
+
+   - 语法
+
+     `db.集合名称.aggregate([{$limit:number}])` number 为输出几个文档
+
+   - skip
+
+     跳过指定数量的文档，返回余下的文档
+
+   - 语法
+
+     `db.集合名称.aggregate([{$skip:number}])` number 为跳过文档数量
+
+2. 实例
+
+   - 例 1 （跳过两条数据）
+
+     ```sql
+     > db.stu.find()
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 聚合语句
+     # 共 5 个文档，跳过 2 个，剩下 3 个
+     > db.stu.aggregate([{$skip:2}])
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     ```
+
+   - 例 2 （限制查询 2 条数据）
+
+     ```sql
+     > db.stu.find()
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 限制 2 条数据
+     > db.stu.aggregate([{$limit:2}])
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     
+     ```
+
+   - 例 3 （跳过 4 条，限制一条数据）
+
+     ```sql
+     > db.stu.find()
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 查询数据，显示第五条数据
+     > db.stu.aggregate([{$skip:4},{$limit:1}])
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     ```
+
+### $unwind
+
+1. 介绍
+
+   - 将文档中某个数组字段拆分成多条，每条包含一个值
+
+   - 语法 1
+
+     `db.集合名称.aggregate([{$unwind:'$字段'}])`
+
+   - 语法 2
+
+2. 实例
+
+   - 例 1（拆分一个文档数组）
+
+     ```sql
+     # 插入数据（带有数组的字段）
+     > db.stu.insert({_id:1,name:"item",item:[1, 2, 3]})
+     WriteResult({ "nInserted" : 1 })
+     
+     > db.stu.find({_id:1})
+     { "_id" : 1, "name" : "item", "item" : [ 1, 2, 3 ] }
+     
+     # 进行拆分
+     > db.stu.aggregate([{$unwind:'$item'}])
+     { "_id" : 1, "name" : "item", "item" : 1 }
+     { "_id" : 1, "name" : "item", "item" : 2 }
+     { "_id" : 1, "name" : "item", "item" : 3 }
+     ```
+
+     
 
 
-### 结束
+
+### 待续......
 
    
 
