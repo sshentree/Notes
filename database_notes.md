@@ -3171,7 +3171,7 @@ mysql> select * from students;
 
 1. 基本查询
 
-   - 方法 `find()``
+   - 方法 `find()`
 
      1. `db.集合名称.find({查询条件)`
 
@@ -3630,7 +3630,7 @@ mysql> select * from students;
      6. `$first`：根据资源文档的排序获取第一个文档数据
      7. `$last`：获取最后一个文档
 
-### $group
+### $group 分组
 
 1. 介绍
 
@@ -3747,7 +3747,7 @@ mysql> select * from students;
      { "_id" : "null", "counter" : 5, "avgAge" : 38.4 }
      ```
 
-### $match 
+### $match  筛选
 
 1. 介绍
 
@@ -3795,7 +3795,7 @@ mysql> select * from students;
 
      解释：此条语句使用两个 __管道__ ，前一个的输出，为后一个的输入
 
-### $project
+### $project 投影
 
 说明：显示一部分字段，一般和其他管道一起使用
 
@@ -3826,7 +3826,7 @@ mysql> select * from students;
      { "name" : "lunc", "age" : 26 }
      ```
 
-### $sort
+### $sort 排序
 
 1. 介绍
 
@@ -3929,7 +3929,9 @@ mysql> select * from students;
      { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
      ```
 
-### $unwind
+### $unwind 拆分
+
+说明：由于字段的不同，使 `$unwind` 出现两种用法
 
 1. 介绍
 
@@ -3937,11 +3939,23 @@ mysql> select * from students;
 
    - 语法 1
 
-     `db.集合名称.aggregate([{$unwind:'$字段'}])`
+     `db.集合名称.aggregate([{$unwind:'$字段'}])` __字段是数组__
 
    - 语法 2
 
-2. 实例
+     1. 对处理空数组、非数组、无字段、null 情况，为防止数据丢失，出现以下语法，
+
+        ```sql
+        db.集合名称.aggregate([
+        	{$unwind:
+        		{path:'$字段',preserveNullAndEmptyArrays:<boolean>}
+        	}
+        ])
+        ```
+
+     2. 参数 `preserveNullAndEmptyArrays` 为防止数据丢失，出现的，`true` 为不丢失，`false` 丢失
+
+2. 实例（语法 1）
 
    - 例 1（拆分一个文档数组）
 
@@ -3958,6 +3972,98 @@ mysql> select * from students;
      { "_id" : 1, "name" : "item", "item" : 1 }
      { "_id" : 1, "name" : "item", "item" : 2 }
      { "_id" : 1, "name" : "item", "item" : 3 }
+     ```
+
+3. 实例（语法 2）
+
+   说明：先构建可拆分的字段（空数组、非数组、无字段、null ），然后对其拆分，查看 __语法 1、语法 2（true、false）__
+
+   - 建立集合（满足上面要求）
+
+     ```sql
+     > db.item.find()
+     { "_id" : 1, "name" : "item1", "item" : [ 1, 2, 3 ] }
+     { "_id" : 2, "name" : "item2", "item" : [ ] }
+     { "_id" : 3, "name" : "item3", "item" : "4" }
+     { "_id" : 4, "name" : "item4", "item" : null }
+     { "_id" : 5, "name" : "item5" }
+     { "_id" : 6, "name" : "item", "item" : "arrays" }
+     ```
+
+   - 使用 __语法 1__，对其进行分组
+
+     ```sql
+     > db.item.aggregate([{$unwind:"$item"}])
+     { "_id" : 1, "name" : "item1", "item" : 1 }
+     { "_id" : 1, "name" : "item1", "item" : 2 }
+     { "_id" : 1, "name" : "item1", "item" : 3 }
+     { "_id" : 3, "name" : "item3", "item" : "4" }
+     { "_id" : 6, "name" : "item", "item" : "arrays" }
+     ```
+
+     解释：__可以对含有该字段的 数组、和 非数组 进行拆分__
+
+   - 使用 __语法 2（false）__
+
+     ```sql
+     > db.item.aggregate([{$unwind:{path:"$item",preserveNullAndEmptyArrays:false}}])
+     { "_id" : 1, "name" : "item1", "item" : 1 }
+     { "_id" : 1, "name" : "item1", "item" : 2 }
+     { "_id" : 1, "name" : "item1", "item" : 3 }
+     { "_id" : 3, "name" : "item3", "item" : "4" }
+     { "_id" : 6, "name" : "item", "item" : "arrays" }
+     ```
+
+     解释：__可以对含有该字段的 数组、和 非数组 进行拆分__
+
+   - 使用 __语法 2（true）__
+
+     ```sql
+     > db.item.aggregate([{$unwind:{path:"$item",preserveNullAndEmptyArrays:true}}])
+     { "_id" : 1, "name" : "item1", "item" : 1 }
+     { "_id" : 1, "name" : "item1", "item" : 2 }
+     { "_id" : 1, "name" : "item1", "item" : 3 }
+     { "_id" : 2, "name" : "item2" }
+     { "_id" : 3, "name" : "item3", "item" : "4" }
+     { "_id" : 4, "name" : "item4", "item" : null }
+     { "_id" : 5, "name" : "item5" }
+     { "_id" : 6, "name" : "item", "item" : "arrays" }
+     ```
+
+     解释：__可以对集合中的数据全部拆分__
+
+### 索引
+
+1. 介绍
+
+   - 在 SQL 数据库中，索引可以提升查询速度。MongoDB 也支持索引，以提升查询速度
+
+2. 创建大量数据
+
+   说明：创建大量数据，用于测试索引。MongoDB 命令窗口实际也是 Javascript 的编辑器，支持 javascript （弱语言）脚本
+
+   - 代码
+
+     ```javascript
+     > for (i = 0; i < 100000; i++){db.index_co.insert({name:"index" + i, num:i})}
+     WriteResult({ "nInserted" : 1 })
+     ```
+
+   - 检测创建结果
+
+     ```sql
+     # 统计集合数据个数
+     > db.index_co.count()
+     100000
+     
+     # 跳过 99994 条数据，	查询最后 4 条数据
+     > db.index_co.find().skip(99994).limit(6)
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d466"), "name" : "index99994", "num" : 99994 }
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d467"), "name" : "index99995", "num" : 99995 }
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d468"), "name" : "index99996", "num" : 99996 }
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d469"), "name" : "index99997", "num" : 99997 }
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d46a"), "name" : "index99998", "num" : 99998 }
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d46b"), "name" : "index99999", "num" : 99999 }
      ```
 
      
