@@ -1,4 +1,4 @@
-# 数据库技术
+数据库技术
 
 ## 数据库概述
 
@@ -4034,11 +4034,29 @@ mysql> select * from students;
 
 ### 索引
 
+说明：创建大量数据，创建索引。对比查询速度
+
 1. 介绍
 
-   - 在 SQL 数据库中，索引可以提升查询速度。MongoDB 也支持索引，以提升查询速度
+   - 在 SQL 数据库中，索引可以提升查询速度。MongoDB 也支持索引，以提升查询速
 
-2. 创建大量数据
+2. 创建、查看、删除索引语法
+
+   - 创建 语法 1
+     1. `db.集合名称.ensureIndex({字段:1})`
+     2. 参数 1 表示升序，-1 表示降序
+   - 创建 语法 2 （唯一索引）
+     1. `db.集合名称.ensureIndex({字段:1},{"unique":true})`
+     2. 参数 `{"unique:true"}` 表示创建唯一索引
+   - 创建 语法 3 （联合索引，对多个属性创建一个索引，按照 find() 出现的顺序）
+     1. `db.集合名称.ensureIndex({字段1:1,字段2:1})`
+     2. 根据 `find()` 查询顺序，建立索引。意义：查询时，先查询 find 的第一个字段，在一个条件符合要求，在查询第二个字段，所以索引的建立需要按照 find 的查询顺序创建
+   - 查看 语法
+     1. `db.集合名称.getIndexes()`
+   - 删除 索引
+     1. `db.集合名称.dropIndex("索引名称")`
+
+3. 创建大量数据
 
    说明：创建大量数据，用于测试索引。MongoDB 命令窗口实际也是 Javascript 的编辑器，支持 javascript （弱语言）脚本
 
@@ -4066,7 +4084,464 @@ mysql> select * from students;
      { "_id" : ObjectId("5dcd35c0d2d52318b228d46b"), "name" : "index99999", "num" : 99999 }
      ```
 
+4. 分析工具（explain）
+
+   - 介绍
+
+     分析 MongoDB 语法，及执行时间
+
+   - 代码（解释）
+
+     ```sql
+     > db.index_co.find({num: 10000}).explain("executionStats");
+     {
+             "queryPlanner" : {
+                     "plannerVersion" : 1,
+                     "namespace" : "python3.index_co", # 集合
+                     "indexFilterSet" : false,         # 是否有索引
+                     "parsedQuery" : {                 # 查询条件
+                             "num" : {
+                                     "$eq" : 10000
+                             }
+                     },
+                     "winningPlan" : {
+                             "stage" : "COLLSCAN",
+                             "filter" : {
+                                     "num" : {
+                                             "$eq" : 10000
+                                     }
+                             },
+                             "direction" : "forward"  # 向前查询，逐行查询
+                     },
+                     "rejectedPlans" : [ ]
+             },
+             "executionStats" : {                    # 执行状态
+                     "executionSuccess" : true,
+                     "nReturned" : 1,
+                     "executionTimeMillis" : 196,    # 执行时间（毫秒）196 毫秒
+                     "totalKeysExamined" : 0,
+                     "totalDocsExamined" : 100000,
+                     "executionStages" : {
+                             "stage" : "COLLSCAN",
+                             "filter" : {
+                                     "num" : {
+                                             "$eq" : 10000
+                                     }
+                             },
+                             "nReturned" : 1,
+                             "executionTimeMillisEstimate" : 121,
+                             "works" : 100002,
+                             "advanced" : 1,
+                             "needTime" : 100000,
+                             "needYield" : 0,
+                             "saveState" : 784,
+                             "restoreState" : 784,
+                             "isEOF" : 1,
+                             "invalidates" : 0,
+                             "direction" : "forward",
+                             "docsExamined" : 100000
+                     }
+             },
+             "serverInfo" : {
+                     "host" : "SShen-computer",
+                     "port" : 27017,
+                     "version" : "4.0.9",
+                     "gitVersion" : "fc525e2d9b0e4bceff5c2201457e564362909765"
+             },
+             "ok" : 1
+     }
+     ```
+
+5. 创建索引
+
+   - 实例（基于 name 字段创建索引）
+
+     ```sql
+     > db.index_co.ensureIndex({name:1})
+     {
+             "createdCollectionAutomatically" : false,
+             "numIndexesBefore" : 1,
+             "numIndexesAfter" : 2,
+             "ok" : 1
+     }
+     ```
+
+   - 执行查询时间
+
+     ```sql
+     > db.index_co.find({num: 10000}).explain("executionStats");
+     {
+             "queryPlanner" : {
+                     "plannerVersion" : 1,
+                     "namespace" : "python3.index_co",
+                     "indexFilterSet" : false,
+                     "parsedQuery" : {
+                             "num" : {
+                                     "$eq" : 10000
+                             }
+                     },
+                     "winningPlan" : {
+                             "stage" : "COLLSCAN",
+                             "filter" : {
+                                     "num" : {
+                                             "$eq" : 10000
+                                     }
+                             },
+                             "direction" : "forward"
+                     },
+                     "rejectedPlans" : [ ]
+             },
+             "executionStats" : {
+                     "executionSuccess" : true,
+                     "nReturned" : 1,
+                     "executionTimeMillis" : 43,
+                     "totalKeysExamined" : 0,
+                     "totalDocsExamined" : 100000,
+                     "executionStages" : {
+                             "stage" : "COLLSCAN",
+                             "filter" : {
+                                     "num" : {
+                                             "$eq" : 10000
+                                     }
+                             },
+                             "nReturned" : 1,
+                             "executionTimeMillisEstimate" : 43,
+                             "works" : 100002,
+                             "advanced" : 1,
+                             "needTime" : 100000,
+                             "needYield" : 0,
+                             "saveState" : 782,
+                             "restoreState" : 782,
+                             "isEOF" : 1,
+                             "invalidates" : 0,
+                             "direction" : "forward",
+                             "docsExamined" : 100000
+                     }
+             },
+             "serverInfo" : {
+                     "host" : "SShen-computer",
+                     "port" : 27017,
+                     "version" : "4.0.9",
+                     "gitVersion" : "fc525e2d9b0e4bceff5c2201457e564362909765"
+             },
+             "ok" : 1
+     }
+     ```
+
+6. 对比时间
+
+   1.   "executionTimeMillisEstimate" : 43,
+   2.   "executionTimeMillis" : 196,    # 执行时间（毫秒）196 毫秒
+   3. 提升查询速度还是挺快的
+
+7. 查看索引
+
+   - 代码
+
+     ```sql
+     > db.index_co.getIndexes()
+     [
+             {
+                     "v" : 2,
+                     "key" : {
+                             "_id" : 1
+                     },
+                     "name" : "_id_",
+                     "ns" : "python3.index_co"
+             },
+             {
+                     "v" : 2,
+                     "key" : {
+                             "name" : 1
+                     },
+                     "name" : "name_1",
+                     "ns" : "python3.index_co"
+             }
+     ]
+     ```
+
+     解释：索引名称，可以查看
+
+8. 删除索引
+
+   - 代码
+
+     ```sql
+     # 删除索引
+     > db.index_co.dropIndex("name_1")
+     { "nIndexesWas" : 2, "ok" : 1 }
      
+     # 查看索引
+     > db.index_co.getIndexes()
+     [
+             {
+                     "v" : 2,
+                     "key" : {
+                             "_id" : 1
+                     },
+                     "name" : "_id_",
+                     "ns" : "python3.index_co"
+             }
+     ]
+     ```
+
+### 安全性
+
+说明：安全性--->创建超级管理员--->[修改配置]-->创建普通用户（指定使用数据库 `authenticationDatabase`）
+
+1. 超级管理员
+
+   - 为了更安全的访问 MongoDB，需要访问者提供同户名和密码，于是需要在 MongoDB 中创建用户
+   - 采用了 __角色-用户-数据库__ 的安全管理模式（创建角色向用户分发，使用户获得权限）
+   - 常用系统角色如下：
+     1. __root__：只是 admin 数据库中可用，超级账户，超级权限（对任何数据库都可以读写操作）
+     2. __Read__：允许用户读取指定数据库（对某个数据库有读操作）
+     3. __readWrite__：允许用户读写指定数据库（对某个数据库有写操作）
+
+2. 创建超级管理员用户
+
+   - 代码（不管下面的哪种方法，都需要先创建 管理员数据库）
+
+     ```sql
+     > use admin
+     switched to db admin
+     
+     # 创建 用户名 admin、密码 123、角色[root、数据库为 admin]
+     > db.createUser({user:"admin",pwd:"123",roles:[{role:"root",db:"admin"}]});
+     Successfully added user: {
+             "user" : "admin",
+             "roles" : [
+                     {
+                             "role" : "root",
+                             "db" : "admin"
+                     }
+             ]
+     }
+     ```
+
+   - 使用 `--auth` 参数，进行登录
+
+     说明：使用 `auth` 关键字，可以自由选择是否启用 __用户、密码登录__
+
+     1. 开启 MongoDB 服务（在一个终端）
+
+        ```sql
+        mongod --auth  --dbpath E:\MongoDB\data\db
+        ```
+
+     2. 开启 MongoDB 客户端（在另一个终端）
+
+        - 没有输入用户名密码（什么也看不到）
+
+          ```sql
+          C:\Users\SS沈>mongo
+          MongoDB shell version v4.0.9
+          
+          # 显示数据库
+          > show dbs;
+          >
+          > quit()
+          ```
+
+        - 开启客户端时，输入用户名密码（连接服务器同时传入用户名密码）
+
+          ```sql
+          C:\Users\SS沈>mongo -u admin -p 123
+          MongoDB shell version v4.0.9
+          
+          # 显示数据库
+          > show dbs;
+          admin    0.000GB
+          config   0.000GB
+          local    0.000GB
+          python3  0.003GB
+          >
+          ```
+
+        - 开启客户端，连接上服务器时，再输入用户名密码
+
+          ```sql
+          C:\Users\SS沈>mongo
+          MongoDB shell version v4.0.9
+          
+          # 选择 管理员数据库
+          > use admin;
+          switched to db admin
+          # 输入用户名密码进行连接
+          > db.auth("admin", "123")
+          1
+          > show dbs
+          admin    0.000GB
+          config   0.000GB
+          local    0.000GB
+          python3  0.003GB
+          ```
+
+   - 修改配置文件，进行登录
+
+     说明：优点：方便不用每次开启服务都需要输入一堆参数，缺点：不能自主选择是否开启身份验证
+
+     1. 设置配置文件（.cfg 文件）
+
+        ```txt
+        security:
+            # 开启安全验证
+            authorization: enabled
+        ```
+
+        解释：`:` 有空格
+
+     2. 启动服务
+
+        ```sql
+        C:\WINDOWS\system32>net start MongoDB
+        MongoDB 服务正在启动 ..
+        MongoDB 服务已经启动成功。
+        ```
+
+     3. 客户端连接（连接时传入用户名密码）
+
+        同上
+
+     4. 客户端启动（连接后，出入用户名密码）
+
+        同上
+
+3. 查看当前所有用户（使用 admin 登录）
+
+   - 进入 admin 数据库
+
+     `use admin`
+
+   - 查看当前用户
+
+     `show users;`
+
+     ```sql
+     > show users;
+     {
+             "_id" : "admin.admin",
+             "userId" : UUID("782f4977-ac86-42f9-ac52-0893ec017d93"),
+             "user" : "admin",
+             "db" : "admin",
+             "roles" : [
+                     {
+                             "role" : "root",
+                             "db" : "admin"
+                     }
+             ],
+             "mechanisms" : [
+                     "SCRAM-SHA-1",
+                     "SCRAM-SHA-256"
+             ]
+     }
+     ```
+
+4. 创建普通用户
+
+   - 使用 admin （超级管理员登录）
+
+   - 切换数据库
+
+     `use 数据库名`
+
+   - 创建用户集合
+
+     1. 代码
+
+        ```sql
+        > use python3;
+        switched to db python3
+        > show collections
+        index_co
+        item
+        stu
+        > db.createUser({user:"py",pwd:"123",roles:[{role:"readWrite",db:"python3"}]})
+        Successfully added user: {
+                "user" : "py",
+                "roles" : [
+                        {
+                                "role" : "readWrite",
+                                "db" : "python3"
+                        }
+                ]
+        }
+        ```
+
+5. 使用普通用户登录
+
+   - 介绍
+
+     管理员创建普通用户时，会指定用户所使用的数据库及使用权限，所以在登陆时，需指定所使用的数据库。管理员，好像不用指定。普通用户只能看到可以会使用的数据库，其他数据库不能看到。
+
+   - 登录
+
+     `mongo -u py -p 123 --authenticationDatabase python3` 参数 `authenticationDatabase` 指定的 数据库
+
+     ```sql
+     C:\Users\SS沈>mongo -u py -p 123 --authenticationDatabase python3
+     MongoDB shell version v4.0.9
+     connecting to: mongodb://127.0.0.1:27017/?authSource=python3&gssapiServiceName=mongodb
+     Implicit session: session { "id" : UUID("5b111a09-cfde-4481-866d-7ccd61ca8142") }
+     MongoDB server version: 4.0.9
+     
+     # 只会显示可以操作的数据库
+     > show dbs;
+     python3  0.003GB
+     >
+     ```
+
+   - 权限说明
+
+     只能操作管理员授予的数据库
+
+6. 修改密码
+
+   - 介绍
+
+     只有超级管理员可以操作
+
+   - 修改密码
+
+     `db.changeUserPassword("用户名","新密码")`
+
+   - 修改 role 属性（感觉是这样写的）
+
+     `db.updateUser("数据库名"，{pwd:"新密码"}，{roles：{role:权限, db:数据库}})`
+
+### 复制（副本集）
+
+1. 介绍
+
+   - 什么是复制
+     1. 复制提供了数据的冗余备份，并在多个服务器上存放数据副本，提高数据的可用性，并可以保证数据的安全性
+     2. 复制还允许从硬件故障和服务器中断恢复数据
+
+   - 为什么要复制
+     1. 数据备份
+     2. 数据灾难恢复
+     3. 读写分离
+     4. 高可用性（24 * 7）
+     5. 无宕机维护
+     6. 副本集对应用透明
+
+   - 复制的工作原理
+     1. 复制至少需要两个节点 A、B
+     2. A是主节点，负责处理客户端请求
+     3. 其余节点都是从节点，负责复制主节点的上的数据
+     4. 节点常见的搭配方式：一主一从、一主多从
+     5. 主节点记录在其上的所有操作，从节点定期轮询主节点获取这些操作，然后对自己的数据副本执行这些操作，从而保证自己的数据和主节点一致
+     6. 主节点和从节点的数据交互保证了数据的一致性
+     7. __从节点每个一段时间轮询一次主节点，所以会有一段时间是空窗期（心跳），如果主节点宕机，会有一段时间的主节点操作丢失（无法避免）__
+
+   - 复制特点
+     1. N 个节点集群
+     2. 任何节点可以作为主节点
+     3. 所有写入操作都在主节点上
+     4. 自动故障转移
+     5. 自动恢复（A 主节点宕机，B 自动成为主节点，A 在重启时，已不是主节点，则需要轮询 主节点 A 获取操作）
+
+2. 设置复制节点
 
 
 
