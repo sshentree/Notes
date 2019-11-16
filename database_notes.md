@@ -4508,8 +4508,24 @@ mysql> select * from students;
    - 修改 role 属性（感觉是这样写的）
 
      `db.updateUser("数据库名"，{pwd:"新密码"}，{roles：{role:权限, db:数据库}})`
+   
+7. 删除用户
+
+   说明：应该只有超级管理员可以操作，且进入数据库目录下
+
+   - 删除一个用户
+
+     `db.dropUser(<user_name>)`
+
+     例：`db.dropUser("py")` 删除 py 用户
+
+   - 删除当前数据库所有用户
+
+     `db.dropAllUser()`
 
 ### 复制（副本集）
+
+说明：设置副本集，分为 9 个步骤，之后讲解手动备份
 
 1. 介绍
 
@@ -4542,6 +4558,413 @@ mysql> select * from students;
      5. 自动恢复（A 主节点宕机，B 自动成为主节点，A 在重启时，已不是主节点，则需要轮询 主节点 A 获取操作）
 
 2. 设置复制节点
+
+   - 步骤 一
+
+     创建两个数据库目录 tc1、tc2，用于存放数据库（在本机桌面演示 Desktop，win10 系统）
+
+     ```sql
+     # 创建两个文件夹
+     C:\Users\SS沈\Desktop>mkdir tc1
+     
+     C:\Users\SS沈\Desktop>mkdir tc2
+     ```
+
+   - 步骤 二
+
+     启动 MongoDB（开启多个终端），参数 `bind_ip` 为本机 IP ，参数 `port` 为启动服务的端口号（没被占用），参数 `replSet`  名称一致，构成一个副本集
+
+     ```sql
+     mongod --bind_ip 22.11.182.60 --port 27012 --dbpath C:\Users\SS沈\Desktop\tc1 --replSet rs0
+     mongod --bind_ip 22.11.182.60 --port 27010 --dbpath C:\Users\SS沈\Desktop\tc2 --replSet rs0
+     ```
+
+     解释：可以指定日志文件 `--logpath xxx\xx.log`
+
+   - 步骤 三
+
+     设置主节点（主服务器），此处设置：22.11.182.60:27012 为主节点
+
+     ```sql
+     mongo --host 22.11.182.60 --port 27012
+     ```
+
+   - 步骤 四
+
+     初始化主节点（主服务器）。如果不初始化，对数据库进行操作，会提示报错
+
+     `rs.initiate()`
+
+     ```sql
+     > rs.initiate()
+     {
+             "info2" : "no configuration specified. Using a default configuration for the set",
+             "me" : "22.11.182.60:27012",
+             "ok" : 1,
+             "operationTime" : Timestamp(1573885934, 1),
+             "$clusterTime" : {
+                     "clusterTime" : Timestamp(1573885934, 1),
+                     "signature" : {
+                             "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                             "keyId" : NumberLong(0)
+                     }
+             }
+     }
+     
+     # 初始化完成，会提示此处信息
+     rs0:OTHER>
+     ```
+
+   - 步骤 五
+
+     查看主节点当前状态（有多少节点连接主节点）
+
+     `rs.status()`
+
+     ```sql
+     rs0:OTHER> rs.status()
+     {
+             "set" : "rs0", # 副本集名称
+             "date" : ISODate("2019-11-16T06:33:30.489Z"),
+             "myState" : 1,
+             "term" : NumberLong(1),
+             "syncingTo" : "",
+             "syncSourceHost" : "",
+             "syncSourceId" : -1,
+             "heartbeatIntervalMillis" : NumberLong(2000),
+             "optimes" : {
+                     "lastCommittedOpTime" : {
+                             "ts" : Timestamp(1573886007, 1),
+                             "t" : NumberLong(1)
+                     },
+                     "readConcernMajorityOpTime" : {
+                             "ts" : Timestamp(1573886007, 1),
+                             "t" : NumberLong(1)
+                     },
+                     "appliedOpTime" : {
+                             "ts" : Timestamp(1573886007, 1),
+                             "t" : NumberLong(1)
+                     },
+                     "durableOpTime" : {
+                             "ts" : Timestamp(1573886007, 1),
+                             "t" : NumberLong(1)
+                     }
+             },
+             "lastStableCheckpointTimestamp" : Timestamp(1573885979, 4),
+             
+             # members 成员信息（此处成员只有一个）
+             "members" : [ 
+                     {
+                             "_id" : 0,
+                             "name" : "22.11.182.60:27012", # IP PORT 信息
+                             "health" : 1,
+                             "state" : 1,
+                             "stateStr" : "PRIMARY",        # 节点信息（是否为主节点）
+                             "uptime" : 2137,
+                             "optime" : {
+                                     "ts" : Timestamp(1573886007, 1),
+                                     "t" : NumberLong(1)
+                             },
+                             "optimeDate" : ISODate("2019-11-16T06:33:27Z"),
+                             "syncingTo" : "",
+                             "syncSourceHost" : "",
+                             "syncSourceId" : -1,
+                             "infoMessage" : "could not find member to sync from",
+                             "electionTime" : Timestamp(1573885935, 1),
+                             "electionDate" : ISODate("2019-11-16T06:32:15Z"),
+                             "configVersion" : 1,
+                             "self" : true,
+                             "lastHeartbeatMessage" : ""
+                     }
+             ],
+             "ok" : 1,
+             "operationTime" : Timestamp(1573886007, 1),
+             "$clusterTime" : {
+                     "clusterTime" : Timestamp(1573886007, 1),
+                     "signature" : {
+                             "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                             "keyId" : NumberLong(0)
+                     }
+             }
+     }
+     
+     # 查询完状态，提示此节点为主节点
+     rs0:PRIMARY>
+     ```
+
+   - 步骤 六
+
+     添加副本集（在主节点客户端添加），及此时状态检测（部分状态信息），删除为 `remove`
+
+     `rs.add("IP:PORT")`
+
+     ```sql
+     > rs.add("22.11.182.60:27010")
+     {
+             "ok" : 1,
+             "operationTime" : Timestamp(1573886911, 1),
+             "$clusterTime" : {
+                     "clusterTime" : Timestamp(1573886911, 1),
+                     "signature" : {
+                             "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                             "keyId" : NumberLong(0)
+                     }
+             }
+     }
+     >
+     ```
+
+   - 步骤 七
+
+     检测此时主节点状态（部分状态信息），此时有两个节点（一主，一从）
+
+     ```sql
+     "members" : [
+                     {
+                             "_id" : 0,
+                             "name" : "22.11.182.60:27012",
+                             "health" : 1,
+                             "state" : 1,
+                             "stateStr" : "PRIMARY",
+                             "uptime" : 3068,
+                             "optime" : {
+                                     "ts" : Timestamp(1573886934, 1),
+                                     "t" : NumberLong(1)
+                             },
+                             "optimeDate" : ISODate("2019-11-16T06:48:54Z"),
+                             "syncingTo" : "",
+                             "syncSourceHost" : "",
+                             "syncSourceId" : -1,
+                             "infoMessage" : "",
+                             "electionTime" : Timestamp(1573885935, 1),
+                             "electionDate" : ISODate("2019-11-16T06:32:15Z"),
+                             "configVersion" : 2,
+                             "self" : true,
+                             "lastHeartbeatMessage" : ""
+                     },
+                     {
+                             "_id" : 1,
+                             "name" : "22.11.182.60:27010",
+                             "health" : 1,
+                             "state" : 2,
+                             "stateStr" : "SECONDARY",
+                             "uptime" : 30,
+                             "optime" : {
+                                     "ts" : Timestamp(1573886934, 1),
+                                     "t" : NumberLong(1)
+                             },
+                             "optimeDurable" : {
+                                     "ts" : Timestamp(1573886934, 1),
+                                     "t" : NumberLong(1)
+                             },
+                             "optimeDate" : ISODate("2019-11-16T06:48:54Z"),
+                             "optimeDurableDate" : ISODate("2019-11-16T06:48:54Z"),
+                             "lastHeartbeat" : ISODate("2019-11-16T06:49:01.524Z"),
+                             "lastHeartbeatRecv" : ISODate("2019-11-16T06:48:59.953Z"),
+                             "pingMs" : NumberLong(0),
+                             "lastHeartbeatMessage" : "",
+                             "syncingTo" : "22.11.182.60:27012",
+                             "syncSourceHost" : "22.11.182.60:27012",
+                             "syncSourceId" : 0,
+                             "infoMessage" : "",
+                             "configVersion" : 2
+                     }
+             ],
+             "ok" : 1,
+     ```
+
+   - 步骤 八
+
+     连接从节点服务器（端口号不同）
+
+     ```sql
+     mongo --host 22.11.182.60 --port 27010
+     
+     # 连接成功提示信息
+     rs0:SECONDARY>
+     ```
+
+   - 步骤 九
+
+     设置从节点 `rs.slaveOk()` ，间隔一定时间，轮询主节点
+
+     ```sql
+     rs0:SECONDARY> rs.slaveOk()
+     rs0:SECONDARY>
+     ```
+
+3. 验证副本集是否设置成功
+
+   - 检查从节点数据
+
+     ```sql
+     # 检查数据库
+     rs0:SECONDARY> show dbs;
+     admin   0.000GB
+     config  0.000GB
+     local   0.000GB
+     ```
+
+   - 向主节点插入数据，并查询
+
+     ```sql
+     > db
+     py3
+     > show collections;
+     
+     # 创建 集合
+     > db.createCollection("stu");
+     {
+             "ok" : 1,
+             "operationTime" : Timestamp(1573887625, 1),
+             "$clusterTime" : {
+                     "clusterTime" : Timestamp(1573887625, 1),
+                     "signature" : {
+                             "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                             "keyId" : NumberLong(0)
+                     }
+             }
+     }
+     
+     # 插入数据
+     > db.stu.insert({name:"齐天大圣"})
+     WriteResult({ "nInserted" : 1 })
+     
+     # 查询数据
+     > db.stu.find()
+     { "_id" : ObjectId("5dcf9efa23b1b82afa225d07"), "name" : "齐天大圣" }
+     ```
+
+   - 再次检查从节点
+
+     ```sql
+     # 查看数据库，新增 py3 数据库
+     rs0:SECONDARY> show dbs;
+     admin   0.000GB
+     config  0.000GB
+     local   0.000GB
+     py3     0.000GB
+     
+     # 使用 py3
+     rs0:SECONDARY> use py3
+     switched to db py3
+     
+     # 检查集合
+     rs0:SECONDARY> show collections;
+     stu
+     
+     # 查询数据
+     rs0:SECONDARY> db.stu.find()
+     { "_id" : ObjectId("5dcf9efa23b1b82afa225d07"), "name" : "齐天大圣" }
+     rs0:SECONDARY>
+     ```
+
+4. 副本集设置成功
+
+   - 解释
+     1. `rs` ：MongoDB 内置对象，管理副本集的（MongoDB 是一个 JavaScript 编辑器）
+     2. 删除从节点 `rs.remove("IP:PORT")`
+
+5. 自动主从切换
+
+   - 假如，关闭主节点服务 `ctrl + c` ，从节点服务不能关闭
+   - 关闭两个客户端，在进行重新连接
+   - 可以发现主从节点互换，成为从节点的要执行 `rs.slaveOk()` ，确定轮询
+   - 再次向主节点更新数据，就可以在从节点查询到了
+
+6. 手动备份
+
+   - 语法
+
+     1. `mongodump -h host -d db_name -o db_directory`
+     2. `-h`：服务器地址，也可以指定端口号
+     3. `-d`：需要备份的数据库名称
+     4. `-o`：备份数据库存放位置，此目录存放备份数据库的数据
+
+   - 例
+
+     1. 启动 MongoDB 服务
+
+        ```sql
+        C:\WINDOWS\system32>net start MongoDB
+        MongoDB 服务正在启动 ..
+        MongoDB 服务已经启动成功。
+        ```
+
+     2. 备份文件
+
+        ```sql
+        C:\WINDOWS\system32>mongodump -h 127.0.0.1:27017 -d python3 -o C:\Users\SS沈\Desktop\db
+        2019-11-16T15:39:44.330+0800    writing python3.index_co to
+        2019-11-16T15:39:44.400+0800    writing python3.stu to
+        2019-11-16T15:39:44.431+0800    writing python3.item to
+        2019-11-16T15:39:44.685+0800    done dumping python3.item (6 documents)
+        2019-11-16T15:39:44.685+0800    done dumping python3.stu (6 documents)
+        2019-11-16T15:39:45.166+0800    done dumping python3.index_co (100000 documents)
+        ```
+
+        __解释：每一个集合对应两种文件（.bson \ .json），数据存在 bson，结构存在 json中__
+
+7. 恢复数据库
+
+   - 语法
+
+     1. -`mongorestore -h host -d db_name --dir db_directory`
+     2. `-h`：服务器地址
+     3. `-d`：需要恢复数据库实例
+     4. `--dir`：备份数据库所在位置，指定数据库文件
+
+   - 例
+
+     1. 同样启动服务
+
+     2. 恢复数据库
+
+        ```sql
+        C:\WINDOWS\system32>mongorestore -h 127.0.0.1:27017 -d py3 --dir C:\Users\SS沈\Desktop\db\python3
+        
+        2019-11-16T15:50:37.646+0800    the --db and --collection args should only be used when restoring from a BSON file. Other uses are deprecated and will not exist in the future; use --nsInclude instead
+        2019-11-16T15:50:37.654+0800    building a list of collections to restore from C:\Users\SS沈\Desktop\db\python3 dir
+        2019-11-16T15:50:37.656+0800    reading metadata for py3.index_co from C:\Users\SS沈\Desktop\db\python3\index_co.metadata.json
+        2019-11-16T15:50:37.656+0800    reading metadata for py3.stu from C:\Users\SS沈\Desktop\db\python3\stu.metadata.json
+        2019-11-16T15:50:37.658+0800    reading metadata for py3.item from C:\Users\SS沈\Desktop\db\python3\item.metadata.json
+        2019-11-16T15:50:37.843+0800    restoring py3.index_co from C:\Users\SS沈\Desktop\db\python3\index_co.bson
+        2019-11-16T15:50:37.966+0800    restoring py3.item from C:\Users\SS沈\Desktop\db\python3\item.bson
+        2019-11-16T15:50:38.099+0800    no indexes to restore
+        2019-11-16T15:50:38.099+0800    finished restoring py3.item (6 documents)
+        2019-11-16T15:50:38.100+0800    restoring py3.stu from C:\Users\SS沈\Desktop\db\python3\stu.bson
+        2019-11-16T15:50:38.102+0800    no indexes to restore
+        2019-11-16T15:50:38.102+0800    finished restoring py3.stu (6 documents)
+        2019-11-16T15:50:39.182+0800    no indexes to restore
+        2019-11-16T15:50:39.182+0800    finished restoring py3.index_co (100000 documents)
+        2019-11-16T15:50:39.183+0800    done
+        ```
+
+     3. 检查
+
+        ```sql
+        # 数据库，新增 py3
+        > show dbs;
+        admin    0.000GB
+        config   0.000GB
+        local    0.000GB
+        py3      0.000GB
+        python3  0.003GB
+        
+        # py3 数据库，存在数据
+        > use py3;
+        switched to db py3
+        > show collections;
+        index_co
+        item
+        stu
+        ```
+
+## Redis
+
+
+
+
 
 
 
