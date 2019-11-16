@@ -1,0 +1,4998 @@
+数据库技术
+
+## 数据库概述
+
+### 数据库 4 个基本概念
+
+说明：数据、数据库、数据库管理系统、数据库系统是与数据库技术密切相关的 4 个概念
+
+1. 数据（Data）
+
+   - 数据是数据库存储的基本对象
+
+   - 广义的理解认为数据有很多种，例如：文本（text）、图像（graph）、图像（image）、音频（audio）、视频（video）、学生的档案记录等，这些都是数据
+
+   - 数据可做如下定义：描述事物的符号记录称之为数据
+   - 数据的表型形式还不能完全表达其内容，需要经过解释，数据和关于数据解释是不可分的，例如：93 是一个数据，但可以表示某个学生某门课的成绩，也可以表示某个人的体重。__数据的解释是指对数据的含义说明，数据的含义称之为数据的语义，数据和语义是分不开的__
+
+2. 数据库（DataBase，DB）
+
+   - 数据库，顾名思义，是存放数据的仓库。只不过这个仓库是在计算机存储设备上，而且数据是按照一定格式存放的
+   - 严格来将，数据库是长期存储在计算机内、有组织、可共享的大量数据集合。数据库中的数据按一定数据模型组织、描述存储，具有较小的冗余度（redundancy），较高的数据独立性（data independency）和一扩展性（scalability），并可为各种用户共享。
+   - __概括来讲，数据库数据具有永久存储、有组织和可共享三个基本特点__
+
+3. 数据库管理系统（DataBase Management System）
+
+   - 如何科学组织和存储数据，如何高效地获取和维护数据。完成这个任务的是一个系统软件 ==> _数据库管理系统_ 
+
+   - 数据库管理系统是位于用户与操作系统之间的一层数据管理软件。数据库管理系统和操作系统一样是计算机基础软件，也是一个大型复杂软件系统。主要功能包括以下几个方面：
+
+     1. 数据定义功能
+
+        数据库管理系统提供数据定义语句（Data Definition Language，DDL），用户通过它可以方便地对数据库中的数据对象的组成与结构进行定义
+
+     2. 数据组织、存储和管理
+
+        数据库管理系统要分类组织、存储和管理各种数据，包括数据字典、用户数据、数据存储路径等。要确定以何种文件结构和存储方式在存储级上组织这些数据，如何实现这些数据之间的联系。数据组织和存储的基本目标是提高存储空间利用率和方便存储，提供多种存储方法（如：索引查找、hash 查找、顺序查找等）来提高存储率。
+
+     3. 数据操纵功能
+
+        数据库管理系统还提供数据操纵语言（Data Manipulation Language，DML），用户可以使用它操纵数据库，实现对数据库的基本操作，如：查询、插入、删除和修改等。
+
+     4. 数据库的事务管理和运行管理
+
+        数据库在建立、运用和维护时由数据库管理系系统统一管理和控制，以确保事物的正确运行，保证数据的安全性、完整性、多用户对数据的并发使用及发生故障的系统恢复
+
+     5. 数据库的建立和维护功能
+
+        数据库的建立和维护功能包括数据库的初始数据的输入、转换功能，数据库的存储、恢复功能、数据库的重组功能和性能监视、分析功能。这些功能通常是由一些使用程序或管理工具完成
+
+     6. 其他功能
+
+        其他功能包括数据库管理系统与网络中其他软件系统的通信功能，一个数据库管理系统与另一个数据库管理系统或文件系统的数据转换功能，异构数据库之间的互访和互相操作功能
+
+4. 数据库系统（DataBase System， DBS）
+
+   - 数据库系统是由数据库、数据库管理系统（及应用开发工具）、应用程序和数据库管理员（DataBase Administrator，DBA）组成的存储、管理、处理和维护数据的系统
+
+### 数据系统图
+
+1. 其中数据库提供数据存储功能，数据库管理系统提供数据的组织、存储、管理和维护等基础功能，数据库应用系统根据应用需要使用数据库，数据库管理员负责全面的管理数据库系统
+
+   - 如图
+
+     ![数据库系统结构图](git_picture/数据库系统结构图.jpg)
+
+# 关系型数据库
+
+## MySQL 
+
+说明：[官方参考手册](https://dev.mysql.com/doc/refman/8.0/en/)    [MySQL 中文文档](https://www.shiyanlou.com/courses/9)
+
+### 主要内容介绍
+
+1. 主要知识点包括
+
+   - E-R 模型
+   - 数据库的 3 范式
+   - mysql 的数据字段的类型、字段约束
+
+   - 与 mysql 建立连接
+   - 创建数据库、表，分别从图形界面和脚本界面两个方面讲解
+
+2. 主要操作
+
+   - 数据的操作：创建、删除
+   - 表的操作：创建、修改、删除
+   - 数据的操作：增加、删除、修改、查询，简称 crud（create、read、updata、delect）
+
+### 数据库介绍
+
+说明：数据库分为 __服务端__ 和 __客户端__
+
+1. 服务端（server）：存储数据（一个服务端，可以连接多个客户端）
+2. 客户端（client）：读写存储数据
+
+### E-R 模型
+
+说明：当前物理的数据库都是按照 E-R 模型进行设计的，E-R 模型是用 E-R 图面描述现实世界的概念模型，主要概念，包括 __实体、属性、实体之间的联系等__ 
+
+1. E-R 解释
+
+   - E 表示 entity，实体
+   - R 表示 relationship，关系
+   - attribute 表示属性（一个实体具有多个属性）
+
+2. __在关系型数据库中，一个实体抽象为数据库中的一张表，一个属性为表中的一列，一行为实体的一个对象__
+
+   - 学生表
+
+     | 学号   | 姓名 | 性别 | 出生年份 | 专业   | 入学年份  |
+     | ------ | ---- | ---- | -------- | ------ | --------- |
+     | 123456 | 小明 | 男   | 2000.1.1 | 计算机 | 2019..9.1 |
+
+   - 学生表中，学生的属性（学号、姓名等）为表的列，行为实体的对象
+
+3. 实体之间的联系
+
+   说明：实体之间的联系可以分为 3 种
+
+   - 一对一联系 (1:1)
+
+     例如：学校里一个班级只有一个正班长，而一个班长旨在一个班级中任职，则班级与班长之间具有一对一联系
+
+   - 一对多联系 (1:n)
+
+     例如：一个班级中有若干名学生，而每个学生只在一个班级中学习，则班级与学生之间具有一对多联系
+
+   - 多对一联系 (m:n)
+
+     例如：一门课程同时有若干个学生选修，而一个学生可以同时选修多门课程，则课程与学生之间具有多对多联系
+
+4. 实体的联系（关系）表
+
+   说明：待续
+
+### 范式
+
+说明：对设计数据库提出了以希尔规范，这些规范被称之为范式。后一个范式是建立在前一个范式的基础之上。
+
+1. 第一范式（1NF）
+
+   - 列不可拆分
+
+2. 第二范式（2NF）
+
+   - 唯一标识
+
+     在一个实体表中，有一个属性可以唯一标识一个实体对象（表的一行）
+
+3. 第三范式（3NF）
+
+   - 引用主键
+
+     在关系中，只能引用主键（2NF 的唯一标识）
+
+### 数据完整性
+
+说明：数据完整性（integrity）是指数据的正确新（correctness）和相容性（compat-ability）。
+
+1. 数据的正确性
+
+   - 数据的正确性是指数据是符合现实世界语音，反应当前实际状况
+
+2. 数据相容性
+
+   - 数据相容性是指数据库同一对象在不同关系表中的数据是符合逻辑的
+
+3. 数据完整性例子
+
+   - 例如：学生的学号必须是为一的，性别只能是男或女，本科学生年龄的取值范围为 [14, 50] 学生所选的可必须是学校开设的课程，学生所在院系必须是学校已成立的院系等
+
+4. 数据类型
+
+   说明：mysql 常见的几种数据类型
+
+   - __数值类型__
+
+     | 类型          | 大小                                    | 范围（有符号）          | 范围（无符号） | 用途     |
+     | ------------- | --------------------------------------- | ----------------------- | -------------- | -------- |
+     | tinyint       | 1 个字节                                | (-128, 127)             | (0, 255)       | 小整数型 |
+     | int / integer | 4 个字节                                | (-8 388 608, 8 388 607) | (0, 65 535)    | 大整数型 |
+     | decimal       | 对 decimal(M,D) 为最多 M位，小数占 D 位 | 依赖于 M，D             | 依赖于 M，D    | 小数值   |
+     | bit           | bit(2),占 2 个位                        |                         |                | 布尔值   |
+
+     解释：bit 一般用于状态的标记,因为 2 进制，所以一位二进制可以表示两种状态
+
+   - __字符串类型__
+
+     | 类型    | 大小          | 用途         |
+     | ------- | ------------- | ------------ |
+     | char    | 0-255 字节    | 定长字符串   |
+     | varchar | 0-65 535 字节 | 变长字符串   |
+     | text    | 0-65 535 字节 | 长文本字符串 |
+
+     解释：char(4)，长度位 4 个字符，不足右边补空格，超出截取。varchar(4)，最长 4 个字符，可以不足，但超出截取
+
+   - __日期和时间类型__
+
+     | 类型     | 大小     | 范围                                      | 格式                | 用途             |
+     | -------- | -------- | ----------------------------------------- | ------------------- | ---------------- |
+     | date     | 3 个字节 | 1000-01-01 / 9999-12-31                   | YYYY-MM-DD          | 日期值           |
+     | time     | 3 个字节 | -838:59:59 / 838:59:59                    | HH:MM:SS            | 时间值           |
+     | datetime | 8 个字节 | 1000-01-10 00:00:00 / 9999-12-31 23:59:59 | YYYY-MM-DD HH:MM:SS | 混合时间和日期值 |
+
+5. 约束
+
+   - 主键：（primary key）
+
+     在表中唯一表示一个对象的属性，称为主键（对象为一行数据，属性为一列），不重复、默认不为空
+
+   - 非空：（not null）
+
+     输入数据时，不允许为空
+
+   - 唯一：（unique）
+
+     在表中，每一个对象的属性（添加 unique 约束）唯一
+
+   - 默认：（default）
+
+     录入数据时，该属性有默认值（年龄默认 20）不录入该属性，则该属性值为 20，如录入已录入为准
+
+   - 外键：（foreign key）
+
+     实体表的属性在关系表中存在，且可以标识实体表的每一个实体对象
+
+### Navicat 操作
+
+说明：[参考文档](https://www.navicat.com.cn/support/online-manual)    启动数据库 `mysql -h hostname -P port -u username -p password` 。一般直接使用 `mysql -u root -p` ，因为是连接自己的主机，使用默认的端口号，密码为空，所以简单。可以输入 `mysql --help` ，查看帮助
+
+1. 用户连接
+
+   - 如图
+
+     ![navicat操作界面连接](git_picture/navicat操作界面连接.png)
+
+2. 创建数据库
+
+   - 如图
+
+     ![navicat操作界面创建](git_picture/navicat操作界面创建.png)
+
+3. 创建表
+
+   - 如图
+
+     ![navicat创建表](git_picture/navicat创建表.png)
+
+### 逻辑删除
+
+说明：使用一个字段标记是否删除
+
+1. 数据的重要性，要根据实际开发决定
+2. 对于重要的数据，并不希望物理删除，一旦删除，数据无法找回。
+3. 对于重要的数据，会设置一个 isDelete 的属性（列），类型为 bit ，表示逻辑删除。
+4. 大量增长的非重要数据，可以进行物理删除。
+
+## 命令脚本操作
+
+### 数据库、表的创建删除等操作
+
+说明：使用命令窗口对 mysql 进行操作   [mysql 语法文档](https://dev.mysql.com/doc/refman/8.0/en/)
+
+1. 显示当前 mysql 中的所有数据库
+
+   - `show databases;`
+
+     ```sql
+     mysql> show databases;
+     +--------------------+
+     | Database           |
+     +--------------------+
+     | information_schema |
+     | mysql              |
+     | performance_schema |
+     | python1            |
+     | sys                |
+     +--------------------+
+     5 rows in set (0.00 sec)
+     ```
+
+2. 显示 mysql 版本、当前时间
+
+   - 显示版本号 `select version();`
+
+   - 显示当前时间 `select now();`
+
+     ```sql
+     mysql> select version();
+     +-----------+
+     | version() |
+     +-----------+
+     | 5.7.21    |
+     +-----------+
+     1 row in set (0.00 sec)
+     
+     mysql> select now();
+     +---------------------+
+     | now()               |
+     +---------------------+
+     | 2019-10-26 09:12:16 |
+     +---------------------+
+     1 row in set (0.00 sec)
+     ```
+
+3. 删除数据库
+
+   - `drop database python1`
+
+     ```sql
+     mysql> drop database python1;
+     Query OK, 0 rows affected (2.46 sec)
+     
+     mysql> show databases;
+     +--------------------+
+     | Database           |
+     +--------------------+
+     | information_schema |
+     | mysql              |
+     | performance_schema |
+     | sys                |
+     +--------------------+
+     4 rows in set (0.00 sec)
+     ```
+
+4. 创建数据库
+
+   - `create database python3 charset=utf8;` 需要指定编码格式
+
+     ```sql
+     mysql> create database python3;
+     Query OK, 1 row affected (0.01 sec)
+     
+     mysql> show databases;
+     +--------------------+
+     | Database           |
+     +--------------------+
+     | information_schema |
+     | mysql              |
+     | performance_schema |
+     | python3            |
+     | sys                |
+     +--------------------+
+     5 rows in set (0.00 sec)
+     ```
+
+5. 切换使用数据库
+
+   - `use python3`
+
+   - `select database();` 查看当前使用的数据库
+
+     ```sql
+     mysql> use python3;
+     Database changed
+     mysql> select database();
+     +------------+
+     | database() |
+     +------------+
+     | python3    |
+     +------------+
+     1 row in set (0.00 sec)
+     ```
+
+6. 查看数据库的表
+
+   - `show tables;` 当前数据库没有表
+
+     ```sql
+     mysql> show tables;
+     Empty set (0.01 sec)
+     ```
+
+7. 创建表
+
+   - `create table 表名(列类型 [是否自动增长] 约束 默认值\是否为空);` 多列使  ',' 分割
+
+     ```sql
+     mysql> create table students(
+         -> id int auto_increment primary key not null,
+         -> name varchar(10) not null,
+         -> gender bit(1) default b'1',
+         -> birthday date);
+     Query OK, 0 rows affected (0.43 sec)
+     ```
+
+     解释：使用 bit 表明占用几个 bit 为，值为 b'1' 标记为二进制数值
+
+8. 查看表的结构
+
+   - `desc 表名`
+
+     ```sql
+     mysql> show tables;
+     +-------------------+
+     | Tables_in_python3 |
+     +-------------------+
+     | students          |
+     +-------------------+
+     1 row in set (0.00 sec)
+     
+     mysql> desc students;
+     +----------+-------------+------+-----+---------+----------------+
+     | Field    | Type        | Null | Key | Default | Extra          |
+     +----------+-------------+------+-----+---------+----------------+
+     | id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+     | name     | varchar(10) | NO   |     | NULL    |                |
+     | gender   | bit(1)      | YES  |     | b'1'    |                |
+     | birthday | date        | YES  |     | NULL    |                |
+     +----------+-------------+------+-----+---------+----------------+
+     4 rows in set (0.00 sec)
+     ```
+
+9. 删除表
+
+   - `drop table 表名`
+
+     ```sql
+     mysql> show tables;
+     +-------------------+
+     | Tables_in_python3 |
+     +-------------------+
+     | students          |
+     | test              |
+     +-------------------+
+     2 rows in set (0.00 sec)
+     
+     mysql> drop table test;
+     Query OK, 0 rows affected (0.13 sec)
+     
+     mysql> show tables;
+     +-------------------+
+     | Tables_in_python3 |
+     +-------------------+
+     | students          |
+     +-------------------+
+     1 row in set (0.00 sec)
+     ```
+
+10. 更改表名
+
+   - `rename table name to new_name`
+
+     ```sql
+     mysql> show tables;
+     +-------------------+
+     | Tables_in_python3 |
+     +-------------------+
+     | students          |
+     | test              |
+     +-------------------+
+     2 rows in set (0.00 sec)
+     
+     mysql> rename table test to new_test;
+     Query OK, 0 rows affected (0.97 sec)
+     
+     mysql> show tables;
+     +-------------------+
+     | Tables_in_python3 |
+     +-------------------+
+     | new_test          |
+     | students          |
+     +-------------------+
+     2 rows in set (0.00 sec)
+     ```
+
+11. 修改表中的属性、属性定义
+
+    说明：对于表的修改，会有很多麻烦，最好在构建表的时候多一些考虑。表中一旦存在数据，修改表的结构会引来一堆错误，也有可能数据丢失，所以对于表的修改慎重操作   [参考文档](https://dev.mysql.com/doc/refman/5.5/en/alter-table.html#alter-table-add-drop-column) <br> __删除这块应该看一下官方文档__
+
+    - `alter table 表名 add | change | modify | drop 列名 类型 [默认值] 约束`
+
+    - 在 students 增加 age 列 <br>`alter table students add column age int not null;`
+
+      ```sql
+      mysql> alter table students add column age int not null;
+      Query OK, 0 rows affected (2.71 sec)
+      Records: 0  Duplicates: 0  Warnings: 0
+      
+      mysql> desc students;
+      +----------+-------------+------+-----+---------+----------------+
+      | Field    | Type        | Null | Key | Default | Extra          |
+      +----------+-------------+------+-----+---------+----------------+
+      | id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+      | name     | varchar(10) | NO   |     | NULL    |                |
+      | gender   | bit(1)      | YES  |     | b'1'    |                |
+      | birthday | date        | YES  |     | NULL    |                |
+      | age      | int(11)     | NO   |     | NULL    |                |
+      +----------+-------------+------+-----+---------+----------------+
+      5 rows in set (0.00 sec)
+      ```
+
+    - 在 students 修改 age 列名字段的数据类型 <br> `alter table students modify age varchar(10)`
+
+      ```sql
+      mysql> alter table students modify age varchar(10);
+      Query OK, 0 rows affected (2.67 sec)
+      Records: 0  Duplicates: 0  Warnings: 0
+      
+      mysql> desc students;
+      +----------+-------------+------+-----+---------+----------------+
+      | Field    | Type        | Null | Key | Default | Extra          |
+      +----------+-------------+------+-----+---------+----------------+
+      | id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+      | name     | varchar(10) | NO   |     | NULL    |                |
+      | gender   | bit(1)      | YES  |     | b'1'    |                |
+      | birthday | date        | YES  |     | NULL    |                |
+      | age      | varchar(10) | YES  |     | NULL    |                |
+      +----------+-------------+------+-----+---------+----------------+
+      5 rows in set (0.00 sec)
+      ```
+
+      解释：` alter table students change age age int;` 使用 change 修改字段定义
+
+    - 在 students 修改列名。__注意：修改列名，需要重新写明列定义__ <br> `alter table students change age grade int not null;`
+
+      ```sql
+      mysql> alter table students change age grade int not null;
+      Query OK, 0 rows affected (2.53 sec)
+      Records: 0  Duplicates: 0  Warnings: 0
+      
+      mysql> desc students;
+      +----------+-------------+------+-----+---------+----------------+
+      | Field    | Type        | Null | Key | Default | Extra          |
+      +----------+-------------+------+-----+---------+----------------+
+      | id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+      | name     | varchar(10) | NO   |     | NULL    |                |
+      | gender   | bit(1)      | YES  |     | b'1'    |                |
+      | birthday | date        | YES  |     | NULL    |                |
+      | grade    | int(11)     | NO   |     | NULL    |                |
+      +----------+-------------+------+-----+---------+----------------+
+      5 rows in set (0.00 sec)
+      ```
+
+    - 在 students 删除 grade 列 <br> ` alter table students drop column grade` 
+
+      ```sql
+      mysql> alter table students drop column grade;
+      Query OK, 0 rows affected (2.55 sec)
+      Records: 0  Duplicates: 0  Warnings: 0
+      
+      mysql> desc students;
+      +----------+-------------+------+-----+---------+----------------+
+      | Field    | Type        | Null | Key | Default | Extra          |
+      +----------+-------------+------+-----+---------+----------------+
+      | id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+      | name     | varchar(10) | NO   |     | NULL    |                |
+      | gender   | bit(1)      | YES  |     | b'1'    |                |
+      | birthday | date        | YES  |     | NULL    |                |
+      +----------+-------------+------+-----+---------+----------------+
+      4 rows in set (0.00 sec)
+      ```
+
+12. 查看表的创建语句
+
+    - `show create table students`
+
+      ```sql
+      mysql> show create table students;
+      +----------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      | Table    | Create Table                                                                                                                                                                                                                 |
+      +----------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      | students | CREATE TABLE `students` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `name` varchar(10) NOT NULL,
+        `gender` bit(1) DEFAULT b'1',
+        `birthday` date DEFAULT NULL,
+        PRIMARY KEY (`id`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=latin1 |
+      +----------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      1 row in set (0.00 sec)
+      ```
+
+      解释：`ENGINE=InnoDB DEFAULT CHARSET=latin1` 引擎使用 InnoDB（引擎不同，导致底层数据结构不同），数据库的编码格式使用 latin1
+
+### 数据操作
+
+说明：数据操作是基于数据库下的表的操作， 以上面建立的 students表为例
+
+1. 查询
+
+   - `select * from 表名` 
+
+     说明：查询表的所有数据 ，* 表示所有
+
+2. 单条插入数据
+
+   说明：__二进制数据，在界面显示效果不一样，在win10 的 comd 中 b'0' 就像没有，b'1'  为一个框__
+
+   - `insert into 表名 value(值1, 值2...)` <br>`insert into 表名(列1, 列2...) value(值1, 值2...)`
+
+     说明：__插入数据顺序按照表的属性顺序填写，自动增长的属性也添加数据，一般使用 0 填充，插入成功后已自动增长数据为准__
+
+     ![mysql二进制数据验证](git_picture/mysql二进制数据验证.png)
+
+   -  全列插入 `insert into students value(0, 'tom', 1, '1990-1-1', 0);`
+
+     ```sql
+     mysql> insert into students value(0, 'tom', 1, '1990-1-1', 0);
+     Query OK, 1 row affected (2.27 sec)
+     
+     mysql> select * from students;
+     +----+------+--------+------------+----------+
+     | id | name | gender | birthday   | isDelete |
+     +----+------+--------+------------+----------+
+     |  1 | tom  |       | 1990-01-01 |          |
+     +----+------+--------+------------+----------+
+     1 row in set (0.00 sec)
+     ```
+
+   - 部分列插入 `insert into students(name) value('jack');`
+
+     说明：__没有指定的列属性 1.允许为空，2.自增列，3.有默认值__
+
+     ```sql
+     mysql> insert into students(name) value('jack');
+     Query OK, 1 row affected (2.25 sec)
+     
+     mysql> select * from students;
+     +----+------+--------+------------+----------+
+     | id | name | gender | birthday   | isDelete |
+     +----+------+--------+------------+----------+
+     |  1 | tom  |       | 1990-01-01 |          |
+     |  2 | jack |       | NULL       |          |
+     +----+------+--------+------------+----------+
+     2 rows in set (0.01 sec)
+     ```
+
+3. 一次性插入多条数据（Mysql 特有的性质）
+
+   - `insert into 表名 value(值1, 值2...) ,(值1, 值2...)...` <br>`insert into 表名(列1, 列2...) value(值1, 值2...), (值1, 值2...)...`
+
+   - 全列插入 `insert into students value(0, '孙悟空', 1, '1991-1-1', 0), (0, '猪八戒', 1, '1991-3-2', 0), (0, '唐三藏', 1, '1995-5-5', 0), (0, '沙僧', 1, '1992-2-2', 0);`
+
+     ```sql
+     mysql> insert into students value(0, '孙悟空', 1, '1991-1-1', 0), (0, '猪八戒', 1, '1991-3-2', 0), (0, '唐三藏', 1, '1995-5-5', 0), (0, '沙僧', 1, '1992-2-2', 0);
+     Query OK, 4 rows affected (0.05 sec)
+     Records: 4  Duplicates: 0  Warnings: 0
+     
+     mysql> select * from students;
+     +----+--------+--------+------------+----------+
+     | id | name   | gender | birthday   | isDelete |
+     +----+--------+--------+------------+----------+
+     |  1 | tom    |       | 1990-01-01 |          |
+     |  2 | jack   |       | NULL       |          |
+     |  3 | 孙悟空 |       | 1991-01-01 |          |
+     |  4 | 猪八戒 |       | 1991-03-02 |          |
+     |  5 | 唐三藏 |       | 1995-05-05 |          |
+     |  6 | 沙僧   |       | 1992-02-02 |          |
+     +----+--------+--------+------------+----------+
+     6 rows in set (0.29 sec)
+     ```
+
+   - 部分列插入 `insert into students(name) value('哪吒'), ('二郎神'), ('托塔天王');`
+
+     ```sql
+     mysql> insert into students(name) value('哪吒'), ('二郎神'), ('托塔天王');
+     Query OK, 3 rows affected (2.24 sec)
+     Records: 3  Duplicates: 0  Warnings: 0
+     
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |          |
+     |  7 | 哪吒     |       | NULL       |          |
+     |  8 | 二郎神   |       | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     9 rows in set (0.00 sec)
+     ```
+
+4. 修改数据操作
+
+   说明：对现有数据进行修改
+
+   - `update 表名 set 列1=值1, 列2=值2... where 条件`
+
+     说明：__可以一次修改一行，也可以一次修改多行，关键看 where 条件满足什么，如果没有写 where 表中数据就全部被修改__
+
+   - 修改一行数据 `update students set gender=b'0' where name='哪吒';`
+
+     ```sql
+     mysql> update students set gender=b'0' where name='哪吒';
+     Query OK, 1 row affected (0.39 sec)
+     Rows matched: 1  Changed: 1  Warnings: 0
+     
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |          |
+     |  7 | 哪吒     |        | NULL       |          |
+     |  8 | 二郎神   |       | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     9 rows in set (0.00 sec)
+     ```
+
+   - 不写 where 条件 `update students set isDelete=1;`
+
+     ```sql
+     mysql> update students set isDelete=1;
+     Query OK, 9 rows affected (2.23 sec)
+     Rows matched: 9  Changed: 9  Warnings: 0
+     
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |         |
+     |  2 | jack     |       | NULL       |         |
+     |  3 | 孙悟空   |       | 1991-01-01 |         |
+     |  4 | 猪八戒   |       | 1991-03-02 |         |
+     |  5 | 唐三藏   |       | 1995-05-05 |         |
+     |  6 | 沙僧     |       | 1992-02-02 |         |
+     |  7 | 哪吒     |        | NULL       |         |
+     |  8 | 二郎神   |       | NULL       |         |
+     |  9 | 托塔天王 |       | NULL       |         |
+     +----+----------+--------+------------+----------+
+     9 rows in set (0.00 sec)
+     ```
+
+5. 删除（物理是删除、逻辑删除）
+
+   - 物理删除 `delete from 表名 where 条件`
+
+   - 物理删除 `delete from students where id=8;`
+
+     ```sql
+     mysql> delete from students where id=8;
+     Query OK, 1 row affected (2.32 sec)
+     
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |          |
+     |  7 | 哪吒     |        | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     8 rows in set (0.00 sec)
+     ```
+
+     解释：id=8 的数据没有，也恢复不了
+
+   - 逻辑删除 ` update students set isDelete=1 where id=6; `
+
+     说明：逻辑删除使用列属性标记，实际上就是修改数据
+
+     ```sql
+     mysql> update students set isDelete=1 where id=6;
+     Query OK, 1 row affected (2.23 sec)
+     Rows matched: 1  Changed: 1  Warnings: 0
+     
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |         |
+     |  7 | 哪吒     |        | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     8 rows in set (0.00 sec)
+     ```
+
+     解释：使用属性 isDelete 标记数据是否被删除
+
+### 备份与恢复
+
+说明：项目迁移，就是将数据移到另一个服务器
+
+1. 备份
+
+   说明：Linux 进入 __超级管理员__ --> __进入 mysql 数据库目录（数据存放目录）__ <br> windows 不用（前提将 mysql 加入环境变量中），都不用进入 Mysql 用户交互界面
+
+   - 运行 `mysqldump -h 主机 -P 端口号 -u root -p 数据库名 > path\xx.sql`
+
+     ```sql
+     # 开始备份
+     D:\>mysqldump -u root -p python3 > C:\Users\SS沈\Desktop\bak.sql
+     Enter password:
+     # 备份完成
+     D:\>
+     ```
+
+     解释：我这是客户端与服务器在一台主机上（win10），端口号默认，所以没有写
+
+2. 数据恢复
+
+   说明：__数据备份只对表的备份，不对数据库备份， 所以恢复时，需要创建数据库，再对数据进行恢复__
+
+   - 连接 mysql，创建数据库
+
+   - 退出 mysql 交互界面
+
+   - 运行 `mysql -h 主机 -P 端口号 -u root -p 数据库名 < path\xx.sql`
+
+     ```sql
+     # 开始恢复数据
+     D:\>mysql -u root -p py3 < C:\Users\SS沈\Desktop\bak.sql
+     Enter password:
+     # 恢复完成
+     
+     # 进入 mysql 交互界面
+     D:\>mysql -u root -p
+     
+     # 进入之前创建好的数据库 py3
+     mysql> use py3
+     Database changed
+     mysql> show tables;
+     +---------------+
+     | Tables_in_py3 |
+     +---------------+
+     | students      |
+     +---------------+
+     1 row in set (0.00 sec)
+     
+     # 查看表的的数据
+     mysql> select * from students;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |         |
+     |  7 | 哪吒     |        | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     8 rows in set (0.00 sec)
+     ```
+
+## 数据查询（单表操作）
+
+说明：表默认使用 students 的这张表（上面有所介绍）
+
+```sql
+mysql> select * from students;
++----+----------+--------+------------+----------+
+| id | name     | gender | birthday   | isDelete |
++----+----------+--------+------------+----------+
+|  1 | tom      |       | 1990-01-01 |          |
+|  2 | jack     |       | NULL       |          |
+|  3 | 孙悟空   |       | 1991-01-01 |          |
+|  4 | 猪八戒   |       | 1991-03-02 |          |
+|  5 | 唐三藏   |       | 1995-05-05 |          |
+|  6 | 沙僧     |       | 1992-02-02 |         |
+|  7 | 哪吒     |        | NULL       |          |
+|  9 | 托塔天王 |       | NULL       |          |
++----+----------+--------+------------+----------+
+8 rows in set (0.00 sec)
+```
+
+### 查询介绍
+
+1. 基本语法介绍
+
+   - 查询的基本语法
+
+     `select * from 表名;`
+
+   - `from` 关键字后面写__表名__，表示数据来源于这张表
+
+   - `select` 关键字后面写__列名__ ，如果是 `*` 表示表中所有列
+
+   - `select` 后面的列名部分，可以使用 `as` 为列起别名，别名会出现在 __结果集__中（结果集：是某次查询的结果）
+
+     `select id as '学号',name as '姓名' from students;`
+
+   - 如果查询多个列，可以使用 `,` 分割
+
+     `select id,name from students;`
+
+### 消除查询结果集重复行 distinct
+
+1. 消除重复行基本语法
+
+   说明：重复行是相对于整个查询结果集来说的，重点在 __行__ 上
+
+   - 使用关键字 `distinct` ，在 select 后面、列名前面（因为消除重复行，所以一次查询使用一次，而不是喝查询列有关）
+
+     `select distinct 列名1,列名2... from 表名`
+
+2. 使用对比
+
+   - 不使用 distinct
+
+     ```sql
+     mysql> select gender from students;
+     +--------+
+     | gender |
+     +--------+
+     |       |
+     |       |
+     |       |
+     |       |
+     |       |
+     |       |
+     |        |
+     |       |
+     +--------+
+     8 rows in set (0.00 sec)
+     ```
+
+   - 使用 distinct
+
+     ```sql
+     mysql> select distinct gender from students;
+     +--------+
+     | gender |
+     +--------+
+     |       |
+     |        |
+     +--------+
+     2 rows in set (2.26 sec)
+     ```
+
+   - 查询多列使用 distinct
+
+     说明：distinct 去重，是相对于查询结果集的 __行中每一列都相同才会去重__
+
+     ```sql
+     mysql> select distinct name as '姓名',gender as '性别' from students;
+     +----------+------+
+     | 姓名     | 性别 |
+     +----------+------+
+     | tom      |     |
+     | jack     |     |
+     | 孙悟空   |     |
+     | 猪八戒   |     |
+     | 唐三藏   |     |
+     | 沙僧     |     |
+     | 哪吒     |      |
+     | 托塔天王 |     |
+     +----------+------+
+     8 rows in set (0.01 sec)
+     ```
+
+### 查询体条件 where
+
+说明：使用 where 子句对表中数据进行帅选，结果为 True 的行会出现在结果集中
+
+1. 基本语法
+
+   - `select * from 表名 where 条件;`
+
+2. 比较运算符
+
+   | 符号    | 作用     |
+   | ------- | -------- |
+   | =       | 等于     |
+   | >       | 大于     |
+   | >=      | 大于等于 |
+   | <       | 小于     |
+   | <=      | 小于等于 |
+   | != \ <> | 不等于   |
+
+3. 使用方式
+
+   - 查询 id 大于 3 
+
+     ```sql
+     mysql> select * from students where id > 3;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |         |
+     |  7 | 哪吒     |        | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     5 rows in set (2.33 sec)
+     ```
+
+   - 查询不是 __哪吒__ 的学生
+
+     ```sql
+     mysql> select * from students where name != '哪吒';
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  6 | 沙僧     |       | 1992-02-02 |         |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     7 rows in set (2.23 sec)
+     ```
+
+4. 逻辑运算符
+
+   | 符号 | 作用                             |
+   | ---- | -------------------------------- |
+   | and  | 逻辑与（条件同时满足）           |
+   | or   | 逻辑或（满足其中一个）           |
+   | not  | 逻辑非（在原有的基础上加一个非） |
+
+5. 使用方式
+
+   - 查询编号大于 5 的女同学
+
+     ```sql
+     mysql> select * from students where id > 5 and gender = 0;
+     +----+------+--------+----------+----------+
+     | id | name | gender | birthday | isDelete |
+     +----+------+--------+----------+----------+
+     |  7 | 哪吒 |        | NULL     |          |
+     +----+------+--------+----------+----------+
+     1 row in set (0.00 sec)
+     ```
+
+   - 查询编号小于 4 或没有被删除的学生
+
+     说明：使用 or，两个条件满足一个就好
+
+     ```sql
+     mysql> select * from students where id < 4 or isDelete = 0;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     |  1 | tom      |       | 1990-01-01 |         |
+     |  2 | jack     |       | NULL       |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  7 | 哪吒     |        | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     7 rows in set (0.00 sec)
+     ```
+
+6. 模糊查询
+
+   | 符号 | 作用             |
+   | ---- | ---------------- |
+   | like | 模糊查询关键字   |
+   | %    | 表示任意多个字符 |
+   | _    | 表示任意一个字符 |
+
+7. 使用方式
+
+   - 查询姓为 __孙__ 的学生（一共两个）
+
+     说明：% 表示任意多个字符
+
+     ```sql
+     mysql> select * from students where name like '孙%';
+     +----+--------+--------+------------+----------+
+     | id | name   | gender | birthday   | isDelete |
+     +----+--------+--------+------------+----------+
+     |  3 | 孙悟空 |       | 1991-01-01 |          |
+     | 10 | 孙行者 |       | NULL       |          |
+     +----+--------+--------+------------+----------+
+     2 rows in set (2.27 sec)
+     ```
+
+   - 查询姓唐的姓名为两个字的学生
+
+     说明：_ 表示一个任意字符
+
+     ```sql
+     # 没有查询到，为 Empty 空
+     mysql> select * from students where name like '唐_';
+     Empty set (0.00 sec)
+     
+     mysql> select * from students where name like '唐__';
+     +----+--------+--------+------------+----------+
+     | id | name   | gender | birthday   | isDelete |
+     +----+--------+--------+------------+----------+
+     |  5 | 唐三藏 |       | 1995-05-05 |          |
+     | 11 | 唐太宗 |       | NULL       |          |
+     +----+--------+--------+------------+----------+
+     2 rows in set (0.00 sec)
+     ```
+
+   - 查询姓唐的或者姓孙学生
+
+     ```sql
+     mysql> select * from students where name like '唐%' or name like '孙%';
+     +----+--------+--------+------------+----------+
+     | id | name   | gender | birthday   | isDelete |
+     +----+--------+--------+------------+----------+
+     |  3 | 孙悟空 |       | 1991-01-01 |          |
+     |  5 | 唐三藏 |       | 1995-05-05 |          |
+     | 10 | 孙行者 |       | NULL       |          |
+     | 11 | 唐太宗 |       | NULL       |          |
+     +----+--------+--------+------------+----------+
+     4 rows in set (0.00 sec)
+     ```
+
+     解释：错误的写法 `select * from students where name like '唐%' or '孙%';`
+
+8. 范围查询
+
+   - 介绍
+
+     查询范围分为 __连续范围、不连续范围__ 内查询
+
+     - | 符号          | 作用                         |
+       | ------------- | ---------------------------- |
+       | in            | 在一个不连续的范围内进行查询 |
+       | between...and | 在一个连续范围内进行查询     |
+
+9. 使用方式
+
+   说明：分别使用 in 和 between...and 匹配
+
+   - 使用 in 匹配，查询 id 是 1、3 或 8 的学生
+
+     ```sql
+     mysql> select * from students where id in (1, 3, 8);
+     +----+--------+--------+------------+----------+
+     | id | name   | gender | birthday   | isDelete |
+     +----+--------+--------+------------+----------+
+     |  1 | tom    |       | 1990-01-01 |         |
+     |  3 | 孙悟空 |       | 1991-01-01 |          |
+     +----+--------+--------+------------+----------+
+     2 rows in set (2.24 sec)
+     ```
+
+     解释：原有表中没有 id = 8 的学生
+
+   - 使用 between...and，查询 id 从 3 到 8 的学生
+
+     ```sql
+     mysql> select * from students where id between 3 and 8;
+     +----+--------+--------+------------+----------+
+     | id | name   | gender | birthday   | isDelete |
+     +----+--------+--------+------------+----------+
+     |  3 | 孙悟空 |       | 1991-01-01 |          |
+     |  4 | 猪八戒 |       | 1991-03-02 |          |
+     |  5 | 唐三藏 |       | 1995-05-05 |          |
+     |  6 | 沙僧   |       | 1992-02-02 |         |
+     |  7 | 哪吒   |        | NULL       |          |
+     +----+--------+--------+------------+----------+
+     5 rows in set (2.23 sec)
+     ```
+
+   - __注意 between...and 和 与（and）匹配顺序__
+
+     1. 从左向右，遇 between 找最近的 and 就是和 between 匹配的
+
+     2. 查询 id 从 5 到 9 的女生
+
+        ```sql
+        mysql> select * from students where id between 5 and 9 and gender = 0;
+        +----+------+--------+----------+----------+
+        | id | name | gender | birthday | isDelete |
+        +----+------+--------+----------+----------+
+        |  7 | 哪吒 |        | NULL     |          |
+        +----+------+--------+----------+----------+
+        1 row in set (0.00 sec)
+        ```
+
+10. 空判断
+
+    说明：__null 和 '' 不同__， 一个是什么都没有，一个空字符串
+
+    - 空判断 `is null` \  非空判断·`is not null`
+
+11. 使用方式
+
+    - 查询出生年月日为空的学生
+
+      ```sql
+      mysql> select * from students where birthday is null;
+      +----+----------+--------+----------+----------+
+      | id | name     | gender | birthday | isDelete |
+      +----+----------+--------+----------+----------+
+      |  2 | jack     |       | NULL     |          |
+      |  7 | 哪吒     |        | NULL     |          |
+      |  9 | 托塔天王 |       | NULL     |          |
+      | 10 | 孙行者   |       | NULL     |          |
+      | 11 | 唐太宗   |       | NULL     |          |
+      +----+----------+--------+----------+----------+
+      5 rows in set (2.22 sec)
+      ```
+
+    - 查询出生年月日不为空的学生
+
+      ```sql
+      mysql> select * from students where birthday is not null;
+      +----+--------+--------+------------+----------+
+      | id | name   | gender | birthday   | isDelete |
+      +----+--------+--------+------------+----------+
+      |  1 | tom    |       | 1990-01-01 |         |
+      |  3 | 孙悟空 |       | 1991-01-01 |          |
+      |  4 | 猪八戒 |       | 1991-03-02 |          |
+      |  5 | 唐三藏 |       | 1995-05-05 |          |
+      |  6 | 沙僧   |       | 1992-02-02 |         |
+      +----+--------+--------+------------+----------+
+      5 rows in set (0.00 sec)
+      ```
+
+12. __优先级__
+
+    - 从高到底
+      1. 小括号
+      2. not
+      3. 比较运算符
+      4. 逻辑运算符（and 比 or 先运算）
+    -  可以使用 () 提高运算优先级
+
+### 聚合函数
+
+说明：常用 5 个聚合函数，只能查看最后结果
+
+1. 介绍
+
+   - 数据库为快速统计数据，提供了一些 __聚合函数__
+
+   - 常用 5 个聚合函数
+
+     | 函数     | 作用                                                   |
+     | -------- | ------------------------------------------------------ |
+     | count(*) | 统计总行数，不用之处具体哪一行                         |
+     | max(列)  | 表示求此列的最大值，指明具体哪一列                     |
+     | min(列)  | 表示求此列的最小值，指明具体哪一列                     |
+     | sum(列)  | 表示求此列的和，指明具体哪一列，该列数据必须为数字     |
+     | avg(列)  | 表示求此列的平均值，指明具体哪一列，该列数据必须为数字 |
+
+2. count 用法
+
+   - 查询一共有多少的学生
+
+     说明：__先拿原始数据，再进行聚合__
+
+     ```sql
+     mysql> select count(*) from students;
+     +----------+
+     | count(*) |
+     +----------+
+     |       10 |
+     +----------+
+     1 row in set (2.27 sec)
+     ```
+
+   - 查询没有被删除的学生（这样才有意义）
+
+     说明：__先拿原始数据，再做筛选，最后做聚合__
+
+     ```sql
+     mysql> select count(*) from students where isDelete = 0;
+     +----------+
+     | count(*) |
+     +----------+
+     |        8 |
+     +----------+
+     1 row in set (0.00 sec)
+     ```
+
+3. min \ max 使用
+
+   - 查询女生 id  最大的学生
+
+     ```sql
+     mysql> select max(id) as '女生编号'from students where gender=0;
+     +----------+
+     | 女生编号 |
+     +----------+
+     |        7 |
+     +----------+
+     1 row in set (0.01 sec)
+     ```
+
+   - 查询男生 id 最小的学生
+
+     ```sql
+     mysql> select min(id) as '男生编号'from students where gender=1;
+     +----------+
+     | 男生编号 |
+     +----------+
+     |        1 |
+     +----------+
+     1 row in set (0.00 sec)
+     ```
+
+   - 扩展以下，查看男生最小 id 的学生的姓名
+
+     说明：子查询
+
+     ```sql
+     mysql> select name from students where id = (select min(id) as '男生编号'from students where gender=1);
+     +------+
+     | name |
+     +------+
+     | tom  |
+     +------+
+     1 row in set (2.25 sec)
+     ```
+
+4. sum
+
+   - 查询男生 id 的和
+
+     ```sql
+     mysql> select sum(id) from students where gender=1;
+     +---------+
+     | sum(id) |
+     +---------+
+     |      51 |
+     +---------+
+     1 row in set (2.24 sec)
+     ```
+
+5. avg
+
+   - 查询女生的 id 平均值
+
+     ```sql
+     mysql> select avg(id) from students where gender=0;
+     +---------+
+     | avg(id) |
+     +---------+
+     |  7.0000 |
+     +---------+
+     1 row in set (0.00 sec)
+     ```
+
+### 分组
+
+说明：分组最终目的是为了聚合而使用的
+
+1. 介绍
+
+   - 按照某些字段分组，表示这些字段相同的数据会被分在一个组中（可以多个字段一起分组，多个字段都相同会被分到一组）
+   - 分组后，结果集只显示用于分组的字段，其他的字段无法显示（会有语法错误）
+   - 可以对分组的数据机型统计，做聚合运算
+
+2. 语法介绍
+
+   - 正确语法（用于分组的字段，得出现在 select 之后，没有用于分组的字段不能出现在 select 后面）
+
+     `select 列1,列2,列3,聚合...from 表名 group by 列1,列2,列3...`
+
+     `select 聚合...from 表名 group by 列1,列2,列3...` 但是此语句查询结果集不直观
+
+   - 错误语法（使用 students 表为列）
+
+     `select name from students group by gender` 分组字段没有出现在 select 后面
+
+     `select genser,name from students group by gender` 没有用与分组得字段出现在 select 后面
+
+3. 使用方式
+
+   - 查询男女生总人数
+
+     ```sql
+     mysql> select gender,count(*) from students group by gender;
+     +--------+----------+
+     | gender | count(*) |
+     +--------+----------+
+     |        |        1 |
+     |       |        9 |
+     +--------+----------+
+     2 rows in set (1.06 sec)
+     ```
+
+4. __分组后对结果集进行筛选__
+
+   说明：会与 where 进行对比
+
+   - 基本语法（与 where 条件语法相同）
+
+     `select 列1,列2,列3,聚合...from 表名 group by 列1,列2,列3... having 条件` 
+
+   - group by 与 where 进行对比
+
+     1. __where__ 条件是对于 __表__ 进行筛选得出 __结果集(1)__，__group by__ 是相对于 __结果集(1)__ 分组得出 __结果集(2)__，__having__  是相对于 __结果集(2)__ 进行筛选得出最终__结果集__
+
+     2. 如图
+
+        ![数据库条件执行顺序](git_picture/数据库条件执行顺序.jpg)
+
+5. 使用方式
+
+   - 查询男女生人数，且统计人数大于 5 的一方（列子不是十分好，凑合看吧！！）
+
+     ```sql
+     mysql> select gender,count(*) from students group by gender having count(*)>5;
+     +--------+----------+
+     | gender | count(*) |
+     +--------+----------+
+     |       |        9 |
+     +--------+----------+
+     1 row in set (2.28 sec)
+     ```
+
+### 排序
+
+说明：为了方便查看数据，可以对数据进行排序
+
+1. 介绍
+
+   - 语法__（应该先对 where 条件筛选，再对结果集进行排序，最后根据 seelct 后面列名显示结果集）__
+
+     `select * from 表名 order by 列1 asc|desc,列2 asc|desc...`
+
+   - 将数据按照 __列1__ 进行排序，如果有些 __列1__ 相同，再按照 __列2__ 排序
+
+   - 默认按照从小到大排序 `select * from 表名 order by 列1` 默认
+
+   - __asc__ 升序，从小到大
+
+   - __desc__ 降序，从大到小
+
+2. 使用方式
+
+   - 查询未删除的男生信息，按学号降序（order by 写在 where 后面）
+
+     ```sql
+     mysql> select * from students where isDelete=0 order by id desc;
+     +----+----------+--------+------------+----------+
+     | id | name     | gender | birthday   | isDelete |
+     +----+----------+--------+------------+----------+
+     | 11 | 唐太宗   |       | NULL       |          |
+     | 10 | 孙行者   |       | NULL       |          |
+     |  9 | 托塔天王 |       | NULL       |          |
+     |  7 | 哪吒     |        | NULL       |          |
+     |  5 | 唐三藏   |       | 1995-05-05 |          |
+     |  4 | 猪八戒   |       | 1991-03-02 |          |
+     |  3 | 孙悟空   |       | 1991-01-01 |          |
+     |  2 | jack     |       | NULL       |          |
+     +----+----------+--------+------------+----------+
+     8 rows in set (0.54 sec)
+     ```
+
+   - 查询学生姓名，以学号降序排序（select 后面可以不写，排序列名）
+
+     ```sql
+     mysql> select name from students order by id desc;
+     +----------+
+     | name     |
+     +----------+
+     | 唐太宗   |
+     | 孙行者   |
+     | 托塔天王 |
+     | 哪吒     |
+     | 沙僧     |
+     | 唐三藏   |
+     | 猪八戒   |
+     | 孙悟空   |
+     | jack     |
+     | tom      |
+     +----------+
+     10 rows in set (2.21 sec)
+     ```
+
+### 分页
+
+说明：当查询数据过大时，在一页中查看数据非常麻烦，减轻数据库压力，以及用户压力（一般用户查看 10 页也就放弃了）
+
+1. 介绍
+
+   - 语法
+
+     `select * from 表名 limit start,count;`
+
+   - start 起始位置（索引从 0 开始）
+
+   - count 获取多少条数据
+
+2. 使用方式
+
+   - 用法
+
+     1. 已知：每页显示 m 条数据，当前显示第 n 页
+     2. 求：第 n 页的数据（用户页数从 1 开始算，数据库中的数据除 __自增__ 是从 1 开始，其余都是 从 0 开始）
+     3. 结果：`select * from 表名 where isDelete=0 limit (n-1)*m,m`
+
+   - 例子
+
+     1. 以上 m = 5 = count = 5
+
+     2. 如表格
+
+        | 用户页码 | 数据库页码 | 起始start | 多少条数据count               |
+        | -------- | ---------- | --------- | ----------------------------- |
+        | 1        | 0          | 0         | [0, 1, 2, 3, 4] 5 条数据      |
+        | 2        | 1          | 5         | [5, 6, 7, 8, 9] 5 条数据      |
+        | 3        | 2          | 10        | [10, 11, 12, 13, 14] 5 条数据 |
+
+     3. 所以：start = (n-1)*m \ count = m
+
+     4. limit (n-1)*m, m
+
+   - 查询未被删除的学上，按学号降序排序，获取从 0 开始的 2 条数据
+
+     ```sql
+     mysql> select * from students where isDelete=0 order by id desc limit 0,2;
+     +----+--------+--------+----------+----------+
+     | id | name   | gender | birthday | isDelete |
+     +----+--------+--------+----------+----------+
+     | 11 | 唐太宗 |       | NULL     |          |
+     | 10 | 孙行者 |       | NULL     |          |
+     +----+--------+--------+----------+----------+
+     2 rows in set (2.22 sec)
+     ```
+
+
+### 总结 （以后查看此处）
+
+1. 完整的 select 语句
+
+   - 代码演示
+
+     ```sql
+     select distinct *          # distinct 去除重复的行
+     from 表名
+     where ...
+     group by ... having...     # 分组（为了聚合）
+     order by...                # 排序
+     limit start,count          # 分页
+     ```
+
+2. 执行顺序
+
+   - 讲解
+     1. from 表名
+     2. where ...
+     3. group by
+     4. select distinct *
+     5. having...
+     6. order by...
+     7. limit start,count
+   - 实际中，只会使用部分语句的组合，而不是全部
+
+## 高级（多表操作）
+
+说明：实体与实体之间有 3 种对应关系，这些关系也需要被存储下来 <br>           视图是用于完成查询语句的封装 <br> 		  事务可以保证复杂的增删改查操作有效 <br> 		  当数据巨大时，为提高查询速度可以通过索引实现
+
+### 关系（关系字段建立）
+
+说明：已有 __学生表__，在创建 __科目表__ 和 __成绩表__
+
+1. 创建 subjects 表（id, title），并插入数据
+
+   说明：__自增字段，可以重复填 0，但不可以重复填其他数字，报错（Duplicate...）__
+
+   - 代码
+
+     ```sql
+     mysql> insert into subjects value(0,'c'),(0,'java'),(0,'python');
+     Query OK, 3 rows affected (2.28 sec)
+     Records: 3  Duplicates: 0  Warnings: 0
+     
+     mysql> select * from subjects;
+     +----+--------+
+     | id | title  |
+     +----+--------+
+     |  2 | c      |
+     |  3 | java   |
+     |  4 | python |
+     +----+--------+
+     3 rows in set (0.00 sec)
+     ```
+
+2. 创建 scores 表（id, score, student_id, title_id）
+
+   - 创建 scores 表，遵循 __第三范式引用主键，主键可以唯一标识出表（实体）中一个对象__
+
+     ![第三范式引用主键](git_picture/第三范式引用主键.png)
+
+   - __引用主键时，类型应保存一致__
+
+   - __实体之间关系存在三种关系__
+
+     说明：在大部分实际开发中都是 __一对多__
+
+     | 实体关系 | (A: B) | 关系字段-存储位置       |
+     | -------- | ------ | ----------------------- |
+     | 一对一   | (1: 1) | 存在 A 或 B 表都可以    |
+     | 一对多   | (1: n) | 存在 B 表中             |
+     | 多对多   | (m: n) | 新建一张表存储-关系字段 |
+
+   - 成绩表与学生表和科目表关系
+
+     1. 学生表一条数据对应成绩表多条数据，科目表一条数据对应成绩表多条数据
+     2. 反过来成绩表一条数据只能对应 [学生表, 科目表] 一条数据
+     3. 或者（此说法感觉更贴切）成绩表多条数据对应 [学生表, 课程表] 一条数据
+
+   - 题外话
+
+     1. 数据库中的表是现实世界实体的表现形式，在现实世界中事物都会有者千丝万缕的关系，所以数据库的表也不例外。如图：
+
+        ![数据库表关系理解](git_picture/数据库表关系理解.png)
+
+   - 代码演示（关系也是数据字段）
+
+     说明：先建立关系在加入引用外键，要保持外键的有效性，添加一种约束
+     
+     1. 建立 scores 表（建立关系字段，没有添加外键约束）
+     
+        ```sql
+        mysql> create table scores(
+            -> id int auto_increment primary key,
+            -> stuid int,
+            -> subid int,
+            -> score decimal(5,2));
+        Query OK, 0 rows affected (2.43 sec)
+        
+        mysql> desc scores;
+        +-------+--------------+------+-----+---------+----------------+
+        | Field | Type         | Null | Key | Default | Extra          |
+        +-------+--------------+------+-----+---------+----------------+
+        | id    | int(11)      | NO   | PRI | NULL    | auto_increment |
+        | stuid | int(11)      | YES  |     | NULL    |                |
+        | subid | int(11)      | YES  |     | NULL    |                |
+        | score | decimal(5,2) | YES  |     | NULL    |                |
+        +-------+--------------+------+-----+---------+----------------+
+        4 rows in set (0.00 sec)
+        ```
+     
+     2. 添加外键
+     
+        说明：引用外键必须存在
+     
+        ```sql
+        mysql> alter table scores add constraint students_score foreign key(stuid) references students(id);
+        Query OK, 0 rows affected (2.86 sec)
+        Records: 0  Duplicates: 0  Warnings: 0
+        
+        mysql> alter table scores add constraint subject_score foreign key(subid) references subjects(id);
+        Query OK, 0 rows affected (2.66 sec)
+        Records: 0  Duplicates: 0  Warnings: 0
+        
+        mysql> desc scores;
+        +-------+--------------+------+-----+---------+----------------+
+        | Field | Type         | Null | Key | Default | Extra          |
+        +-------+--------------+------+-----+---------+----------------+
+        | id    | int(11)      | NO   | PRI | NULL    | auto_increment |
+        | stuid | int(11)      | YES  | MUL | NULL    |                |
+        | subid | int(11)      | YES  | MUL | NULL    |                |
+        | score | decimal(5,2) | YES  |     | NULL    |                |
+        +-------+--------------+------+-----+---------+----------------+
+        4 rows in set (0.00 sec)
+        ```
+     
+        解释： `alter table 表名1 add constraint 约束名 foreign key(约束字段) references 表名2(引用约束字段);`  约束名：自定义，但是不能重复
+     
+     3. 在建立 scores 表时，添加引用约束
+     
+        ```sql
+        mysql> create table scores(
+            -> id int auto_increment primary key,
+            -> foreign key(stuid) references students(id),
+            -> foreign key(subid) references subjects(id),
+            -> score decimal(5,2));
+        Query OK, 0 rows affected (2.43 sec)
+        ```
+     
+   - 向 scores 表插入数据
+   
+     1. 插入正确的数据（插入多条数据）
+   
+        ```sql
+        mysql> insert into scores value(0,1,2,98.1);
+        Query OK, 1 row affected (2.31 sec)
+        ```
+   
+     2. 插入非正确数据
+   
+        ```sql
+        mysql> insert into scores value(0,15,2,98.1);
+        ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`python3`.`scores`, CONSTRAINT `students_score` FOREIGN KEY (`stuid`) REFERENCES `students` (`id`))
+        ```
+   
+   - 外键的级联操作
+   
+     说明：在删除 students 表的数据时，如果这个 id 值在 scores 中已经存在，则会抛出异常。推荐使用逻辑删除（isDelete 字段），可以解决这个问题。__可以创建表时指定级联操作，也可以在创建表后修改外键的级联操作__
+   
+     1. 语法
+     
+        `alter table 表1 add constraint 约束名 foreign key(列1) references 表2(列名) on update 级联类型[restrict, cascade, set null, noaction];` <br>`alter table 表1 add constraint 约束名 foreign key(列1) references 表2(列名) on delete 级联类型[restrict, cascade, set null, noaction];`
+     
+     2. 级联操作类型
+     
+        - restrict （限制）：默认值，抛出异常
+        - cascade （级联）：如果主表的记录删除，则从表的相关记录都将被删除
+        - set null ：将外键设置为空
+        - no action：什么都不做
+     
+     3. 以上这几种做法，都不好，最好使用逻辑删除
+   
+
+### 关联查询（3种）
+
+说明：查询数据存在多张表时，使用连接查询，表的属性太长，可使用 `as` 简写名称。 <br>__连接查询就是把之前查询一张表，转换为多张表一起查询，[inner, left, right] 实际就是查询字段来自（from） 多张表了，有多个字段了，其他语句执行顺序不变，其中应查询存放关系字段的表，在连接其他表__
+
+1. 连接查询分类如下
+
+   - 如表
+
+     | 连接方式 | 语法           | 查询结果集显示                                            |
+     | -------- | -------------- | --------------------------------------------------------- |
+     | 内连接   | A inner join B | 表 A 与 表 B 向匹配的行，会出现在结果集中                 |
+     | 左连接   | A left join B  | A 和 B 相同行，外加 A 表中独有的数据，未对应的数据用 null |
+     | 右连接   | A right join B | A 和 B 相同行，外加 B 表中独有的数据，未对应的数据用 null |
+
+     
+
+2. 内敛查询实例
+
+   - 查询内容
+
+     | 学生姓名 | 科目名称 | 分数 |
+     | -------- | -------- | ---- |
+     |          |          |      |
+
+   - 分析数据来源及关系
+
+     1. 学生姓名 --> students（学生表），级联关系 students.id = scaores.stuid
+     2. 科目名称 --> subjects（科目表），级联关系 subjects.id = scaores.subid
+     3. 分数 --> scores（分数表），同上
+
+   - 查询语句
+
+     ```sql
+     mysql> select students.name,subjects.title,scores.score from scores
+         -> inner join students on scores.stuid=students.id
+         -> inner join subjects on scores.subid=subjects.id;
+         
+     +--------+--------+--------+
+     | name   | title  | score  |
+     +--------+--------+--------+
+     | tom    | c      |  98.10 |
+     | tom    | java   | 100.00 |
+     | tom    | python |  50.33 |
+     | jack   | c      |  99.33 |
+     | jack   | java   |  88.92 |
+     | 孙行者 | java   |  88.62 |
+     +--------+--------+--------+
+     6 rows in set (2.28 sec)
+     ```
+
+   - 解释
+
+     scores 表储存关系，所以 scores 表的数据没有多余数据，当实体关系为 (1: n) 时，关系存储在 n 的表中
+   
+3. 外联查询实例
+
+   说明：使用右连接实例
+
+   - 先显示两表对应数据，在显示右表独有数据，为对应上的数据使用 null 填充
+
+   - 查询 score 表连接 students 表
+
+     ```sql
+     mysql> select * from scores
+         -> right join students on scores.stuid=students.id;
+         
+     +------+-------+-------+--------+----+----------+--------+------------+----------+
+     | id   | stuid | subid | score  | id | name     | gender | birthday   | isDelete |
+     +------+-------+-------+--------+----+----------+--------+------------+----------+
+     |    1 |     1 |     2 |  98.10 |  1 | tom      |       | 1990-01-01 |         |
+     |    3 |     1 |     3 | 100.00 |  1 | tom      |       | 1990-01-01 |         |
+     |    4 |     1 |     4 |  50.33 |  1 | tom      |       | 1990-01-01 |         |
+     |    5 |     2 |     2 |  99.33 |  2 | jack     |       | NULL       |          |
+     |    6 |     2 |     3 |  88.92 |  2 | jack     |       | NULL       |          |
+     |    7 |    10 |     3 |  88.62 | 10 | 孙行者   |       | NULL       |          |
+     | NULL |  NULL |  NULL |   NULL |  3 | 孙悟空   |       | 1991-01-01 |          |
+     | NULL |  NULL |  NULL |   NULL |  4 | 猪八戒   |       | 1991-03-02 |          |
+     | NULL |  NULL |  NULL |   NULL |  5 | 唐三藏   |       | 1995-05-05 |          |
+     | NULL |  NULL |  NULL |   NULL |  6 | 沙僧     |       | 1992-02-02 |         |
+     | NULL |  NULL |  NULL |   NULL |  7 | 哪吒     |        | NULL       |          |
+     | NULL |  NULL |  NULL |   NULL |  9 | 托塔天王 |       | NULL       |          |
+     | NULL |  NULL |  NULL |   NULL | 11 | 唐太宗   |       | NULL       |          |
+     +------+-------+-------+--------+----+----------+--------+------------+----------+
+     13 rows in set (2.23 sec)
+     ```
+
+4. 练习
+
+   - 查询学生的姓名、平均分
+
+     说明：__级联查询当作 from 级别（从哪个表来的数据就行），其他执行顺序不表__
+
+     ```sql
+     mysql> select students.name,avg(scores.score) from scores
+         -> inner join students on scores.stuid=students.id
+         -> group by students.id;
+         
+     +--------+-------------------+
+     | name   | avg(scores.score) |
+     +--------+-------------------+
+     | tom    |         82.810000 |
+     | jack   |         94.125000 |
+     | 孙行者 |         88.620000 |
+     +--------+-------------------+
+     3 rows in set (2.28 sec)
+     ```
+
+   - 查询男生姓名、总分
+
+     说明：在 scores 表中，查询字段 name, sum(score)，关联 students，where 男生，group by name，order by 排序
+
+     ```sql
+     mysql> select students.name,sum(scores.score) from scores
+         -> inner join students on students.id=scores.stuid
+         -> where students.gender=1
+         -> group by students.name
+         -> order by sum(scores.score);
+         
+     +--------+-------------------+
+     | name   | sum(scores.score) |
+     +--------+-------------------+
+     | 孙行者 |             88.62 |
+     | jack   |            188.25 |
+     | tom    |            248.43 |
+     +--------+-------------------+
+     3 rows in set (2.26 sec)
+     ```
+
+     解释：__如果按姓名分组，名字相同的可能会出现误差，应该按主键分组__
+     
+   - 查询科目名称、平均分
+   
+     1. 分析：科目名称来自于 subjects.title。分数来自于 scores.score，平均分为 avg(scores,score)。两张表连接为 subjects.id = scores.subid 。平均分是一定要分组的为 group by subjects.title
+   
+     2. ```sql
+        mysql> select subjects.title,avg(scores.score) from scores
+            -> inner join subjects on subjects.id=scores.subid
+            -> group by subjects.title
+            -> order by avg(scores.score);
+        +--------+-------------------+
+        | title  | avg(scores.score) |
+        +--------+-------------------+
+        | python |         50.330000 |
+        | java   |         92.513333 |
+        | c      |         98.715000 |
+        +--------+-------------------+
+        3 rows in set (2.23 sec)
+        ```
+
+### 自关联查询
+
+说明：将有相似结构的表，合成一个表
+
+1. 介绍
+
+   - 减少开销
+
+     在数据库中，创建一张表的开销是非常大的，而一张表使用大量数据（大量实体对象：行），开销远小于创建一张表。
+
+   - 使用要求
+
+     要求具有相似结构的多张表，__相似结构__ ，相差一两个字段无所谓，有的表实体没有字段可以添加上去，设为 null
+
+   - 自关联使用广泛
+
+2. 图解
+
+   - 相似结构的多张表
+
+     说明：__(省: 市) 为 (1: n)关系，所以关系存放在市的表中__
+
+     ![相似结构的多张表](git_picture/相似结构的多张表.png)
+
+   - 合成一张表
+
+     ![合成一张表](git_picture/合成一张表.png)
+
+3. 实现 __省、市、区县 合并一张表的插入_
+
+   - 代码实现
+
+     1. 正确
+
+        ```sql
+        mysql> create table areas(
+            -> id int auto_increment primary key not null,
+            -> title varchar(20),
+            -> pid int,
+            -> foreign key(pid) references areas(id));
+        Query OK, 0 rows affected (2.49 sec)
+        
+        mysql> desc areas;
+        +-------+-------------+------+-----+---------+----------------+
+        | Field | Type        | Null | Key | Default | Extra          |
+        +-------+-------------+------+-----+---------+----------------+
+        | id    | int(11)     | NO   | PRI | NULL    | auto_increment |
+        | title | varchar(20) | YES  |     | NULL    |                |
+        | pid   | int(11)     | YES  | MUL | NULL    |                |
+        +-------+-------------+------+-----+---------+----------------+
+        3 rows in set (2.24 sec)
+        ```
+
+     2. 错误
+
+        ```sql
+        mysql> create table areas(
+            -> id int auto_increment primary key not null,
+            -> title varchar(20),
+            -> foreign key(pid) references areas(id)
+            -> );
+        ERROR 1072 (42000): Key column 'pid' doesn't exist in table
+        ```
+
+        解释：要先创建 pid 字段，然后再用用外键
+
+4. __插入数据__
+
+   - 命令
+
+     `source xxx.sql;`
+
+   - 使用命令行进行插入数据 __报错__
+
+     1. 错误信息
+
+        ```txt
+        as_ibfk_1` FOREIGN KEY (`pid`) REFERENCES `areas` (`id`))
+        ERROR 1406 (22001): Data too long for column 'title' at row 1
+        ERROR 1366 (HY000): Incorrect string value: '\xAE\xB6\xE6\xB8\xA0\xE5...' for column 'title' at row 1
+        ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`python3`.`areas`, CONSTRAINT `areas_ibfk_1` FOREIGN KEY (`pid`) REFERENCES `areas` (`id`))
+        ERROR 1406 (22001): Data too long for column 'title' at row 1
+        ERROR 1406 (22001): Data too long for column 'title' at row 1
+        ERROR 1406 (22001): Data too long for column 'title' at row 1
+        ```
+
+     2. 有可能错误原因
+
+        - xxx.sql 与数据库表格编码格式不一样，但是我查看了一下，都是 utf8 编码格式，所以无法解决
+
+   - 使用 Navicat
+
+     1. 在数据库右击鼠标，出现导入 SQL 文件，执行正确
+
+        ```sql
+        mysql> select count(*) from areas;
+        +----------+
+        | count(*) |
+        +----------+
+        |     3508 |
+        +----------+
+        1 row in set (0.00 sec)
+        ```
+
+5. 查询数据
+
+   说明：两种方法：__子查询、连接查询__，但是不推荐使用子查询
+   
+   - 合并表介绍
+     
+   1. 合并表是 3 张表数据合在一张表，虽然存储再一张表中，但是查询时，分开查询，就是查省时，areas 表变成 province 表，查市时，areas 表变成 city 表，这样在逻辑上会显得清晰
+   
+   - 子查询
+   
+     查询属于辽宁省的市
+   
+     1. 先下查询辽宁省的 id
+   
+        ```sql
+        mysql> select province.id from areas as province where title='辽宁省';
+        +--------+
+        | id     |
+        +--------+
+        | 210000 |
+        +--------+
+        1 row in set (0.00 sec)
+        ```
+   
+     2. 再查询 pid=辽宁id 的市
+   
+        ```sql
+        mysql> select city.id,city.title from areas as city where pid=(select province.id from areas as province where title='辽宁省');
+        +--------+----------+
+        | id     | title    |
+        +--------+----------+
+        | 210100 | 沈阳市   |
+        | 210200 | 大连市   |
+        | 210300 | 鞍山市   |
+        | 210400 | 抚顺市   |
+        | 210500 | 本溪市   |
+        | 210600 | 丹东市   |
+        | 210700 | 锦州市   |
+        | 210800 | 营口市   |
+        | 210900 | 阜新市   |
+        | 211000 | 辽阳市   |
+        | 211100 | 盘锦市   |
+        | 211200 | 铁岭市   |
+        | 211300 | 朝阳市   |
+        | 211400 | 葫芦岛市 |
+        +--------+----------+
+        14 rows in set (0.00 sec)
+        ```
+   
+   - 连接查询
+   
+     1. 先连接表（省表和市表连接）
+   
+        `from areas as province inner join areas as city on province.id=city.pid `
+   
+     2. 查询 省的id、省名称、市id、 市名
+   
+        `select province.id as proid,province.title as protitle,city.id as cid,city.title as ctitle`
+   
+     3. 查询条件
+   
+        `where province.title='辽宁省'`
+   
+     4. 查询结果
+   
+        ```sql
+        mysql> select province.id as proid,province.title as protitle,city.id as cid,city.title as ctitle
+            -> from areas as province inner join areas as city on province.id=city.pid
+            -> where province.title='辽宁省';
+        +--------+----------+--------+----------+
+        | proid  | protitle | cid    | ctitle   |
+        +--------+----------+--------+----------+
+        | 210000 | 辽宁省   | 210100 | 沈阳市   |
+        | 210000 | 辽宁省   | 210200 | 大连市   |
+        | 210000 | 辽宁省   | 210300 | 鞍山市   |
+        | 210000 | 辽宁省   | 210400 | 抚顺市   |
+        | 210000 | 辽宁省   | 210500 | 本溪市   |
+        | 210000 | 辽宁省   | 210600 | 丹东市   |
+        | 210000 | 辽宁省   | 210700 | 锦州市   |
+        | 210000 | 辽宁省   | 210800 | 营口市   |
+        | 210000 | 辽宁省   | 210900 | 阜新市   |
+        | 210000 | 辽宁省   | 211000 | 辽阳市   |
+        | 210000 | 辽宁省   | 211100 | 盘锦市   |
+        | 210000 | 辽宁省   | 211200 | 铁岭市   |
+        | 210000 | 辽宁省   | 211300 | 朝阳市   |
+        | 210000 | 辽宁省   | 211400 | 葫芦岛市 |
+        +--------+----------+--------+----------+
+        14 rows in set (0.00 sec)
+        ```
+   
+   - 连接查询（areas 的 省、市、区 联合查询）
+   
+     1. 查询语句
+   
+        说明：查询存放 __关系字段__ 的表，再连接其他表
+   
+        ```sql
+        mysql> select province.title as protitle,city.title as cititle,county.title as cotitle from areas as city
+            -> inner join areas as province on city.pid=province.id
+            -> inner join areas as county on city.id=county.pid
+            -> where province.title='辽宁省';
+        ```
+   
+     2. 查询结果
+   
+        ```sql
+        +----------+----------+------------------------+
+        | protitle | cititle  | cotitle                |
+        +----------+----------+------------------------+
+        | 辽宁省   | 沈阳市   | 市辖区                 |
+        | 辽宁省   | 沈阳市   | 和平区                 |
+        | 辽宁省   | 沈阳市   | 沈河区                 |
+        | 辽宁省   | 沈阳市   | 大东区                 |
+        | 辽宁省   | 沈阳市   | 皇姑区                 |
+        | 辽宁省   | 沈阳市   | 铁西区                 |
+        | 辽宁省   | 沈阳市   | 苏家屯区               |
+        ```
+
+### 视图
+
+1. 介绍
+
+   - 视图是从一个或多个基本表（或视图）导出的表。
+   - 与基本表不同，它是个虚拟表。即数据库只存放视图的定义，而不存放视图对应的数据，这些数据仍存放在原来的基本表中
+   - 一旦基本表数据发生变化，从视图中查询的数据也随之变化
+   - 视图一经定义，就可以与基本一样被查询、被删除，也可以在一个是视图上，再定义一个视图，但对视图的更新（增、删、改）操作有一定限制
+
+2. 目的
+
+   - 对于复杂的查询，多次使用，维护时一件麻烦的事情
+   - 解决：定义视图，对查询进行一个分装
+
+3. 语法
+
+   - `create view 视图 as SQL查询语句;`
+
+     视图一般加 `v_` 表明是视图，多个表重名字段，不查询、取别名
+
+   - 先写好 查询语句
+
+     ```sql
+     mysql> select students.id as stuid,students.name, students.gender,subjects.title,scores.score from scores
+         -> inner join students on students.id=scores.stuid
+         -> inner join subjects on subjects.id=scores.subid
+         -> where students.isDelete=0;
+     +-------+--------+--------+-------+-------+
+     | stuid | name   | gender | title | score |
+     +-------+--------+--------+-------+-------+
+     |     2 | jack   |       | c     | 99.33 |
+     |     2 | jack   |       | java  | 88.92 |
+     |    10 | 孙行者 |       | java  | 88.62 |
+     +-------+--------+--------+-------+-------+
+     3 rows in set (0.02 sec)
+     ```
+
+   - 再创建视图
+
+     ```sql
+     mysql> create view v_stu_sub_sco as
+         -> select students.id as stuid,students.name, students.gender,subjects.title,scores.score from scores
+         -> inner join students on students.id=scores.stuid
+         -> inner join subjects on subjects.id=scores.subid
+         -> where students.isDelete=0;
+     Query OK, 0 rows affected (2.35 sec)
+     
+     mysql> select * from v_stu_sub_sco;
+     +-------+--------+--------+-------+-------+
+     | stuid | name   | gender | title | score |
+     +-------+--------+--------+-------+-------+
+     |     2 | jack   |       | c     | 99.33 |
+     |     2 | jack   |       | java  | 88.92 |
+     |    10 | 孙行者 |       | java  | 88.62 |
+     +-------+--------+--------+-------+-------+
+     3 rows in set (0.21 sec)
+     ```
+
+   - 修改视图
+
+     ```sql
+     mysql> alter view v_stu_sub_sco as
+         -> select students.id as stuid,students.name, students.gender,subjects.title,scores.score from scores
+         -> inner join students on students.id=scores.stuid
+         -> inner join subjects on subjects.id=scores.subid
+         -> where students.isDelete=1;
+     Query OK, 0 rows affected (2.27 sec)
+     
+     mysql> select * from v_stu_sub_sco;
+     +-------+------+--------+--------+--------+
+     | stuid | name | gender | title  | score  |
+     +-------+------+--------+--------+--------+
+     |     1 | tom  |       | c      |  98.10 |
+     |     1 | tom  |       | java   | 100.00 |
+     |     1 | tom  |       | python |  50.33 |
+     +-------+------+--------+--------+--------+
+     3 rows in set (0.00 sec)
+     ```
+
+### 事物
+
+说明：当一个业务逻辑需要多条 sql 语句完成时，如果其中一条 sql 语句出现错误，则希望整个操作都退回，宝座逻辑的正确性。__表的类型必须是 InnoDB 、 BDB 类型，才可以使用事务__。<br>修改表的类型 `alter table '表名' engine=InnoDB;`
+
+1. 介绍
+
+   - 事务
+
+     所谓事务使用户定义的一个数据库操作序列，这些操作要么全做，要么全都不做，是一个不可分割的工作单位
+
+   - 定义事务 3 条语句
+
+     1. `begin`
+     2. `commit`
+     3. `rollback`
+     4. 事务通常是以 `begin` 开始，以 `commit` 或 `roolback` 结束。<br>`commit` 表时提交，即提交事务所有操作，具体地说加将事务中所有对数据库的更新写回到磁盘上的物理数据中去，事务正常结束。<br> `rollback` 表时回滚，即在事务运行过程中发生某种故障，事务不能正常执行，系统将事务中对数据库的所有已完成操作全部撤回，回滚到是恶u开始执行的状态
+
+   - 事务的 4 大特性（简称 ACID）
+
+     1. 原子性（Atomicity）
+
+        事务是数据库的逻辑工作单位，事务中包含诸多操作，要么都做，要么全部做，即事务的群不操作在数据库中是不可分的，
+
+     2. 一致性（Consistency）
+
+        多个并行执行的事务，其执行结果必须与按某一顺序串行执行的结果相一致 <br> 某公司在银行有 A，B 两个账号，现在想从 A 账号中取出 1 万，存入 B 中，那么就定义一个事务，该事务包括 2 个操作，第一个操作是从 A 账号取出 1 万，第二个操作向 B 存入 1 万。这两个操作要么全做，要么全不做。全做、全不做，数据库都处于一致性状态。如果只做一个操作，则逻辑上就发生错误，减少或增加 1 万，这是数据库处于不一致状态。__可见一致性核原子性是密切相关的__
+
+     3. 隔离性（Isolation）
+
+        一个事务执行不能被其他事务干扰。即一个事务的内被操作及使用的数据对其他并发事务时隔离的，并发执行的事务之间不能相互干扰
+
+     4. 持续性（Durability）
+
+        持续性也称持久性，指一个事务一旦提交，他对数据库中数据的改变应该是永久性的。接下来的其他操作或者发生故障不应对其执行结果产生任何影响
+
+2. 使用事务的情况
+
+   说明：当数据库更改时，包括：insert \ update \ delete
+
+   - 事务操作流程图
+
+     ![事务操作](git_picture/事务操作.png)
+
+   - 代码演示
+
+     说明：__此处将打开 2 个命令行窗口，看来模拟不同的用户，进而展示事务的操作原理。定义用户 A，B__
+
+     1. 数据库原始数据
+
+        ```sql
+        mysql> select * from subjects;
+        +----+--------+
+        | id | title  |
+        +----+--------+
+        |  2 | c      |
+        |  3 | java   |
+        |  4 | python |
+        +----+--------+
+        3 rows in set (2.26 sec)
+        ```
+
+     2. 用户 A，事务，修改数据
+
+        - 修改、查询
+
+          说明：__此条数据被上锁__，其他改变此条数据的操作是不被允许的
+
+          ```sql
+          mysql> begin;
+          Query OK, 0 rows affected (0.00 sec)
+          
+          mysql> update subjects set title='c/c++' where id=2;
+          Query OK, 1 row affected (0.00 sec)
+          Rows matched: 1  Changed: 1  Warnings: 0
+          
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c/c++  |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.00 sec)
+          ```
+
+          解释：用户 A，数据显示已被修改，但是没有提交
+
+     3. 用户 B 查看 subjects；
+
+        - 查询
+
+          ```sql
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c      |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.01 sec)
+          ```
+
+          解释：用户 B，数据没有修改，所以，事务在没有提交时，修改在内存的临时表中
+
+     4. 用户 A，回滚
+
+        - 用户 A，回滚：撤销修改、查询
+
+          ```sql
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c      |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.00 sec)
+          ```
+
+        - 对比用户 B 数据
+
+          ```sql
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c      |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.00 sec)
+          ```
+
+        - 解释，用户 B 还是没有变化
+
+     5. 用户 A， 再次修改数据
+
+        - 事务定义、修改数据、提交、查询
+
+          ```sql
+          mysql> begin;
+          Query OK, 0 rows affected (0.00 sec)
+          
+          mysql> update subjects set title='c/c++' where id=2;
+          Query OK, 1 row affected (0.00 sec)
+          Rows matched: 1  Changed: 1  Warnings: 0
+          
+          mysql> commit;
+          Query OK, 0 rows affected (0.05 sec)
+          
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c/c++  |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.00 sec)
+          ```
+
+        - 对比用户 B
+
+          ```sql
+          mysql> select * from subjects;
+          +----+--------+
+          | id | title  |
+          +----+--------+
+          |  2 | c/c++  |
+          |  3 | java   |
+          |  4 | python |
+          +----+--------+
+          3 rows in set (0.00 sec)
+          ```
+
+          解释：用户 B 数据显示修改，所以提交之后，数据写入磁盘（物理存储），数据正式修改成功
+
+### 索引
+
+说明：当表的数据量比较大时（索引建立，要根据实际情况来判断，且的有大量数据支撑），查询会比较耗时。建立索引是加快查询速度的有效手段
+
+1. 介绍
+
+   - 索引能快速定位到要查找的内容
+
+   - 数据库有默认索引，数据库存储是按照主键存储
+   - 索引虽然能够加快数据库查询，但需要占用一定的存储空间，当基本更新时，索引要进行相应的维护，这些都增加了数据库的负担。
+   - 再没建立索引时，where 是每一行逐条数据进行查找（就算找到了，where 还是会进行逐行查找，知道找完，返回查询信息），当你建立索引时，是根据 where 条件对哪一列进行筛选（频率大），对哪一列，建立索引
+   - 索引可以对单列建立索引，也可以对多列建立一个索引，索引对等值有用，对范围来说，索引没用
+   - 范围、or 是终断索引的逻辑运算符
+
+2. 索引数据类型
+
+   - 通常数据类型越小越好，越小的数据类型通常在磁盘、内存和 cpu 缓存占用更少的空间，处理起来更快
+   - 越简单的数据类型，越好。数型类型数据比字符，处理开销更小，因为字符串比较复杂
+   - 避免 NULL，索引列因该指明 NOT NULL，除非你想存储 NULL。在 Mysql 中，含有 NULL 的列很难进行查询优化，因为它使得索引、索引的统计信息以及比较运算更加复杂。__最好用 0、一个特殊的值或者一个空字符串代替 空值__
+
+3. 语法
+
+   - 查看表的索引  <br>`show index from '表名'`
+
+     说明：表的默认索引为 主键
+
+     ```sql
+     mysql> show index from students;
+     +----------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+     | Table    | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
+     +----------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+     | students |          0 | PRIMARY  |            1 | id          | A         |           9 |     NULL | NULL   |      | BTREE      |         |               |
+     +----------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+     1 row in set (0.06 sec)
+     ```
+
+   - 创建索引
+
+     说明：最好查一下官方文档 [官方文档](https://dev.mysql.com/doc/refman/5.6/en/create-index.html)
+
+     1. 索引，不能再 primary key 上建立。很好理解，primary key 是默认索引
+
+     2. `create index index_name on tabl_name(col_name[(length)])`
+
+        index_name ：索引名字（自定义）<br> tabl_name：表名 <br> col_name：表的列名 <br> length：定义长度（不用写）
+
+     3. 删除索引
+
+        `drop index [index_name] on tabl_name`
+
+     4. 实现创建索引
+
+        ```sql
+        mysql> create index index_name on test(name);
+        Query OK, 0 rows affected (0.29 sec)
+        Records: 0  Duplicates: 0  Warnings: 0
+        
+        mysql> show index from test;
+        +-------+------------+------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+        | Table | Non_unique | Key_name   | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
+        +-------+------------+------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+        | test  |          0 | PRIMARY    |            1 | id          | A         |           0 |     NULL | NULL   |      | BTREE      |         |               |
+        | test  |          1 | index_name |            1 | name        | A         |           0 |     NULL | NULL   |      | BTREE      |         |               |
+        +-------+------------+------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+        2 rows in set (0.00 sec)
+        ```
+
+     5. 实现删除索引（默认主键索引，删不去）
+
+        - 删除自定义索引
+
+          ```sql
+          mysql> drop index index_name on test;
+          Query OK, 0 rows affected (0.10 sec)
+          Records: 0  Duplicates: 0  Warnings: 0
+          
+          mysql> show index from test;
+          +-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+          | Table | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
+          +-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+          | test  |          0 | PRIMARY  |            1 | id          | A         |           0 |     NULL | NULL   |      | BTREE      |         |               |
+          +-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+          1 row in set (0.00 sec)
+          ```
+
+        - 不能删除主键索引
+
+          ```sql
+          mysql> drop index primaty on test;
+          ERROR 1091 (42000): Can't DROP 'primaty'; check that column/key exists
+          ```
+
+### 索引性能对比
+
+1. 查看执行时间
+
+   - 开启时间监控
+
+     `set profiling=1;`
+
+   - 执行语句
+
+   - 查看语句运行时间
+
+     `show profiles;`
+
+2. 对 areas 表，创建索引（col_name=title）
+
+   - 实验
+
+     ```sql
+     # 开启语句执行时间监控
+     mysql> set profiling=1;
+     Query OK, 0 rows affected, 1 warning (0.06 sec)
+     
+     # 查询语句
+     mysql> select * from areas where title='呼和浩特市';
+     +--------+------------+--------+
+     | id     | title      | pid    |
+     +--------+------------+--------+
+     | 150100 | 呼和浩特市 | 150000 |
+     +--------+------------+--------+
+     1 row in set (0.01 sec)
+     
+     # 创建索引
+     mysql> create index index_title on areas(title);
+     Query OK, 0 rows affected (0.51 sec)
+     Records: 0  Duplicates: 0  Warnings: 0
+     
+     # 查询语句
+     mysql> select * from areas where title='呼和浩特市';
+     +--------+------------+--------+
+     | id     | title      | pid    |
+     +--------+------------+--------+
+     | 150100 | 呼和浩特市 | 150000 |
+     +--------+------------+--------+
+     1 row in set (0.03 sec)
+     
+     # 执行时间对比
+     mysql> show profiles;
+     +----------+------------+---------------------------------------------+
+     | Query_ID | Duration   | Query                                       |
+     +----------+------------+---------------------------------------------+
+     |        1 | 0.01842175 | select * from areas where title='?????????' |
+     |        2 | 0.50237800 | create index index_title on areas(title)    |
+     |        3 | 0.02832325 | select * from areas where title='?????????' |
+     +----------+------------+---------------------------------------------+
+     3 rows in set, 1 warning (0.00 sec)
+     ```
+
+   - 结果
+
+     没有建立索引查询时间较短，不知为何。正常情况下，应该是建立索引的查询时间短啊 ！！！:blonde_woman:
+
+# 非关系型数据库
+
+## NoSQL 介绍
+
+说明：NoSQL（not only sql） 是对不同于传统的关系型数据库的数据库管理系统的统称 [NoSQ百科](https://zh.wikipedia.org/wiki/NoSQL)。__本人理解：NoSQL 是为了解决一些查询频繁，而写入相对较少的应用，提供了一种基于内存数据查询，以提高查询速度，当然 NoSQL 也可以物理存储的__
+
+1. 介绍
+
+   说明：[键值存储](https://zh.wikipedia.org/wiki/%E9%94%AE-%E5%80%BC%E5%AD%98%E5%82%A8)    [面向文档数据库](https://zh.wikipedia.org/wiki/%E9%9D%A2%E5%90%91%E6%96%87%E6%AA%94%E7%9A%84%E6%95%B8%E6%93%9A%E5%BA%AB)    [JOIN](https://zh.wikipedia.org/wiki/连接_(SQL))    [分布式散列表](https://zh.wikipedia.org/wiki/分散式雜湊表)
+
+   - 介绍
+
+     > NoSQl，全名 Not Only SQl，指的是非关系型数据库（现在这样定义的）。因此，对 NoSQL 最普遍的解释是“非关联型的”，强调 __键-值存储__ 和 __面向文档数据库__ 的优点，而不是单纯的反对RDBMS。
+     >
+     > 两者存在许多显著的不同点，其中最重要的是NoSQL不使用SQL作为查询语言。其数据存储可以不需要固定的表格模式，也经常会避免使用 __SQL 的 JOIN 操作__，一般有 __水平可扩__ 的特征。
+     >
+     > 当代典型的 __关系型数据库__ 在一些数据敏感应用中表现了糟糕的性能。例如：为巨量文档创建索引、高流量网站的网页服务，以及发送流式媒体。关系型数据库的典型实现主要被调整用于执行规模小而读写频繁，或者大批量极少写访问的事务。__于是 NoSQL 被设计出来。NoSQL的结构通常提供弱一致性的保证，少数NoSQL系统部署了分布式结构，通常使用分布式散列表（DHT）将数据以冗余方式保存在多台服务器上。依此，扩充系统时候添加服务器更容易，并且扩大了对服务器失效的承受能程度。__
+
+   - 暂时使用流程图
+
+     ![NoSQL流程图](git_picture/NoSQL流程图.png)
+
+     
+
+2. 特点
+
+   - 优点
+     1. 高可扩展性
+     2. 分布式计算
+     3. 低成本
+     4. 框架的灵活性，半结构化数据
+     5. 没有复杂的关系
+   - 缺点
+     1. 无标准化（因为提供数据弱一致性的保证）
+     2. 有限的查询功能（目前）
+     3. 程序不直观
+   
+3. 分类介绍 
+
+   - 如表
+
+     | 类型             | 部分代表                                                     | 特点                                                         |
+     | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+     | 列存储           | Cassandra <br> Hupertable                                    | 是按照列存储数据的，最大特点是方便存储结构化和半结构化数据。方便数据压缩，对针对某一列或者某几列的查询有非常大的 IO 优势 |
+     | 文档存储         | MongoDB <br> CouchDB                                         | 文档存储一般用类似 JSON 的格式存储，存储内容是文档型的。这样就有机会对某些字段建立索引，实现关系数据库的某些功能 |
+     | (key-value) 存储 | Tokyo Cabinet / tyrant <br> Berkeley DB <br> MemcacheDB <br> Redis | 可以通过 key 快速查询到 value。一般来说，不管是不是 value 格式，照单全收（Redis 还有其它功能） |
+     | 图存储           | Neo4J <br> FlockDB <br>                                      | 图像关系最佳存储。使用传统关系型数据库来解决的话性能低下，而且设计使用不方便 |
+     | 对象存储         | db4o <br> versant                                            | 通过类似面向对象的语法操作数据库，通过对象的方式存取数据     |
+     | xml 数据库       | Berkeler DB XML <br> BaseX                                   | 高效的存储 XML 数据，并支持 XML 的内部查询语法，比如 XQuery，Xpath |
+     
+
+## MongDB
+
+### 理论介绍
+
+1. 介绍
+   - MongoDB 是一种基于 __分布式__ 文件存储的 NoSQL 的数据库
+   - 由 c++ 语言编写，运行稳定、性能高
+   - 目的在于为 WEB 应用提供可扩展的高性能的数据库存查询决方案
+2. 特点
+   - __模式自由__：可以把不同结构的文档存储在同一个数据库中
+   - __面向集合的存储__：适合存储 JSON 风格文件的形式
+   - __完整的索引支持__：对任何属性都可索引
+   - __复制和高可用性__：支持服务器之间的数据复制，支持 --> 从模式及服务器之间相互复制。复制的主要目的是提供冗余及自动故障转移
+   - __自动分片__：支持云级别的伸缩性：自动分片功能支持水平的数据库集群，可以动态添加额外的机器
+   - __丰富的查询__：支持丰富的查询表达式，查询指令使用 JSON 形式的标记，可以轻易查询文档中内嵌对象及数据
+   - __快速就地更新__：查询优化器会分析查询表达式，并生成一个高效的查询计划
+   - __高效的传统的存储方式__：支持二进制数据及大型对象（如，照片）
+
+### MongoDB 安装
+
+说明：两个网址介绍 MongoDB 安装过程 [简书](https://www.jianshu.com/p/d6c7adfe45cf)    [菜鸟教程](https://www.runoob.com/mongodb/mongodb-window-install.html)。这里只说明本人安装 MongoDB 出现的错误以及解决的方法
+
+1. `net start MongoDB` 提示：发生系统错误 5，拒绝访问
+
+   - 解决办法
+
+     选择 __管理员身份__ 运行
+
+2. `net start MongoDB` 提示：服务没有相应功能 
+
+   - 解决办法
+
+     1. 输入命令
+
+        `sc delete MongoDB` 不知道什么意思，但是好用。（从注册表中删除服务子项）
+
+     2. 重新输入
+
+        `mongod.exe --config "(配置文件路径)mongod.cfg" --install`
+
+### 启动 MongoDB 
+
+说明：启动分为两种方法，因为安装分为两种方式，这里只介绍一种（感觉启动简单）
+
+1. 初始化 `mongod.cfg` 文件的启动方法
+
+   - 启动 MOngoDB，__使用管理员权限__
+
+     `net start MongoDB`
+
+   - 客户端连接
+
+     `mongo`
+
+   - 关闭 MongoDB
+
+     `net stop MongoDB`
+
+2. 查看 MongoDB 基本操作
+
+   - 查看当前数据库
+
+     ```sql
+     > db;
+     test
+     ```
+
+   - 查看当前数据库信息
+
+     ```sql
+     > db.stats;
+     function (scale) {
+             return this.runCommand({dbstats: 1, scale: scale});
+         }
+     ```
+
+   - 查看当前所有数据库
+
+     ```sql
+     > show databases;
+     admin   0.000GB
+     config  0.000GB
+     local   0.000GB
+     ```
+
+   - 退出
+
+     ```sql
+     quit()
+     ```
+
+     
+
+### 基本操作（重点）
+
+说明：数据库的创建，集合的创建与删除
+
+1. 主要内容
+
+   - MongoDB 将数据存储为一个文档，数据结构由键值（key-value） 对组成
+   - MongoDB 文档类似于 JSON 对象，字段值可以包含其他文档、数组、文档数据
+   - 安装管理 MongoDB 环境
+   - 完成数据库、集合管理
+   - 数据的增、删、改、查
+
+2. 与 SQL 名词对比
+
+   - 如表
+
+     | SQL 术语 / 概念 | MongoDB 术语 / 概念 | 解释 / 说明                            |
+     | --------------- | ------------------- | -------------------------------------- |
+     | database        | database            | 数据库                                 |
+     | table           | collection          | 数据库 表 / 集合                       |
+     | row             | document            | 数据记录行 / 文件                      |
+     | column          | field               | 数据字段 / 域                          |
+     | index           | index               | 索引                                   |
+     | table joins     |                     | 表连接 / MongoDB 不支持                |
+     | primary key     | primary key         | 主键 / MongoDB 自动将 _id 字段设为主键 |
+
+   - MongoDB 组成 3 元素
+
+     1. __数据库__
+     2. __集合__：集合就是关系型数据库的 __表__
+     3. __文档__：文档对应着关系型数据的 __行__
+
+   - 文档 <br> 就是一个对象，由键值对构成，是 Json 的扩展 Dson 形式 
+
+     `{'id': 0, name': '老王', 'gender': 1, age: 100}`
+
+   - 集合 <br> 类似于关系数据库中的表，存储多个文档，文档结构不固定，可以存储多个文档在集合中
+
+     ```json
+     {'id': 0, name': '老王', 'gender': 1, age: 100}
+     {'id': 0, name': '小王', 'gender': 1}
+     {'id': 0, name': '张三',  age: 99}
+     {'id': 0, name': '李四', 'gender': 0, age: 90}
+     ```
+
+   - 数据库 <br> 是一个集合的物理存储。一个数据库中可以包含多个集合 <br> 一个服务器通常包含多个数据库
+
+3. 基本语法操作
+
+   - __数据库操作__
+
+     1. 启动 MongoDB 服务，进入客户端
+
+        ```sql
+        C:\WINDOWS\system32>net start MongoDB
+        MongoDB 服务正在启动 ..
+        MongoDB 服务已经启动成功。
+        
+        # 进入客户端
+        C:\WINDOWS\system32>mongo
+        ```
+
+     2. 查看所有数据库，以及当前使用的数据库， 和切换数据库
+
+        说明：当查看所有数据库是，并没有 test 数据库，这是因为 __默认数据库为 test，如果没有创建新的数据库，集合将存储 test 数据库中，切换数据库，则指向数据库，但不创建，直到插入数据或者创建集合时数据库才会被创建，所以，查看所有数据库，并没有默认数据库 test，是因为 test 数据库没有数据__
+
+        ```sql
+        # 查看所有数据库
+        > show databases;
+        admin   0.000GB
+        config  0.000GB
+        local   0.000GB
+        
+        # 查看当前使用的数据库
+        > db;
+        test
+        
+        # 切换数据库
+        use '数据库'
+        ```
+
+     3. 删除数据库
+
+        说明：删除当前指向数据库，如果数据库不存在什么也不做
+
+        ```sql
+        db.dropDatabase();
+        ```
+
+   - __创建集合__
+
+     1. 语法讲解
+
+        - 基本语法
+
+          `db.createCollection(name, [options])`
+
+        - name 是创建集合的名称
+
+        - options 是一个文档类型数据，如 {capped: true, size: 10} （指定 集合上线，超将其之前覆盖），用于指定集合配置
+
+        - options 参数可选，所以一般只需要指定集合名称，不限制集合大小
+
+          `db.createCollection("stu")`
+
+     2. 创建集合（先创建数据库）
+
+        - 创建集合（数据库）
+
+          ```sql
+          > use python3
+          switched to db python3
+          > db.createCollection("stu", {capped: true, size: 5});
+          { "ok" : 1 }
+          ```
+
+        - 创建集合（没有约束）
+
+          `db.createCollection("stu")`
+
+          1. 参数 name 为集合名称，__必写__
+          2. 参数 {capped: true} :默认值为 false ，表示不设置上限，ture 表示设置上限
+          3. 参数 {size：10} 表示设置集合上限大小（capped 为 ture），当文档达到一定数目，就会覆盖前面数据
+
+   - __查看数据库集合__ 及 __删除集合__
+
+     1. 语法
+
+        ```sql
+        # 查看数据库集合
+        > show collections;
+        stu
+        
+        # 删除数据库集合
+        > db.stu.drop();
+        true
+        
+        # 再次查看数据库集合
+        > show collections;
+        # 返回为空
+        ```
+
+
+### 支持数据类型
+
+1. 下表为 MongoDB 常见几种数据类型
+
+   - 如表
+
+     | 数据类型  | 含义                                         |
+     | --------- | -------------------------------------------- |
+     | Object ID | 文档 ID                                      |
+     | String    | 字符串，最常用，必须是有效的 UTF-8           |
+     | Boolean   | 存储一个布尔值  [true, false]                |
+     | integer   | 整数可以是 32 位，或者是 64 位，取决于服务器 |
+     | Double    | 存储浮点值                                   |
+     | Arrarys   | 数组或者列表，多个值存储到一个键里           |
+     | Object    | 用于嵌入式的文档，即一个值，为一个文档       |
+     | Null      | 存储 Null 值                                 |
+     | Timestamp | 时间戳                                       |
+     | Date      | 存储当前日期或者时间的 UNIX 时间格式         |
+
+2. 解释数据类型的含义
+
+   - Object ID
+     1. 每一个文档都有的一个属性，为 _id ，保证每一个文档的唯一性
+     2. 可以自己设置 _id 插入文档（一般不自己设置）
+     3. 如果没有提供，MongoDB 为每一个文档提供一个独特的 _id ，类型为 ObjectID
+     4. ObjectID 是一个 12 字节的十六进制数
+        - 前四个字节为当前时间
+        - 接下来 3 个字节为机器 ID
+        -  接下来的 2 个字节为 MongoDB 的服务进程 ID
+        - 最后 3 个为简单的增量值
+
+### 数据操作
+
+说明：插入，简单的查询，更新数据，保存，删除集合中数据
+
+1. 插入数据，查询集合数据
+
+   - 插入语法
+     1. `db.集合名称.insert(document)` 
+     2. document：为文档（就是 key-value 值）
+     3. 插入文档时，如果不指定 _id 参数，MongoDB 会为文档分配一个唯一的 ObjectID
+     4. __插入数据时，和创建数据库有点类似（创建了，数据库也不存在，只有在其中创建集合了，才可以检索到），可以先不创建集合，而是直接使用插入语句，就可以创建集合，并且插入数据，__
+   - 查询语法
+     
+   1. `db.集合名称.find()`
+   
+   - 例1
+
+     ```sql
+     > show databases;
+     admin    0.000GB
+     config   0.000GB
+     local    0.000GB
+     python3  0.000GB
+     
+     # 切换数据库
+     > use python3;
+     switched to db python3
+     
+     # 创建集合
+     > db.createCollection("stu");
+     { "ok" : 1 }
+     > show collections;
+     stu
+     
+     # 向集合插入数据
+     > db.stu.insert({"name": "tom", "gender": 1, "age": 99});
+     WriteResult({ "nInserted" : 1 })
+     
+     # 查询集合中数据
+     > db.stu.find();
+     { "_id" : ObjectId("5dc8b3c61e728fe09d9a3acf"), "name" : "tom", "gender" : 1, "age" : 99 }
+     ```
+
+     解释：_id 为 mongoDB 自动进行维护
+
+   - 例2
+
+     说明：文档（key-value），key  可以不使用 分号（""）
+
+     ```sql
+     # 先定义文档
+     > s1 = {name: "jack"};
+     { "name" : "jack" }
+     # 向文档添加属性
+     > s1.gender = 1;
+     1
+     
+     # 将文档插入集合中
+     > db.stu.insert(s1)
+     WriteResult({ "nInserted" : 1 })
+     
+     # 查询集合数据
+     > db.stu.find();
+     { "_id" : ObjectId("5dc8b3c61e728fe09d9a3acf"), "name" : "tom", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dc8b5911e728fe09d9a3ad2"), "name" : "jack", "gender" : 1 }
+     ```
+
+2. 更新数据
+
+   - 语法
+
+     1. `db.集合名称.update(<query>,<update>,{multi: <boolean>});`
+     2. 参数 query ：查询条件，类似 SQL 语句中的 where 部分
+     3. 参数 update ：更新操作符，类似 SQL 语句中的 update 中 set 部分
+     4. 参数 multi ：可选，默认时 false，表示只更新找到的第一条数据，值为 true，表示把满足条件的文档全部更新，需要和关键字 `$set` 一起使用
+
+   - 例 1 __（全文档更新，修改文档结构）__
+
+     说明：参数 query、update 是必须要的，参数 multi 是可选的（默认更新一条）
+
+     1. 集合数据
+
+        ```sql
+        # 查看集合的文档
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "race", "gender" : 0, "age" : 9 }
+        ```
+
+     2. 不使用 multi 参数（默认为 fasle）
+
+        说明：修改 name 为 "race" 的文档
+
+        ```sql
+        # 修改 name 为 "race" 的文档
+        > db.stu.update({name: "race"},{name: "Race"})
+        WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+        
+        # 查看集合文档
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+        解释：全文档修改，就是将整个文档全部修改，__仔细查看文档变化细节__
+
+   - 例 2 __（指定属性跟新 $set）__
+
+     说明：使用关键字 `$set`
+
+     1. 集合文档
+
+        ```sql
+        # 集合文档
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 100 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+     2. 修改 name : "tom" 的 age 属性
+
+        ```sql
+        # 修改指定属性
+        > db.stu.update({name: "tom"},{$set: {age: 19}});
+        WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+   - 例 3 （修改匹配到的多条文档）
+
+     说明：__参数 multi 为 true，指定修改的属性，好像不能修改全文档__
+
+     1. 集合文档
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+     2. 修改多个文档属性
+
+        ```sql
+        > db.stu.update({gender: 1},{$set: {age: 111}},{multi: true});
+        WriteResult({ "nMatched" : 2, "nUpserted" : 0, "nModified" : 2 })
+        
+        # 查看文档
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+3. 保存操作
+
+   - 语法
+
+     1. `db.集合名称.save(document)`
+     2. 如果文档 _id 已经存在，则发生修改
+     3. 如果文档 _id 不存在，则发生插入 
+
+   - 例 1
+
+     说明：自定义文档 _id 属性
+
+     1. 集合文档
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        ```
+
+     2. 保存一个 _id 不重复的文档
+
+        ```sql
+        # 先定义一个文档
+        > s = {_id:1234, name: "老王", gender: 1, age: 35};
+        { "_id" : 1234, "name" : "老王", "gender" : 1, "age" : 35 }
+        
+        # 保存文档
+        > db.stu.save(s);
+        WriteResult({ "nMatched" : 0, "nUpserted" : 1, "nModified" : 0, "_id" : 1234 })
+        
+        # 查询文档
+        > db.stu.find();                                 };
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "老王", "gender" : 1, "age" : 35 }
+        ```
+
+     3. 保存一个重复 _id 的文档
+
+        ```sql
+        # 查询文档
+        > db.stu.find();                                 };
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "老王", "gender" : 1, "age" : 35 }
+        
+        # 保存文档
+        > s = {_id:1234, name: "隔壁老王", gender: 1, age: 35};
+        { "_id" : 1234, "name" : "隔壁老王", "gender" : 1, "age" : 35 }
+        
+        # 查询文档
+        > db.stu.find();                                   35};
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "隔壁老王", "gender" : 1, "age" : 35 }
+        ```
+
+4. 删除
+
+   - 语法
+
+     1. `db.集合名.remove(<query>,{justOne: <boolean>})`
+     2. 参数 query：删除的文档条件，必须写，但是以为空 ，如 `{}`
+     3. 参数 justOne：可选，如果设为 true 或 1，表示删除一条，默认 fase，表示删除多条
+
+   - 例 1
+
+     1. 集合数据
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf1a1e728fe09d9a3ad3"), "name" : "tom", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "隔壁老王", "gender" : 1, "age" : 35 }
+        ```
+
+     2. 删除一条数据
+
+        ```sql
+        # 删除一条数据
+        > db.stu.remove({age: 111}, {justOne: 1})
+        WriteResult({ "nRemoved" : 1 })
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "隔壁老王", "gender" : 1, "age" : 35 }
+        ```
+
+        解释：age:111 文档有两个，只删除了一个
+
+     3. 全部删除
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8bf2b1e728fe09d9a3ad4"), "name" : "jack", "gender" : 1, "age" : 111 }
+        { "_id" : ObjectId("5dc8bf451e728fe09d9a3ad5"), "name" : "Race" }
+        { "_id" : 1234, "name" : "隔壁老王", "gender" : 1, "age" : 35 }
+        
+        # 删除所有
+        > db.stu.remove({});
+        WriteResult({ "nRemoved" : 3 })
+        > db.stu.find();
+        >
+        ```
+
+        解释：条件 `{}` key-value 可以不写值，但必须有面（位置）
+
+### 关于 SIZE 的使用
+
+- 介绍
+
+  在创建集合时，指定 size 大小。当插入数据大于 size 时，后面的数据就会覆盖掉前面的数据
+
+- 实例
+
+  1. 创建一个集合，并设置 size 为 5
+
+     ```sql
+     > db.createCollection("stu", {capped: true, size: 5});
+     { "ok" : 1 }
+     > show collections;
+     stu
+     ```
+
+  2. 在集合 stu 中，插入 5 个文档
+
+     ```sql
+     # 定义数据
+     > s1 = {anme: "哪吒"}
+     { "anme" : "哪吒" }
+     > s2 = {name: "孙悟空"};
+     { "name" : "孙悟空" }
+     > s3 = {name: "玉皇大帝"};
+     { "name" : "玉皇大帝" }
+     > s4 = {name: "太上老君"};
+     { "name" : "太上老君" }
+     > s5 = {name: "猪八戒"};
+     { "name" : "猪八戒" }
+     
+     # 插入文档
+     > db.stu.insert(s1);
+     WriteResult({ "nInserted" : 1 })
+     > db.stu.insert(s2);
+     WriteResult({ "nInserted" : 1 })
+     > db.stu.insert(s3);
+     WriteResult({ "nInserted" : 1 })
+     > db.stu.insert(s4);
+     WriteResult({ "nInserted" : 1 })
+     > db.stu.insert(s5);
+     WriteResult({ "nInserted" : 1 })
+     
+     # 查询
+     > db.stu.find()
+     { "_id" : ObjectId("5dc8d15d1e728fe09d9a3ad6"), "anme" : "哪吒" }
+     { "_id" : ObjectId("5dc8d1651e728fe09d9a3ad7"), "name" : "孙悟空" }
+     { "_id" : ObjectId("5dc8d1691e728fe09d9a3ad8"), "name" : "玉皇大帝" }
+     { "_id" : ObjectId("5dc8d16d1e728fe09d9a3ad9"), "name" : "太上老君" }
+     { "_id" : ObjectId("5dc8d1701e728fe09d9a3ada"), "name" : "猪八戒" }
+     ```
+
+  3. 再插入 2 个文档
+
+     ```sql
+     # 插入一个文档
+     > db.stu.insert({name: "斗战神圣佛"});
+     WriteResult({ "nInserted" : 1 })
+     
+     # 查询
+     > db.stu.find()
+     { "_id" : ObjectId("5dc8d1651e728fe09d9a3ad7"), "name" : "孙悟空" }
+     { "_id" : ObjectId("5dc8d1691e728fe09d9a3ad8"), "name" : "玉皇大帝" }
+     { "_id" : ObjectId("5dc8d16d1e728fe09d9a3ad9"), "name" : "太上老君" }
+     { "_id" : ObjectId("5dc8d1701e728fe09d9a3ada"), "name" : "猪八戒" }
+     { "_id" : ObjectId("5dc8d1d51e728fe09d9a3adb"), "name" : "斗战神圣佛" }
+     
+     # 插入第二个文档
+     > db.stu.insert({name: "经坛使者"});
+     WriteResult({ "nInserted" : 1 })
+     # 查询
+     > db.stu.find()
+     { "_id" : ObjectId("5dc8d1691e728fe09d9a3ad8"), "name" : "玉皇大帝" }
+     { "_id" : ObjectId("5dc8d16d1e728fe09d9a3ad9"), "name" : "太上老君" }
+     { "_id" : ObjectId("5dc8d1701e728fe09d9a3ada"), "name" : "猪八戒" }
+     { "_id" : ObjectId("5dc8d1d51e728fe09d9a3adb"), "name" : "斗战神圣佛" }
+     { "_id" : ObjectId("5dc8d20f1e728fe09d9a3adc"), "name" : "经坛使者" }
+     ```
+
+     __解释：当达到 size 大小，在插入文档，就会替换最先插入的文档__
+
+### 数据查询
+
+1. 基本查询
+
+   - 方法 `find()`
+
+     1. `db.集合名称.find({查询条件)`
+
+        ```sql
+        > db.stu.find({name: "猪八戒"});
+        { "_id" : ObjectId("5dc8d1701e728fe09d9a3ada"), "name" : "猪八戒" }
+        ```
+
+     2. 查询条件可以不写 `db.集合名称,.find()` ，表示查询集合所有数据
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dc8d1691e728fe09d9a3ad8"), "name" : "玉皇大帝" }
+        { "_id" : ObjectId("5dc8d16d1e728fe09d9a3ad9"), "name" : "太上老君" }
+        { "_id" : ObjectId("5dc8d1701e728fe09d9a3ada"), "name" : "猪八戒" }
+        { "_id" : ObjectId("5dc8d1d51e728fe09d9a3adb"), "name" : "斗战神圣佛" }
+        { "_id" : ObjectId("5dc8d20f1e728fe09d9a3adc"), "name" : "经坛使者" }
+        ```
+
+   - 方法 `findOne()`
+
+     1. `db.stu.findOne({查询条件})`  查询条件不写，查询集合中第一条数据
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+        { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+        { "_id" : ObjectId("5dca5228f3c285c4652590c9"), "name" : "java", "credit" : 3 }
+        { "_id" : ObjectId("5dca522cf3c285c4652590ca"), "name" : "linux", "credit" : 1 }
+        
+        # 查询
+        > db.stu.findOne();
+        {
+                "_id" : ObjectId("5dca521ff3c285c4652590c7"),
+                "name" : "python",
+                "credit" : 2
+        }
+        ```
+
+     2. `db.stu.findOne({条件})` 写条件则返回符合条件的第一个
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+        { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+        { "_id" : ObjectId("5dca5228f3c285c4652590c9"), "name" : "java", "credit" : 3 }
+        { "_id" : ObjectId("5dca522cf3c285c4652590ca"), "name" : "linux", "credit" : 1 }
+        
+        # 查询
+        > db.stu.findOne({credit: 3});
+        { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+        ```
+
+   - 查询结果格式化
+
+     1. `.pretty()`
+
+        ```sql
+        # 结果格式化
+        > db.stu.find().pretty();
+        {
+                "_id" : ObjectId("5dca521ff3c285c4652590c7"),
+                "name" : "python",
+                "credit" : 2
+        }
+        { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+        {
+                "_id" : ObjectId("5dca5228f3c285c4652590c9"),
+                "name" : "java",
+                "credit" : 3
+        }
+        {
+                "_id" : ObjectId("5dca522cf3c285c4652590ca"),
+                "name" : "linux",
+                "credit" : 1
+        }
+        ```
+
+2. 比较运算符
+
+   - 如表
+
+     | 含义     | 符号                        |
+     | -------- | --------------------------- |
+     | 等于     | __无__，默认就是等于        |
+     | 小于     | __$lt__ (less than)         |
+     | 小于等于 | __$lte__ (less than equal)  |
+     | 大于     | __$gt__ (great than)        |
+     | 大于等于 | __$gte__ (great than equal) |
+     | 不等于   | __$ne__ (not equal)         |
+
+   - 等于运算符
+
+     ```sql
+     > db.stu.find({name:"c"});
+     { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+     ```
+
+   - 小于运算符（可以不是数型）
+
+     ```sql
+     > db.stu.find({credit:{$lt:3}})
+     { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+     { "_id" : ObjectId("5dca522cf3c285c4652590ca"), "name" : "linux", "credit" : 1 }
+     ```
+
+   - 小于等于运算符
+
+     ```sql
+     > db.stu.find({credit:{$lte:2}})
+     { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+     { "_id" : ObjectId("5dca522cf3c285c4652590ca"), "name" : "linux", "credit" : 1 }
+     ```
+
+   - 大于运算符
+
+     ```sql
+     > db.stu.find({credit:{$gt:2}})
+     { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+     { "_id" : ObjectId("5dca5228f3c285c4652590c9"), "name" : "java", "credit" : 3 }
+     ```
+
+   - 大于等于运算符
+
+     ```sql
+     > db.stu.find({credit:{$gte:2}})
+     { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+     { "_id" : ObjectId("5dca5225f3c285c4652590c8"), "name" : "c", "credit" : 3 }
+     { "_id" : ObjectId("5dca5228f3c285c4652590c9"), "name" : "java", "credit" : 3 }
+     ```
+
+   - 不等于运算符（可以不是数型）
+
+     ```sql
+     > db.stu.find({credit:{$ne:3}})
+     { "_id" : ObjectId("5dca521ff3c285c4652590c7"), "name" : "python", "credit" : 2 }
+     { "_id" : ObjectId("5dca522cf3c285c4652590ca"), "name" : "linux", "credit" : 1 }
+     ```
+
+3. 逻辑运算符
+
+   说明：查询时可以有多个条件，多个条件需要使用 __逻辑运算符__ 连接
+
+   - __逻辑与__ ：默认使用逻辑与关系，就是 __逗号分割__
+
+     1. 例 （查询年龄小于20，并且 gender： 1）
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+        { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+        # 查询
+        > db.stu.find({age:{$lt:20}, gender: 1});
+        { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+        ```
+
+        注意：{} 的位置
+
+   - __逻辑或__ ：使用 `$or` 注意使用 `[]`
+
+     1. 例 （查询年龄小于 20，或者 gender：1）
+
+        ```sql
+        > db.stu.find();
+        { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+        { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+        # 查询结果
+        > db.stu.find({$or:[{age:{$lt:20}}, {gender:1}]});
+        { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+        { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+        ```
+
+        注意：__[] 和 {} 的位置关系，和 逻辑与 不同__
+
+   - __逻辑或__ 、 __逻辑与__ 一起使用
+
+     1. 例（查询年龄小 20，或者大于 80 ，并且 gender：1）
+
+        ```sql
+        # 查询结果（好复杂）
+        > db.stu.find({$or:[{age:{$lt:20}}, {age:{$gt:80}}], gender: 1});
+        { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+        { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+        ```
+
+   - __范围运算符__ ：使用`$in`  \  `$nin`
+
+     1. 例（查询年龄是 35 或者 100 的）
+
+        ```sql
+        > db.stu.find({age:{$in:[35, 100]}});
+        { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+        ```
+
+     2. 例（查询年龄不是 19， 99， 35， 26的）
+
+        ```sql
+        > db.stu.find({age:{$nin:[19, 35, 99, 26]}});
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        ```
+
+   - __支持正则表达式__：使用 `//` 或者 `$regex`
+
+     说明：json 本身支持正则，所以 MongoDB 也支持
+
+     1. 例（查询 以 j 字母开头的 name）
+
+        ```sql
+        # 第一种
+        > db.stu.find({name:/^j/});
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        
+        # 第二种
+        >> db.stu.find({name:{$regex:"^j"}});
+        { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+        ```
+
+4. 自定义查询 
+
+   说明：最极致的查询方式
+
+   - 语法
+
+     使用 `$where` 后面写一个函数，返回满足条件的数据（使用 Javascript）
+
+   - 例
+
+     ```sql
+     > db.stu.find({$where:function(){return this.age>30}});
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     ```
+
+     解释：this 表示该集合，this.age 表示属性
+
+5. Limit 关键字
+
+   说明：可以类比 SQL 的关键字
+
+   - 介绍
+
+     使用 `limit()` ：用于读取指定数量的文档，如果没有指定参数，将获取全部数据
+
+   - 语法
+
+     `db.集合名称.find().limit(number)` number 表示文档数量
+
+   - 例（查询 3 条学生信息）
+
+     ```sql
+     # 查询 3 条数据
+     > db.stu.find().limit(3)
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     ```
+
+6. skip
+
+   - 介绍
+
+     使用 `skip()` ：用于指定跳过多少文档
+
+   - 语法
+
+     `db.集合名称.find().skip(number)` number：表示跳过的文档数，没有指定不跳过
+
+   - 例（一共 5 个数，跳过 3 个，结果可以查到 2 个）
+
+     ```sql
+     # 跳过 3 条数据
+     > db.stu.find().skip(3);
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     ```
+
+7. limit 和 skip 一起使用 可以起到与 SQL 分页功能
+
+   - 例（跳过 3 个数据，限制查询一个，就是得到第 4 个数据）
+
+     说明：skip 与 limit 使用部分先后顺序（本人感觉先使用 skip ，因为着用方便理解，先跳过，再查询）
+
+     ```sql
+     # 一共 5 条数据
+     > db.stu.find()
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 跳过 3 条，限制 1 条，结果为第 4 条
+     > db.stu.find().skip(3).limit(1);
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     
+     > db.stu.find().limit(1).skip(3);
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     ```
+
+8. 投影（显示想要的结果集）
+
+   - 语法
+
+     1. `db.集合名称.find({查询条件}, {字段1: 1字段2: 0})` 
+     2. 参数 0 ：表示不显示
+     3. 参数 1 ：表示显示
+
+   - 例（投影 姓名 年龄）
+
+     ```sql
+     > db.stu.find({},{name:1, age:1}).limit(2)
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "age" : 13 }
+     ```
+
+     解释：_id 默认为 1，默认显示，所以不显示 _id ，要将其设为 0，其他字段无所谓
+
+   - 例（不显示 _id）
+
+     ```sql
+     > db.stu.find({},{_id: 0,name:1, age:1}).limit(2)
+     { "name" : "tom", "age" : 19 }
+     { "name" : "jack", "age" : 13 }
+     ```
+
+9. 排序
+
+   说明：默认为升序
+
+   - 语法
+
+     1. `db.集合名称.find().sort(字段1:1, 字段2:-1)` 
+     2. 参数 1： 表示升序
+     3. 参数 -1： 表示降序
+
+   - 例（按照 性别 降序，再根据 年龄升序）
+
+     ```sql
+     > db.stu.find().sort({gender:-1, age:1});
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     ```
+
+10. 统计个数
+
+    - 语法
+
+      1. `db.集合名称.find({条件}).count()`
+      2. `db.集合名称.count({条件})` 可以简化，将条件写到 count() 中
+
+    - 例（查询 gender 为 1 的数量）
+
+      ```sql
+      # 正常写
+      > db.stu.find({gender:1}).count()
+      3
+      
+      # 简化写
+      > db.stu.count({gender:1})
+      3
+      ```
+
+    - 例（查询 年龄大于 30 的 数量）
+
+      ```sql
+      > db.stu.count({age:{$gt:30}})
+      2
+      ```
+
+11. 消除重复
+
+    说明：感觉有点鸡肋啊！！！
+
+    - 语法
+
+      1. `db.集合名称.distinct('去重字段',{条件})` __去重字段要加引号__
+
+    - 例（gender 为 1 的 name 去重）
+
+      ```sql
+      > db.stu.distinct('name',{gender:1});
+      [ "tom", "race", "mary" ]
+      ```
+
+    - 例（gender 去重）
+
+      说明：推荐条件占位
+
+      ```sql
+      # {条件}可以占位
+      > db.stu.distinct('gender',{});
+      [ 1, 0 ]
+      
+      # {条件} 可以不占位
+      > db.stu.distinct('gender');
+      [ 1, 0 ] 
+      ```
+
+##  MongoDB 高级操作
+
+说明：聚合、主从复制、分片、备份与恢复、MR
+
+### 聚合 aggregate 介绍
+
+1. 介绍
+
+   - 意义
+
+     聚合（aggregate）主要用于计算数据，类似于 SQL 中的 sum() 、avg()
+
+   - 语法
+
+     `db.集合名称.aggregate([{管道1:{表达式}},{管道2:{表达式}}...])` 参数位列表
+
+2. 管道
+
+   - 管道再 Unix 和 Linux 中一般用于将当前命令得输出结果作为下一个命令得输入
+   - 在 MongoDB 中，管道具有相同得作用，文档处理完毕后，通过管道进行下一次处理
+   - MongoDB 常用管道
+     1. `$group`：将集合中的文档分组，可用于统计结果
+     2. `$match`：过滤数据，只输出符合条件的文档，__类似于 find()__
+     3. `project`：修改输入文档结构，如重命名、增加、删除字段、创建计算结果，__类似于 投影__
+     4. `$sort`：将输入文档排序后输出
+     5. `limit`：限制聚合管道返回的文档数
+     6. `skip`：跳过指定数量的文档，并返回余下的文档
+     7. `unwind`：将数组类型的字段进行拆分
+
+3. 表达式
+
+   - 作用
+
+     处理输入文档并输出
+
+   - 语法
+
+     `表达式:'$列名'`
+
+   - 常用表达式
+
+     1. `$sum`：计算总和，`$sum:1` 和 `count` 表示计数
+     2. `$avg`：计算平均值
+     3. `$min`：获取最小值
+     4. `$max`：获取最大值
+     5. `$push`：将结构文档插入一个数据中
+     6. `$first`：根据资源文档的排序获取第一个文档数据
+     7. `$last`：获取最后一个文档
+
+### $group 分组
+
+1. 介绍
+
+   - 语法
+
+     ```sql
+     db.集合名称.aggregate([
+         {$group:
+         	{
+         		_id:'$字段'，
+         		counter:{表达式:'$字段'}
+         	}
+         }
+     ])
+     ```
+
+   - 解释
+
+     1. 参数 _id ：为要分组的 __字段__，使用某个字段的格式为 `$字段`, _id 参数名不能变
+     2. 参数 counter：为分组后输出结果，再次使用 __表达式处理__，这个参数可以随便更改
+
+2. 实例
+
+   - 例 1（统计男生、女生总人数）
+
+     ```sql
+     # 集合中所有数据
+     > db.stu.find();
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 进行聚合，统计个数
+     > db.stu.aggregate([{$group:{_id:'$gender', counter:{$sum:1}}}])
+     { "_id" : 0, "counter" : 2 }
+     { "_id" : 1, "counter" : 3 }
+     ```
+
+     解释：表达式  `$sum:1` 表示统计个数
+
+   - 例 2（统计男生、女生年龄的总和、平均值）
+
+     ```sql
+     # 集合数据
+     > db.stu.find()
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 按性别分组，统计男女生年龄总和
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$sum:'$age'}}}])
+     { "_id" : 0, "counter" : 39 }
+     { "_id" : 1, "counter" : 153 }
+     
+     # 按性别分组，统计男女生年龄平均值
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$avg:'$age'}}}])
+     { "_id" : 0, "counter" : 19.5 }
+     { "_id" : 1, "counter" : 51 }
+     ```
+
+   - 例 3 （按性别分组，取分组第一个文档、最后一个文档）
+
+     ```sql
+     # 集合数据
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 获取分组的，各组第一个文档
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$first:'$age'}}}])
+     { "_id" : 0, "counter" : 13 }
+     { "_id" : 1, "counter" : 19 }
+     
+     # 获取分组的，各组最后一个文档
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$last:'$age'}}}])
+     { "_id" : 0, "counter" : 26 }
+     { "_id" : 1, "counter" : 35 }
+     ```
+
+   - 例 4 （将分完组的目标字段值，添加进入数组中）
+
+     ```sql
+     # 将 age 字段，加入数组中
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$push:'$age'}}}])
+     { "_id" : 0, "counter" : [ 13, 26 ] }
+     { "_id" : 1, "counter" : [ 19, 99, 35 ] }
+     ```
+
+   - 例 5  （将分完组的文档，全部文档存入数组中）
+
+     ```sql
+     # 将整个文档存入数组中
+     > db.stu.aggregate([{$group:{_id:'$gender',counter:{$push:'$$ROOT'}}}])
+     
+     # 分组，gender 为 0 的
+     { "_id" : 0, "counter" : [ { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }, { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 } ] }
+     
+     # 分组，gender 为 1 的
+     { "_id" : 1, "counter" : [ { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }, { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }, { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 } ] }
+     ```
+
+     解释：SQL 数据库，分组之后，无法在查看，单个数据内容，MongoDB 看一查看
+
+   - 例 6 （将集合数据分为一组，求学生总人数，平均年龄）Group by null
+
+     ```sql
+     > db.stu.aggregate([{$group:{_id:'null',counter:{$sum:1},avgAge:{$avg:'$age'}}}])
+     { "_id" : "null", "counter" : 5, "avgAge" : 38.4 }
+     ```
+
+### $match  筛选
+
+1. 介绍
+
+   - 用于过滤，只输出符合条件的文档，使用 MongoDB 的标准查询操作
+
+   - 语法
+
+     ```sql
+     db.集合名称.aggreagte([
+         {$match:
+         	{
+         		字段：{MongoDB 标准条件表达式}
+         	}
+         }
+     ])
+     ```
+
+   - $mtch:{} 这个 {} 表达式和 MongoDB 的 find() 筛选语法一样（函数.....都可以）
+
+2. 实例
+
+   - 例 1 （查询年龄大于 20）
+
+     ```sql
+     > db.stu.aggregate([{$match:{age:{$gt:20}}}])
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     ```
+
+   - 例 2 （查询年龄大于 20 的 男女人数各多少）
+
+     ```sql
+     #查询年龄大于 20 的
+     > db.stu.aggregate([{$match:{age:{$gt:20}}}])
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 查询年龄大于 20 的男女人数
+     > db.stu.aggregate([{$match:{age:{$gt:20}}},{$group:{_id:'$gender', counter:{$sum:1}}}])
+     { "_id" : 0, "counter" : 1 }
+     { "_id" : 1, "counter" : 2 }
+     ```
+
+     解释：此条语句使用两个 __管道__ ，前一个的输出，为后一个的输入
+
+### $project 投影
+
+说明：显示一部分字段，一般和其他管道一起使用
+
+1. 介绍
+
+   - 修改输入文档的结构，如重命名、增加、删除字段、创建计算结构
+
+   - 语法
+
+     ```sql
+     db.集合名称.aggregate([
+         {$project:
+         	{字段1:1,字段2:0...}
+         }
+     ])
+     ```
+
+   - 字段 1 表示显示，字段 0 表示不显示
+
+2. 实例
+
+   - 例 1 （查询年龄大于 20 的 姓名，年龄）
+
+     ```sql
+     > db.stu.aggregate([{$match:{age:{$gt:20}}},{$project:{_id:0, name:1, age:1}}])
+     { "name" : "race", "age" : 99 }
+     { "name" : "mary", "age" : 35 }
+     { "name" : "lunc", "age" : 26 }
+     ```
+
+### $sort 排序
+
+1. 介绍
+
+   - 将输入文档排序后输出
+
+   - 语法
+
+     ```sql
+     db.集合名称.aggregate([
+         {$sort:
+         	{字段1:1,字段2:1}
+         }
+     ])
+     ```
+
+   - 1 为升序，-1 为降序
+
+2. 实例
+
+   - 例 1（查询男生、按年龄降序输出）
+
+     ```sql
+     > db.stu.aggregate([{$match:{gender:1}},{$sort:{age:-1}}])
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     ```
+
+### limit \ skip（一起使用：分页）
+
+说明：一起使用，skip 先使用
+
+1. 介绍
+
+   - limit 
+
+     限制聚合管道返回的文档数量
+
+   - 语法
+
+     `db.集合名称.aggregate([{$limit:number}])` number 为输出几个文档
+
+   - skip
+
+     跳过指定数量的文档，返回余下的文档
+
+   - 语法
+
+     `db.集合名称.aggregate([{$skip:number}])` number 为跳过文档数量
+
+2. 实例
+
+   - 例 1 （跳过两条数据）
+
+     ```sql
+     > db.stu.find()
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 聚合语句
+     # 共 5 个文档，跳过 2 个，剩下 3 个
+     > db.stu.aggregate([{$skip:2}])
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     ```
+
+   - 例 2 （限制查询 2 条数据）
+
+     ```sql
+     > db.stu.find()
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 限制 2 条数据
+     > db.stu.aggregate([{$limit:2}])
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     
+     ```
+
+   - 例 3 （跳过 4 条，限制一条数据）
+
+     ```sql
+     > db.stu.find()
+     { "_id" : ObjectId("5dca60bff3c285c4652590cb"), "name" : "tom", "gender" : 1, "age" : 19 }
+     { "_id" : ObjectId("5dca60c2f3c285c4652590cc"), "name" : "jack", "gender" : 0, "age" : 13 }
+     { "_id" : ObjectId("5dca60c5f3c285c4652590cd"), "name" : "race", "gender" : 1, "age" : 99 }
+     { "_id" : ObjectId("5dca60c9f3c285c4652590ce"), "name" : "mary", "gender" : 1, "age" : 35 }
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     
+     # 查询数据，显示第五条数据
+     > db.stu.aggregate([{$skip:4},{$limit:1}])
+     { "_id" : ObjectId("5dca61a9f3c285c4652590cf"), "name" : "lunc", "gender" : 0, "age" : 26 }
+     ```
+
+### $unwind 拆分
+
+说明：由于字段的不同，使 `$unwind` 出现两种用法
+
+1. 介绍
+
+   - 将文档中某个数组字段拆分成多条，每条包含一个值
+
+   - 语法 1
+
+     `db.集合名称.aggregate([{$unwind:'$字段'}])` __字段是数组__
+
+   - 语法 2
+
+     1. 对处理空数组、非数组、无字段、null 情况，为防止数据丢失，出现以下语法，
+
+        ```sql
+        db.集合名称.aggregate([
+        	{$unwind:
+        		{path:'$字段',preserveNullAndEmptyArrays:<boolean>}
+        	}
+        ])
+        ```
+
+     2. 参数 `preserveNullAndEmptyArrays` 为防止数据丢失，出现的，`true` 为不丢失，`false` 丢失
+
+2. 实例（语法 1）
+
+   - 例 1（拆分一个文档数组）
+
+     ```sql
+     # 插入数据（带有数组的字段）
+     > db.stu.insert({_id:1,name:"item",item:[1, 2, 3]})
+     WriteResult({ "nInserted" : 1 })
+     
+     > db.stu.find({_id:1})
+     { "_id" : 1, "name" : "item", "item" : [ 1, 2, 3 ] }
+     
+     # 进行拆分
+     > db.stu.aggregate([{$unwind:'$item'}])
+     { "_id" : 1, "name" : "item", "item" : 1 }
+     { "_id" : 1, "name" : "item", "item" : 2 }
+     { "_id" : 1, "name" : "item", "item" : 3 }
+     ```
+
+3. 实例（语法 2）
+
+   说明：先构建可拆分的字段（空数组、非数组、无字段、null ），然后对其拆分，查看 __语法 1、语法 2（true、false）__
+
+   - 建立集合（满足上面要求）
+
+     ```sql
+     > db.item.find()
+     { "_id" : 1, "name" : "item1", "item" : [ 1, 2, 3 ] }
+     { "_id" : 2, "name" : "item2", "item" : [ ] }
+     { "_id" : 3, "name" : "item3", "item" : "4" }
+     { "_id" : 4, "name" : "item4", "item" : null }
+     { "_id" : 5, "name" : "item5" }
+     { "_id" : 6, "name" : "item", "item" : "arrays" }
+     ```
+
+   - 使用 __语法 1__，对其进行分组
+
+     ```sql
+     > db.item.aggregate([{$unwind:"$item"}])
+     { "_id" : 1, "name" : "item1", "item" : 1 }
+     { "_id" : 1, "name" : "item1", "item" : 2 }
+     { "_id" : 1, "name" : "item1", "item" : 3 }
+     { "_id" : 3, "name" : "item3", "item" : "4" }
+     { "_id" : 6, "name" : "item", "item" : "arrays" }
+     ```
+
+     解释：__可以对含有该字段的 数组、和 非数组 进行拆分__
+
+   - 使用 __语法 2（false）__
+
+     ```sql
+     > db.item.aggregate([{$unwind:{path:"$item",preserveNullAndEmptyArrays:false}}])
+     { "_id" : 1, "name" : "item1", "item" : 1 }
+     { "_id" : 1, "name" : "item1", "item" : 2 }
+     { "_id" : 1, "name" : "item1", "item" : 3 }
+     { "_id" : 3, "name" : "item3", "item" : "4" }
+     { "_id" : 6, "name" : "item", "item" : "arrays" }
+     ```
+
+     解释：__可以对含有该字段的 数组、和 非数组 进行拆分__
+
+   - 使用 __语法 2（true）__
+
+     ```sql
+     > db.item.aggregate([{$unwind:{path:"$item",preserveNullAndEmptyArrays:true}}])
+     { "_id" : 1, "name" : "item1", "item" : 1 }
+     { "_id" : 1, "name" : "item1", "item" : 2 }
+     { "_id" : 1, "name" : "item1", "item" : 3 }
+     { "_id" : 2, "name" : "item2" }
+     { "_id" : 3, "name" : "item3", "item" : "4" }
+     { "_id" : 4, "name" : "item4", "item" : null }
+     { "_id" : 5, "name" : "item5" }
+     { "_id" : 6, "name" : "item", "item" : "arrays" }
+     ```
+
+     解释：__可以对集合中的数据全部拆分__
+
+### 索引
+
+说明：创建大量数据，创建索引。对比查询速度
+
+1. 介绍
+
+   - 在 SQL 数据库中，索引可以提升查询速度。MongoDB 也支持索引，以提升查询速
+
+2. 创建、查看、删除索引语法
+
+   - 创建 语法 1
+     1. `db.集合名称.ensureIndex({字段:1})`
+     2. 参数 1 表示升序，-1 表示降序
+   - 创建 语法 2 （唯一索引）
+     1. `db.集合名称.ensureIndex({字段:1},{"unique":true})`
+     2. 参数 `{"unique:true"}` 表示创建唯一索引
+   - 创建 语法 3 （联合索引，对多个属性创建一个索引，按照 find() 出现的顺序）
+     1. `db.集合名称.ensureIndex({字段1:1,字段2:1})`
+     2. 根据 `find()` 查询顺序，建立索引。意义：查询时，先查询 find 的第一个字段，在一个条件符合要求，在查询第二个字段，所以索引的建立需要按照 find 的查询顺序创建
+   - 查看 语法
+     1. `db.集合名称.getIndexes()`
+   - 删除 索引
+     1. `db.集合名称.dropIndex("索引名称")`
+
+3. 创建大量数据
+
+   说明：创建大量数据，用于测试索引。MongoDB 命令窗口实际也是 Javascript 的编辑器，支持 javascript （弱语言）脚本
+
+   - 代码
+
+     ```javascript
+     > for (i = 0; i < 100000; i++){db.index_co.insert({name:"index" + i, num:i})}
+     WriteResult({ "nInserted" : 1 })
+     ```
+
+   - 检测创建结果
+
+     ```sql
+     # 统计集合数据个数
+     > db.index_co.count()
+     100000
+     
+     # 跳过 99994 条数据，	查询最后 4 条数据
+     > db.index_co.find().skip(99994).limit(6)
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d466"), "name" : "index99994", "num" : 99994 }
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d467"), "name" : "index99995", "num" : 99995 }
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d468"), "name" : "index99996", "num" : 99996 }
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d469"), "name" : "index99997", "num" : 99997 }
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d46a"), "name" : "index99998", "num" : 99998 }
+     { "_id" : ObjectId("5dcd35c0d2d52318b228d46b"), "name" : "index99999", "num" : 99999 }
+     ```
+
+4. 分析工具（explain）
+
+   - 介绍
+
+     分析 MongoDB 语法，及执行时间
+
+   - 代码（解释）
+
+     ```sql
+     > db.index_co.find({num: 10000}).explain("executionStats");
+     {
+             "queryPlanner" : {
+                     "plannerVersion" : 1,
+                     "namespace" : "python3.index_co", # 集合
+                     "indexFilterSet" : false,         # 是否有索引
+                     "parsedQuery" : {                 # 查询条件
+                             "num" : {
+                                     "$eq" : 10000
+                             }
+                     },
+                     "winningPlan" : {
+                             "stage" : "COLLSCAN",
+                             "filter" : {
+                                     "num" : {
+                                             "$eq" : 10000
+                                     }
+                             },
+                             "direction" : "forward"  # 向前查询，逐行查询
+                     },
+                     "rejectedPlans" : [ ]
+             },
+             "executionStats" : {                    # 执行状态
+                     "executionSuccess" : true,
+                     "nReturned" : 1,
+                     "executionTimeMillis" : 196,    # 执行时间（毫秒）196 毫秒
+                     "totalKeysExamined" : 0,
+                     "totalDocsExamined" : 100000,
+                     "executionStages" : {
+                             "stage" : "COLLSCAN",
+                             "filter" : {
+                                     "num" : {
+                                             "$eq" : 10000
+                                     }
+                             },
+                             "nReturned" : 1,
+                             "executionTimeMillisEstimate" : 121,
+                             "works" : 100002,
+                             "advanced" : 1,
+                             "needTime" : 100000,
+                             "needYield" : 0,
+                             "saveState" : 784,
+                             "restoreState" : 784,
+                             "isEOF" : 1,
+                             "invalidates" : 0,
+                             "direction" : "forward",
+                             "docsExamined" : 100000
+                     }
+             },
+             "serverInfo" : {
+                     "host" : "SShen-computer",
+                     "port" : 27017,
+                     "version" : "4.0.9",
+                     "gitVersion" : "fc525e2d9b0e4bceff5c2201457e564362909765"
+             },
+             "ok" : 1
+     }
+     ```
+
+5. 创建索引
+
+   - 实例（基于 name 字段创建索引）
+
+     ```sql
+     > db.index_co.ensureIndex({name:1})
+     {
+             "createdCollectionAutomatically" : false,
+             "numIndexesBefore" : 1,
+             "numIndexesAfter" : 2,
+             "ok" : 1
+     }
+     ```
+
+   - 执行查询时间
+
+     ```sql
+     > db.index_co.find({num: 10000}).explain("executionStats");
+     {
+             "queryPlanner" : {
+                     "plannerVersion" : 1,
+                     "namespace" : "python3.index_co",
+                     "indexFilterSet" : false,
+                     "parsedQuery" : {
+                             "num" : {
+                                     "$eq" : 10000
+                             }
+                     },
+                     "winningPlan" : {
+                             "stage" : "COLLSCAN",
+                             "filter" : {
+                                     "num" : {
+                                             "$eq" : 10000
+                                     }
+                             },
+                             "direction" : "forward"
+                     },
+                     "rejectedPlans" : [ ]
+             },
+             "executionStats" : {
+                     "executionSuccess" : true,
+                     "nReturned" : 1,
+                     "executionTimeMillis" : 43,
+                     "totalKeysExamined" : 0,
+                     "totalDocsExamined" : 100000,
+                     "executionStages" : {
+                             "stage" : "COLLSCAN",
+                             "filter" : {
+                                     "num" : {
+                                             "$eq" : 10000
+                                     }
+                             },
+                             "nReturned" : 1,
+                             "executionTimeMillisEstimate" : 43,
+                             "works" : 100002,
+                             "advanced" : 1,
+                             "needTime" : 100000,
+                             "needYield" : 0,
+                             "saveState" : 782,
+                             "restoreState" : 782,
+                             "isEOF" : 1,
+                             "invalidates" : 0,
+                             "direction" : "forward",
+                             "docsExamined" : 100000
+                     }
+             },
+             "serverInfo" : {
+                     "host" : "SShen-computer",
+                     "port" : 27017,
+                     "version" : "4.0.9",
+                     "gitVersion" : "fc525e2d9b0e4bceff5c2201457e564362909765"
+             },
+             "ok" : 1
+     }
+     ```
+
+6. 对比时间
+
+   1.   "executionTimeMillisEstimate" : 43,
+   2.   "executionTimeMillis" : 196,    # 执行时间（毫秒）196 毫秒
+   3. 提升查询速度还是挺快的
+
+7. 查看索引
+
+   - 代码
+
+     ```sql
+     > db.index_co.getIndexes()
+     [
+             {
+                     "v" : 2,
+                     "key" : {
+                             "_id" : 1
+                     },
+                     "name" : "_id_",
+                     "ns" : "python3.index_co"
+             },
+             {
+                     "v" : 2,
+                     "key" : {
+                             "name" : 1
+                     },
+                     "name" : "name_1",
+                     "ns" : "python3.index_co"
+             }
+     ]
+     ```
+
+     解释：索引名称，可以查看
+
+8. 删除索引
+
+   - 代码
+
+     ```sql
+     # 删除索引
+     > db.index_co.dropIndex("name_1")
+     { "nIndexesWas" : 2, "ok" : 1 }
+     
+     # 查看索引
+     > db.index_co.getIndexes()
+     [
+             {
+                     "v" : 2,
+                     "key" : {
+                             "_id" : 1
+                     },
+                     "name" : "_id_",
+                     "ns" : "python3.index_co"
+             }
+     ]
+     ```
+
+### 安全性
+
+说明：安全性--->创建超级管理员--->[修改配置]-->创建普通用户（指定使用数据库 `authenticationDatabase`）
+
+1. 超级管理员
+
+   - 为了更安全的访问 MongoDB，需要访问者提供同户名和密码，于是需要在 MongoDB 中创建用户
+   - 采用了 __角色-用户-数据库__ 的安全管理模式（创建角色向用户分发，使用户获得权限）
+   - 常用系统角色如下：
+     1. __root__：只是 admin 数据库中可用，超级账户，超级权限（对任何数据库都可以读写操作）
+     2. __Read__：允许用户读取指定数据库（对某个数据库有读操作）
+     3. __readWrite__：允许用户读写指定数据库（对某个数据库有写操作）
+
+2. 创建超级管理员用户
+
+   - 代码（不管下面的哪种方法，都需要先创建 管理员数据库）
+
+     ```sql
+     > use admin
+     switched to db admin
+     
+     # 创建 用户名 admin、密码 123、角色[root、数据库为 admin]
+     > db.createUser({user:"admin",pwd:"123",roles:[{role:"root",db:"admin"}]});
+     Successfully added user: {
+             "user" : "admin",
+             "roles" : [
+                     {
+                             "role" : "root",
+                             "db" : "admin"
+                     }
+             ]
+     }
+     ```
+
+   - 使用 `--auth` 参数，进行登录
+
+     说明：使用 `auth` 关键字，可以自由选择是否启用 __用户、密码登录__
+
+     1. 开启 MongoDB 服务（在一个终端）
+
+        ```sql
+        mongod --auth  --dbpath E:\MongoDB\data\db
+        ```
+
+     2. 开启 MongoDB 客户端（在另一个终端）
+
+        - 没有输入用户名密码（什么也看不到）
+
+          ```sql
+          C:\Users\SS沈>mongo
+          MongoDB shell version v4.0.9
+          
+          # 显示数据库
+          > show dbs;
+          >
+          > quit()
+          ```
+
+        - 开启客户端时，输入用户名密码（连接服务器同时传入用户名密码）
+
+          ```sql
+          C:\Users\SS沈>mongo -u admin -p 123
+          MongoDB shell version v4.0.9
+          
+          # 显示数据库
+          > show dbs;
+          admin    0.000GB
+          config   0.000GB
+          local    0.000GB
+          python3  0.003GB
+          >
+          ```
+
+        - 开启客户端，连接上服务器时，再输入用户名密码
+
+          ```sql
+          C:\Users\SS沈>mongo
+          MongoDB shell version v4.0.9
+          
+          # 选择 管理员数据库
+          > use admin;
+          switched to db admin
+          # 输入用户名密码进行连接
+          > db.auth("admin", "123")
+          1
+          > show dbs
+          admin    0.000GB
+          config   0.000GB
+          local    0.000GB
+          python3  0.003GB
+          ```
+
+   - 修改配置文件，进行登录
+
+     说明：优点：方便不用每次开启服务都需要输入一堆参数，缺点：不能自主选择是否开启身份验证
+
+     1. 设置配置文件（.cfg 文件）
+
+        ```txt
+        security:
+            # 开启安全验证
+            authorization: enabled
+        ```
+
+        解释：`:` 有空格
+
+     2. 启动服务
+
+        ```sql
+        C:\WINDOWS\system32>net start MongoDB
+        MongoDB 服务正在启动 ..
+        MongoDB 服务已经启动成功。
+        ```
+
+     3. 客户端连接（连接时传入用户名密码）
+
+        同上
+
+     4. 客户端启动（连接后，出入用户名密码）
+
+        同上
+
+3. 查看当前所有用户（使用 admin 登录）
+
+   - 进入 admin 数据库
+
+     `use admin`
+
+   - 查看当前用户
+
+     `show users;`
+
+     ```sql
+     > show users;
+     {
+             "_id" : "admin.admin",
+             "userId" : UUID("782f4977-ac86-42f9-ac52-0893ec017d93"),
+             "user" : "admin",
+             "db" : "admin",
+             "roles" : [
+                     {
+                             "role" : "root",
+                             "db" : "admin"
+                     }
+             ],
+             "mechanisms" : [
+                     "SCRAM-SHA-1",
+                     "SCRAM-SHA-256"
+             ]
+     }
+     ```
+
+4. 创建普通用户
+
+   - 使用 admin （超级管理员登录）
+
+   - 切换数据库
+
+     `use 数据库名`
+
+   - 创建用户集合
+
+     1. 代码
+
+        ```sql
+        > use python3;
+        switched to db python3
+        > show collections
+        index_co
+        item
+        stu
+        > db.createUser({user:"py",pwd:"123",roles:[{role:"readWrite",db:"python3"}]})
+        Successfully added user: {
+                "user" : "py",
+                "roles" : [
+                        {
+                                "role" : "readWrite",
+                                "db" : "python3"
+                        }
+                ]
+        }
+        ```
+
+5. 使用普通用户登录
+
+   - 介绍
+
+     管理员创建普通用户时，会指定用户所使用的数据库及使用权限，所以在登陆时，需指定所使用的数据库。管理员，好像不用指定。普通用户只能看到可以会使用的数据库，其他数据库不能看到。
+
+   - 登录
+
+     `mongo -u py -p 123 --authenticationDatabase python3` 参数 `authenticationDatabase` 指定的 数据库
+
+     ```sql
+     C:\Users\SS沈>mongo -u py -p 123 --authenticationDatabase python3
+     MongoDB shell version v4.0.9
+     connecting to: mongodb://127.0.0.1:27017/?authSource=python3&gssapiServiceName=mongodb
+     Implicit session: session { "id" : UUID("5b111a09-cfde-4481-866d-7ccd61ca8142") }
+     MongoDB server version: 4.0.9
+     
+     # 只会显示可以操作的数据库
+     > show dbs;
+     python3  0.003GB
+     >
+     ```
+
+   - 权限说明
+
+     只能操作管理员授予的数据库
+
+6. 修改密码
+
+   - 介绍
+
+     只有超级管理员可以操作
+
+   - 修改密码
+
+     `db.changeUserPassword("用户名","新密码")`
+
+   - 修改 role 属性（感觉是这样写的）
+
+     `db.updateUser("数据库名"，{pwd:"新密码"}，{roles：{role:权限, db:数据库}})`
+   
+7. 删除用户
+
+   说明：应该只有超级管理员可以操作，且进入数据库目录下
+
+   - 删除一个用户
+
+     `db.dropUser(<user_name>)`
+
+     例：`db.dropUser("py")` 删除 py 用户
+
+   - 删除当前数据库所有用户
+
+     `db.dropAllUser()`
+
+### 复制（副本集）
+
+说明：设置副本集，分为 9 个步骤，之后讲解手动备份
+
+1. 介绍
+
+   - 什么是复制
+     1. 复制提供了数据的冗余备份，并在多个服务器上存放数据副本，提高数据的可用性，并可以保证数据的安全性
+     2. 复制还允许从硬件故障和服务器中断恢复数据
+
+   - 为什么要复制
+     1. 数据备份
+     2. 数据灾难恢复
+     3. 读写分离
+     4. 高可用性（24 * 7）
+     5. 无宕机维护
+     6. 副本集对应用透明
+
+   - 复制的工作原理
+     1. 复制至少需要两个节点 A、B
+     2. A是主节点，负责处理客户端请求
+     3. 其余节点都是从节点，负责复制主节点的上的数据
+     4. 节点常见的搭配方式：一主一从、一主多从
+     5. 主节点记录在其上的所有操作，从节点定期轮询主节点获取这些操作，然后对自己的数据副本执行这些操作，从而保证自己的数据和主节点一致
+     6. 主节点和从节点的数据交互保证了数据的一致性
+     7. __从节点每个一段时间轮询一次主节点，所以会有一段时间是空窗期（心跳），如果主节点宕机，会有一段时间的主节点操作丢失（无法避免）__
+
+   - 复制特点
+     1. N 个节点集群
+     2. 任何节点可以作为主节点
+     3. 所有写入操作都在主节点上
+     4. 自动故障转移
+     5. 自动恢复（A 主节点宕机，B 自动成为主节点，A 在重启时，已不是主节点，则需要轮询 主节点 A 获取操作）
+
+2. 设置复制节点
+
+   - 步骤 一
+
+     创建两个数据库目录 tc1、tc2，用于存放数据库（在本机桌面演示 Desktop，win10 系统）
+
+     ```sql
+     # 创建两个文件夹
+     C:\Users\SS沈\Desktop>mkdir tc1
+     
+     C:\Users\SS沈\Desktop>mkdir tc2
+     ```
+
+   - 步骤 二
+
+     启动 MongoDB（开启多个终端），参数 `bind_ip` 为本机 IP ，参数 `port` 为启动服务的端口号（没被占用），参数 `replSet`  名称一致，构成一个副本集
+
+     ```sql
+     mongod --bind_ip 22.11.182.60 --port 27012 --dbpath C:\Users\SS沈\Desktop\tc1 --replSet rs0
+     mongod --bind_ip 22.11.182.60 --port 27010 --dbpath C:\Users\SS沈\Desktop\tc2 --replSet rs0
+     ```
+
+     解释：可以指定日志文件 `--logpath xxx\xx.log`
+
+   - 步骤 三
+
+     设置主节点（主服务器），此处设置：22.11.182.60:27012 为主节点
+
+     ```sql
+     mongo --host 22.11.182.60 --port 27012
+     ```
+
+   - 步骤 四
+
+     初始化主节点（主服务器）。如果不初始化，对数据库进行操作，会提示报错
+
+     `rs.initiate()`
+
+     ```sql
+     > rs.initiate()
+     {
+             "info2" : "no configuration specified. Using a default configuration for the set",
+             "me" : "22.11.182.60:27012",
+             "ok" : 1,
+             "operationTime" : Timestamp(1573885934, 1),
+             "$clusterTime" : {
+                     "clusterTime" : Timestamp(1573885934, 1),
+                     "signature" : {
+                             "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                             "keyId" : NumberLong(0)
+                     }
+             }
+     }
+     
+     # 初始化完成，会提示此处信息
+     rs0:OTHER>
+     ```
+
+   - 步骤 五
+
+     查看主节点当前状态（有多少节点连接主节点）
+
+     `rs.status()`
+
+     ```sql
+     rs0:OTHER> rs.status()
+     {
+             "set" : "rs0", # 副本集名称
+             "date" : ISODate("2019-11-16T06:33:30.489Z"),
+             "myState" : 1,
+             "term" : NumberLong(1),
+             "syncingTo" : "",
+             "syncSourceHost" : "",
+             "syncSourceId" : -1,
+             "heartbeatIntervalMillis" : NumberLong(2000),
+             "optimes" : {
+                     "lastCommittedOpTime" : {
+                             "ts" : Timestamp(1573886007, 1),
+                             "t" : NumberLong(1)
+                     },
+                     "readConcernMajorityOpTime" : {
+                             "ts" : Timestamp(1573886007, 1),
+                             "t" : NumberLong(1)
+                     },
+                     "appliedOpTime" : {
+                             "ts" : Timestamp(1573886007, 1),
+                             "t" : NumberLong(1)
+                     },
+                     "durableOpTime" : {
+                             "ts" : Timestamp(1573886007, 1),
+                             "t" : NumberLong(1)
+                     }
+             },
+             "lastStableCheckpointTimestamp" : Timestamp(1573885979, 4),
+             
+             # members 成员信息（此处成员只有一个）
+             "members" : [ 
+                     {
+                             "_id" : 0,
+                             "name" : "22.11.182.60:27012", # IP PORT 信息
+                             "health" : 1,
+                             "state" : 1,
+                             "stateStr" : "PRIMARY",        # 节点信息（是否为主节点）
+                             "uptime" : 2137,
+                             "optime" : {
+                                     "ts" : Timestamp(1573886007, 1),
+                                     "t" : NumberLong(1)
+                             },
+                             "optimeDate" : ISODate("2019-11-16T06:33:27Z"),
+                             "syncingTo" : "",
+                             "syncSourceHost" : "",
+                             "syncSourceId" : -1,
+                             "infoMessage" : "could not find member to sync from",
+                             "electionTime" : Timestamp(1573885935, 1),
+                             "electionDate" : ISODate("2019-11-16T06:32:15Z"),
+                             "configVersion" : 1,
+                             "self" : true,
+                             "lastHeartbeatMessage" : ""
+                     }
+             ],
+             "ok" : 1,
+             "operationTime" : Timestamp(1573886007, 1),
+             "$clusterTime" : {
+                     "clusterTime" : Timestamp(1573886007, 1),
+                     "signature" : {
+                             "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                             "keyId" : NumberLong(0)
+                     }
+             }
+     }
+     
+     # 查询完状态，提示此节点为主节点
+     rs0:PRIMARY>
+     ```
+
+   - 步骤 六
+
+     添加副本集（在主节点客户端添加），及此时状态检测（部分状态信息），删除为 `remove`
+
+     `rs.add("IP:PORT")`
+
+     ```sql
+     > rs.add("22.11.182.60:27010")
+     {
+             "ok" : 1,
+             "operationTime" : Timestamp(1573886911, 1),
+             "$clusterTime" : {
+                     "clusterTime" : Timestamp(1573886911, 1),
+                     "signature" : {
+                             "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                             "keyId" : NumberLong(0)
+                     }
+             }
+     }
+     >
+     ```
+
+   - 步骤 七
+
+     检测此时主节点状态（部分状态信息），此时有两个节点（一主，一从）
+
+     ```sql
+     "members" : [
+                     {
+                             "_id" : 0,
+                             "name" : "22.11.182.60:27012",
+                             "health" : 1,
+                             "state" : 1,
+                             "stateStr" : "PRIMARY",
+                             "uptime" : 3068,
+                             "optime" : {
+                                     "ts" : Timestamp(1573886934, 1),
+                                     "t" : NumberLong(1)
+                             },
+                             "optimeDate" : ISODate("2019-11-16T06:48:54Z"),
+                             "syncingTo" : "",
+                             "syncSourceHost" : "",
+                             "syncSourceId" : -1,
+                             "infoMessage" : "",
+                             "electionTime" : Timestamp(1573885935, 1),
+                             "electionDate" : ISODate("2019-11-16T06:32:15Z"),
+                             "configVersion" : 2,
+                             "self" : true,
+                             "lastHeartbeatMessage" : ""
+                     },
+                     {
+                             "_id" : 1,
+                             "name" : "22.11.182.60:27010",
+                             "health" : 1,
+                             "state" : 2,
+                             "stateStr" : "SECONDARY",
+                             "uptime" : 30,
+                             "optime" : {
+                                     "ts" : Timestamp(1573886934, 1),
+                                     "t" : NumberLong(1)
+                             },
+                             "optimeDurable" : {
+                                     "ts" : Timestamp(1573886934, 1),
+                                     "t" : NumberLong(1)
+                             },
+                             "optimeDate" : ISODate("2019-11-16T06:48:54Z"),
+                             "optimeDurableDate" : ISODate("2019-11-16T06:48:54Z"),
+                             "lastHeartbeat" : ISODate("2019-11-16T06:49:01.524Z"),
+                             "lastHeartbeatRecv" : ISODate("2019-11-16T06:48:59.953Z"),
+                             "pingMs" : NumberLong(0),
+                             "lastHeartbeatMessage" : "",
+                             "syncingTo" : "22.11.182.60:27012",
+                             "syncSourceHost" : "22.11.182.60:27012",
+                             "syncSourceId" : 0,
+                             "infoMessage" : "",
+                             "configVersion" : 2
+                     }
+             ],
+             "ok" : 1,
+     ```
+
+   - 步骤 八
+
+     连接从节点服务器（端口号不同）
+
+     ```sql
+     mongo --host 22.11.182.60 --port 27010
+     
+     # 连接成功提示信息
+     rs0:SECONDARY>
+     ```
+
+   - 步骤 九
+
+     设置从节点 `rs.slaveOk()` ，间隔一定时间，轮询主节点
+
+     ```sql
+     rs0:SECONDARY> rs.slaveOk()
+     rs0:SECONDARY>
+     ```
+
+3. 验证副本集是否设置成功
+
+   - 检查从节点数据
+
+     ```sql
+     # 检查数据库
+     rs0:SECONDARY> show dbs;
+     admin   0.000GB
+     config  0.000GB
+     local   0.000GB
+     ```
+
+   - 向主节点插入数据，并查询
+
+     ```sql
+     > db
+     py3
+     > show collections;
+     
+     # 创建 集合
+     > db.createCollection("stu");
+     {
+             "ok" : 1,
+             "operationTime" : Timestamp(1573887625, 1),
+             "$clusterTime" : {
+                     "clusterTime" : Timestamp(1573887625, 1),
+                     "signature" : {
+                             "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                             "keyId" : NumberLong(0)
+                     }
+             }
+     }
+     
+     # 插入数据
+     > db.stu.insert({name:"齐天大圣"})
+     WriteResult({ "nInserted" : 1 })
+     
+     # 查询数据
+     > db.stu.find()
+     { "_id" : ObjectId("5dcf9efa23b1b82afa225d07"), "name" : "齐天大圣" }
+     ```
+
+   - 再次检查从节点
+
+     ```sql
+     # 查看数据库，新增 py3 数据库
+     rs0:SECONDARY> show dbs;
+     admin   0.000GB
+     config  0.000GB
+     local   0.000GB
+     py3     0.000GB
+     
+     # 使用 py3
+     rs0:SECONDARY> use py3
+     switched to db py3
+     
+     # 检查集合
+     rs0:SECONDARY> show collections;
+     stu
+     
+     # 查询数据
+     rs0:SECONDARY> db.stu.find()
+     { "_id" : ObjectId("5dcf9efa23b1b82afa225d07"), "name" : "齐天大圣" }
+     rs0:SECONDARY>
+     ```
+
+4. 副本集设置成功
+
+   - 解释
+     1. `rs` ：MongoDB 内置对象，管理副本集的（MongoDB 是一个 JavaScript 编辑器）
+     2. 删除从节点 `rs.remove("IP:PORT")`
+
+5. 自动主从切换
+
+   - 假如，关闭主节点服务 `ctrl + c` ，从节点服务不能关闭
+   - 关闭两个客户端，在进行重新连接
+   - 可以发现主从节点互换，成为从节点的要执行 `rs.slaveOk()` ，确定轮询
+   - 再次向主节点更新数据，就可以在从节点查询到了
+
+6. 手动备份
+
+   - 语法
+
+     1. `mongodump -h host -d db_name -o db_directory`
+     2. `-h`：服务器地址，也可以指定端口号
+     3. `-d`：需要备份的数据库名称
+     4. `-o`：备份数据库存放位置，此目录存放备份数据库的数据
+
+   - 例
+
+     1. 启动 MongoDB 服务
+
+        ```sql
+        C:\WINDOWS\system32>net start MongoDB
+        MongoDB 服务正在启动 ..
+        MongoDB 服务已经启动成功。
+        ```
+
+     2. 备份文件
+
+        ```sql
+        C:\WINDOWS\system32>mongodump -h 127.0.0.1:27017 -d python3 -o C:\Users\SS沈\Desktop\db
+        2019-11-16T15:39:44.330+0800    writing python3.index_co to
+        2019-11-16T15:39:44.400+0800    writing python3.stu to
+        2019-11-16T15:39:44.431+0800    writing python3.item to
+        2019-11-16T15:39:44.685+0800    done dumping python3.item (6 documents)
+        2019-11-16T15:39:44.685+0800    done dumping python3.stu (6 documents)
+        2019-11-16T15:39:45.166+0800    done dumping python3.index_co (100000 documents)
+        ```
+
+        __解释：每一个集合对应两种文件（.bson \ .json），数据存在 bson，结构存在 json中__
+
+7. 恢复数据库
+
+   - 语法
+
+     1. -`mongorestore -h host -d db_name --dir db_directory`
+     2. `-h`：服务器地址
+     3. `-d`：需要恢复数据库实例
+     4. `--dir`：备份数据库所在位置，指定数据库文件
+
+   - 例
+
+     1. 同样启动服务
+
+     2. 恢复数据库
+
+        ```sql
+        C:\WINDOWS\system32>mongorestore -h 127.0.0.1:27017 -d py3 --dir C:\Users\SS沈\Desktop\db\python3
+        
+        2019-11-16T15:50:37.646+0800    the --db and --collection args should only be used when restoring from a BSON file. Other uses are deprecated and will not exist in the future; use --nsInclude instead
+        2019-11-16T15:50:37.654+0800    building a list of collections to restore from C:\Users\SS沈\Desktop\db\python3 dir
+        2019-11-16T15:50:37.656+0800    reading metadata for py3.index_co from C:\Users\SS沈\Desktop\db\python3\index_co.metadata.json
+        2019-11-16T15:50:37.656+0800    reading metadata for py3.stu from C:\Users\SS沈\Desktop\db\python3\stu.metadata.json
+        2019-11-16T15:50:37.658+0800    reading metadata for py3.item from C:\Users\SS沈\Desktop\db\python3\item.metadata.json
+        2019-11-16T15:50:37.843+0800    restoring py3.index_co from C:\Users\SS沈\Desktop\db\python3\index_co.bson
+        2019-11-16T15:50:37.966+0800    restoring py3.item from C:\Users\SS沈\Desktop\db\python3\item.bson
+        2019-11-16T15:50:38.099+0800    no indexes to restore
+        2019-11-16T15:50:38.099+0800    finished restoring py3.item (6 documents)
+        2019-11-16T15:50:38.100+0800    restoring py3.stu from C:\Users\SS沈\Desktop\db\python3\stu.bson
+        2019-11-16T15:50:38.102+0800    no indexes to restore
+        2019-11-16T15:50:38.102+0800    finished restoring py3.stu (6 documents)
+        2019-11-16T15:50:39.182+0800    no indexes to restore
+        2019-11-16T15:50:39.182+0800    finished restoring py3.index_co (100000 documents)
+        2019-11-16T15:50:39.183+0800    done
+        ```
+
+     3. 检查
+
+        ```sql
+        # 数据库，新增 py3
+        > show dbs;
+        admin    0.000GB
+        config   0.000GB
+        local    0.000GB
+        py3      0.000GB
+        python3  0.003GB
+        
+        # py3 数据库，存在数据
+        > use py3;
+        switched to db py3
+        > show collections;
+        index_co
+        item
+        stu
+        ```
+
+## Redis
+
+
+
+
+
+
+
+### 待续......
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
