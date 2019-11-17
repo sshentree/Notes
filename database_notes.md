@@ -2587,11 +2587,11 @@ mysql> select * from students;
 
 ### 启动 MongoDB 
 
-说明：启动分为两种方法，因为安装分为两种方式，这里只介绍一种（感觉启动简单）
+说明：启动分为两种方法，因为安装分为两种方式，这里主要介绍一种（感觉启动简单），可以使用 `mongod --help` 查看
 
 1. 初始化 `mongod.cfg` 文件的启动方法
 
-   - 启动 MOngoDB，__使用管理员权限__
+   - 启动 MongoDB，__使用管理员权限__
 
      `net start MongoDB`
 
@@ -2603,7 +2603,17 @@ mysql> select * from students;
 
      `net stop MongoDB`
 
-2. 查看 MongoDB 基本操作
+2. 另一种启动方式在 __复制（副本集中提到）__，可以指定一些参数，而不是用默认的配置（配置文件）
+
+   - 启动语法
+
+     `mongod --bind_ip xxx --port xxx --dbpath xxx --logpath xxx`
+
+   - 客户端连接
+
+     `mongo`
+
+3. 查看 MongoDB 基本操作
 
    - 查看当前数据库
 
@@ -2636,9 +2646,8 @@ mysql> select * from students;
      quit()
      ```
 
-     
 
-### 基本操作（重点）
+### 数据格式、基本操作（重点）
 
 说明：数据库的创建，集合的创建与删除
 
@@ -4961,6 +4970,207 @@ mysql> select * from students;
         ```
 
 ## Redis
+
+### Redis 安装及配置文件
+
+说明：本人为 win10 操作系统
+
+1. Redis 安装
+
+   说明：Redis 官方网址 [网址]([https://redis.io](https://redis.io/))
+
+   - 安装过程参考地址 [菜鸟](https://www.runoob.com/redis/redis-install.html)
+   - 指出：下载压缩文件，解压即安装完成，可以将其添加环境变量中，启动方便
+
+2. windows 下 Redis 配置文件说明
+
+   说明：一个讲的不错的博客 [地址](https://www.jianshu.com/p/41f393f594e8)，这里只说明几个配置注意事项。Windows 下的服务器总是会出不知名的错误！！！
+
+   - 配置文件地址及名称
+
+     1. 解压文件夹下
+
+        ![Redis解压文件夹](git_picture/Redis解压文件夹.png)
+
+   - windows 下，查看网上资料说：`redis.windows-service.conf` 是默认配置文件，但是修改端口号，在没有指定配置文件启动 Redis 并不好使 `redis-server.exe`，`redis.windows.conf` 一样的效果（感觉可能原因是 Redis 自动维护了配置，在没有指定配置文件时 ）
+
+   - 指定配置文件（先切换到 Redis 文件夹下）
+
+     1. `redis-server.exe redis.windows-service.conf` 
+
+        启动不了 Redis，应该是日志文件的路径不对，所以启动不了
+
+     2. `redis-server.exe redis.windows.conf`
+
+        可以启动，修改配置成功
+
+   - 总结启动 Redis 
+
+     1. 使用指定配置文件启动
+
+        `redis-server.exe redis.windows.conf`
+
+3. 修改配置文件的一些配置，复制 `redis.windows.conf` 文件，命名为 `redis.conf` 再做修改
+
+   1. 端口号（可以修改）
+
+      ```tex
+      # Accept connections on the specified port, default is 6379.
+      # If port 0 is specified Redis will not listen on a TCP socket.
+      port 6379
+      ```
+
+   2. 绑定 IP
+
+      ```tex
+      # By default Redis listens for connections from all the network interfaces
+      # available on the server. It is possible to listen to just one or multiple
+      # interfaces using the "bind" configuration directive, followed by one or
+      # more IP addresses.
+      #
+      # Examples:
+      #
+      # bind 192.168.1.100 10.0.0.1
+      # bind 127.0.0.1
+      ```
+
+      解释：此配置文件，没有绑定 IP，所以任何 IP 都不限制
+
+   3. 日志文件存放地址（修改）
+
+      ```tex
+      # Specify the log file name. Also 'stdout' can be used to force
+      # Redis to log on the standard output. 
+      # 将日志存入文档中
+      # logfile "E:/Redis_data/Logs/redis_log.txt"
+      # 标准输出，在命令窗口
+      logfile stdout
+      ```
+
+      解释：日志文件存放位置
+
+   4. Redis 数据库的数量（默认没有名字从 0 到 15）
+
+      ```tex
+      # Set the number of databases. The default database is DB 0, you can select
+      # a different one on a per-connection basis using SELECT <dbid> where
+      # dbid is a number between 0 and 'databases'-1
+      databases 16
+      ```
+
+   5. Redis 是基于内存的读写，但是也会向硬盘存储
+
+      ```tex
+      #   In the example below the behaviour will be to save:
+      #   after 900 sec (15 min) if at least 1 key changed
+      #   after 300 sec (5 min) if at least 10 keys changed
+      #   after 60 sec if at least 10000 keys changed
+      #
+      #   Note: you can disable saving completely by commenting out all "save" lines.
+      #
+      #   It is also possible to remove all the previously configured save
+      #   points by adding a save directive with a single empty string argument
+      #   like in the following example:
+      #
+      #   save ""
+      
+      save 900 1
+      save 300 10
+      save 60 10000
+      ```
+
+      解释：保存形式，900 秒内，更新超过 1 次、300 秒内，更新超过 10 次、60 秒内，更新超过 10000 次，会向硬盘写入。如果不想向硬盘写入，可以将 `save 900 1` 这样的 3 个语句注释，将 `save ""` 打开。查询不算更新。
+
+   6. __物理存储数据库的名字及地址__（修改）
+
+      - 物理存储数据库名
+
+        ```tex
+        # The filename where to dump the DB
+        dbfilename dump.rdb
+        ```
+
+        解释：可以修改嘛
+
+      - 数据库存放位置（文件夹）
+
+        ```sql
+        # The working directory.
+        #
+        # The DB will be written inside this directory, with the filename specified
+        # above using the 'dbfilename' configuration directive.
+        #
+        # The Append Only File will also be created inside this directory.
+        #
+        # Note that you must specify a directory here, not a file name.
+        dir E:/Redis_data/db
+        ```
+
+### Redis 启动
+
+1. 启动服务
+
+   说明：开启 CMD 命令窗口，切换到 Redis 文件夹下（因为配置文件在那）
+
+   - 命令
+     1. `redis-server.exe redis.conf`
+     2. `redis.conf` 为配置文件
+
+   - 演示
+
+     ```shell
+     # 切换路径，输入命令
+     D:\redis_data>redis-server.exe redis.conf
+     # 日志信息标准输出
+     [19488] 17 Nov 17:03:31.957 * Redis 3.0.504 (00000000/0) 64 bit, standalone mode, port 6379, pid 19488 ready to start.
+     [19488] 17 Nov 17:03:31.957 # Server started, Redis version 3.0.504
+     [19488] 17 Nov 17:03:31.973 * DB loaded from disk: 0.000 seconds
+     [19488] 17 Nov 17:03:31.973 * The server is now ready to accept connections on port 6379
+     
+     ```
+
+2. 客户端连接服务
+
+   说明：再开启一个 CMD 命令窗口
+
+   - 命令
+
+     `redis-cli.exe`
+
+   - 演示
+
+     ```shell
+     C:\Users\SS沈>redis-cli.exe
+     127.0.0.1:6379> ping
+     PONG
+     127.0.0.1:6379>
+     ```
+
+###              数据格式、数据操作
+
+说明：[Redis 中文命令大全](http://www.redis.cn/commands.html)
+
+1. 数据格式格式介绍
+   - Redis 是 key-value 的数据，所以每个数据都是一个键值对
+   - __键__（key）的类型
+     1. 字符串
+   - __值__（value）的类型分为 5 种
+     1. string：（字符串）
+     2. hash：（哈希）
+     3. list：（列表）
+     4. set：（集合）
+     5. zset：（有序集合）
+2. string
+
+
+
+
+
+
+
+
+
+
 
 
 
