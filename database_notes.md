@@ -5160,7 +5160,602 @@ mysql> select * from students;
      3. list：（列表）
      4. set：（集合）
      5. zset：（有序集合）
-2. string
+   
+2. __string__
+
+   - 介绍
+
+     1. string 是 Redis 最基本的类型
+     2. 最大存储 512 MB 数据
+     3. string是二进制安全的字符串（`"010101101"`），既可以为任何数据、比如，数字、图片、序列化对象等
+
+   - Windows-cmd 命令行窗口问题（Linux 没有试过）
+
+     1. 不加参数启动 Redis 客户端，录入中文显示乱码
+
+        ```shell
+        # 正常启动 Redis 客户端
+        C:\Users\SS沈>redis-cli.exe
+        # 录入键值对
+        127.0.0.1:6379> set name "ﾶﾷￕﾽ￉￱ﾷ￰" # 乱码（斗战神佛）
+        OK # 录入成功
+        ```
+
+     2. 取值是二进制字符串
+
+        ```shell
+        127.0.0.1:6379> get name
+        "\xb6\xb7\xd5\xbd\xc9\xf1\xb7\xf0"
+        ```
+
+     3. 使用参数 `raw` 启动客户端，录入中文
+
+        ```shell
+        # 使用参数 raw
+        C:\Users\SS沈>redis-cli.exe --raw
+        127.0.0.1:6379> set name "ﾶﾷￕﾽ￉￱ﾷ￰" # 乱码（斗战神佛）
+        OK # 录入成功
+        ```
+
+     4. 取值（成功）
+
+        ```shell
+        127.0.0.1:6379> get name
+        斗战神佛
+        ```
+
+     5. 总结
+
+        Windows-cmd 默认编码格式（GBK），一般都是用 UTF-8 编码啦！！，所以会出现一些问题。以下实例尽量不使用中文
+
+   - 设置
+
+     1. 设置 __键__ __值__ (key-value)
+
+        `set key value`
+
+        ```shell
+        127.0.0.1:6379> set name_1 "Tom"
+        OK
+        127.0.0.1:6379>
+        ```
+
+     2. 设置键值及过期时间，以秒为单位
+
+        `SETEX key seconds value`
+
+        ```shell
+        127.0.0.1:6379> SETEX name_2 1 "Jack"
+        OK
+        (2.21s)
+        127.0.0.1:6379> get name2
+                                 # 空值（Linux 下是 nil，Windows 是什么也没有）
+        127.0.0.1:6379>
+        ```
+
+     3. 获取
+
+        说明：根据键获取值，如果不存在此键，则返回 nil
+
+        `get key`
+
+        ```shell
+        # 获取存在的键
+        127.0.0.1:6379> get name
+        tom
+        # 获取不存在的键
+        127.0.0.1:6379> get name_3
+        
+        127.0.0.1:6379>
+        ```
+
+     4. 根据多个键，后去多个值
+
+        ` mget key [key1,key2...]`
+
+        ```shell
+        # name name_1 有值，name_2 没有此键
+        127.0.0.1:6379> mget name name_1 name_2
+        tom
+        Tom
+        
+        127.0.0.1:6379>
+        ```
+
+     5. 运算（要求：值是数字）
+
+        - 将 key 对应的 value 加 1
+
+          `incr key`
+
+          ```shell
+          127.0.0.1:6379> get i
+          3
+          127.0.0.1:6379> incr i
+          4
+          127.0.0.1:6379> get i
+          4
+          ```
+
+        - 将 key 对应的 value 加整数
+
+          `incrby key increment`
+
+          ```shell
+          127.0.0.1:6379> get i
+          4
+          127.0.0.1:6379> incrby i 2
+          6
+          127.0.0.1:6379> get i
+          6
+          ```
+
+        - 将 key 对应的 value 减 1
+
+          `decr key`
+
+          ```shell
+          127.0.0.1:6379> get i
+          6
+          127.0.0.1:6379> decr i
+          5
+          127.0.0.1:6379> get i
+          5
+          ```
+
+        - 将 key 对应的 value 减整数
+
+          `decrby key decrement`
+
+          ```shell
+          127.0.0.1:6379> get i
+          5
+          127.0.0.1:6379> decrby i 2
+          3
+          127.0.0.1:6379> get i
+          3
+          ```
+
+     6. 其他
+
+        - 追加值
+
+          `append key value`
+
+          ```shell
+          127.0.0.1:6379> get name
+          tom
+          127.0.0.1:6379> append name " jack"
+          8                                  # 8 是字符串长度
+          127.0.0.1:6379> get name
+          tom jack                           # 结果显示
+          ```
+
+        - 获取值的长度
+
+          `strlen key`
+
+          ```shell
+          127.0.0.1:6379> get name
+          tom jack
+          127.0.0.1:6379> strlen name
+          8
+          ```
+
+3. __键的命令__
+
+   - 查找键，参数支持正则
+
+     `keys pattern`
+
+     ```shell
+     127.0.0.1:6379> keys *
+     i
+     name_1
+     name
+     (2.21s)
+     ```
+
+   - 判断键是否存在，如果存在返回 1，不存在返回 0
+
+     `exists key [key1...]`
+
+     ```shell
+     # 存在的键 查询
+     127.0.0.1:6379> exists name
+     1
+     # 不存在的键 查询
+     127.0.0.1:6379> exists name_2
+     0
+     ```
+
+   - 查看键对应的 value 的类型
+
+     `type key`
+
+     ```shell
+     127.0.0.1:6379> type name
+     string
+     127.0.0.1:6379> type i
+     string
+     ```
+
+     解释：value 的类型上面说过就 5 种，整型也是按照 string 存储的
+
+   - 删除键及对应值
+
+     `del key [key1...]`
+
+     ```shell
+     127.0.0.1:6379> keys *
+     i
+     name_1
+     name
+     127.0.0.1:6379> del i
+     1
+     # 删除了 i
+     127.0.0.1:6379> keys *
+     name_1
+     name
+     ```
+
+   - 设置过期时间，以秒为单位
+
+     说明：创建时，没有设置过期时间，则会一直存在，直到使用 `del` 移除，也可以使用它修改之前设置的过期时间（录入键值的时候设置的）
+
+     `expire key seconds`
+
+     ```shell
+     # 查询全部的 key-value
+     127.0.0.1:6379> keys *
+     name_1
+     name
+     #  设置 name_1 过期时间为 100
+     127.0.0.1:6379> expire name_1 100
+     1
+     # 查看 key-value 的有效时间
+     127.0.0.1:6379> ttl name_1
+     86
+     ```
+
+   - 查看有效时间，以秒为单位
+
+     `ttl key`
+
+     ```shell
+     # 查看有效时间
+     127.0.0.1:6379> ttl name_1
+     86
+     # 有效时间已过，被删除
+     127.0.0.1:6379> ttl name_1
+     -2
+     # 验证
+     127.0.0.1:6379> keys *
+     name
+     ```
+
+4. __hash__
+
+   说明：hash 用于存储对象，对象的格式为键值对（json ）
+
+   - 设置
+
+     `{name:"tom" gender: 0}` json 对象
+
+     1. 设置单个属性
+
+        `hset key field value` field 也是 string 类型
+
+        ```shell
+        # 注意格式 key filed value
+        127.0.0.1:6379> hset stu_1 name "tom"
+        1
+        (2.23s)
+        127.0.0.1:6379> type stu_1
+        hash
+        ```
+
+     2. 设置多个属性
+
+        `hmset key field value [filed value...]`
+
+        ```shell
+        127.0.0.1:6379> hmset stu_1 name "tom" gender 0
+        OK
+        127.0.0.1:6379> type stu_1
+        hash
+        ```
+
+   - 获取
+
+     1. 获取一个属性
+
+        `hget key field`
+
+        ```shell
+        127.0.0.1:6379> hget stu_1 name
+        tom
+        ```
+
+     2. 获取多个属性
+
+        `hmset key filed field1..`
+
+        ```shell
+        127.0.0.1:6379> hmget stu_1 name gender
+        tom
+        0
+        ```
+
+     3. 获取所有属性值
+
+        `hgetall key`
+
+        ```shell
+        127.0.0.1:6379> hgetall stu_1
+        name
+        tom
+        gender
+        0
+        ```
+
+     4. 获取所有的属性（field）
+
+        `hkeys key`
+
+        ```shell
+        127.0.0.1:6379> hkeys stu_1
+        name                        # field 属性值
+        gender
+        ```
+
+     5. 返回包含属性的个数
+
+        `hlen key`
+
+        ```shell
+        127.0.0.1:6379> hlen stu_1
+        2
+        ```
+
+     6. 获取所有值
+
+        `hvals key`
+
+        ```shell
+        127.0.0.1:6379> hvals stu_1
+        tom
+        0
+        ```
+
+     7. 其他
+
+        - 判断属性是否存在
+
+          `hexists key field`
+
+          ```shell
+          127.0.0.1:6379> hexists stu_1 name
+          1
+          ```
+
+        - 删除属性及值
+
+          `hdel key field [field1...]`
+
+          ```shell
+          127.0.0.1:6379> hdel stu_1 name
+          1
+          127.0.0.1:6379> hkeys stu_1
+          gender
+          ```
+
+        - 返回值的字符串长度
+
+          `hstrlen key field`
+
+          出错！！！
+
+5. __list__ 
+
+   - 介绍
+
+     1. 列表的元素类型为 string
+     2. 按照插入顺序排序
+     3. 在列表的头部或尾部添加元素
+     4. 左右都可以进入数据
+     5. 值没有键也会被删除
+
+   - 设置
+
+     1. 在左部插入数据
+
+        `lpush key value [value...]`
+
+        ```shell
+        # 查看所有元素
+        127.0.0.1:6379> lrange i 0 -1
+        0
+        # 从左侧插入元素
+        127.0.0.1:6379> lpush i 1
+        2                         # 返回元素个数
+        # 查看所有元素
+        127.0.0.1:6379> lrange i 0 -1
+        1
+        0
+        ```
+
+     2. 在右部插入数据
+
+        `rpush key value [value...]`
+
+        ```shell
+        # 查看
+        127.0.0.1:6379> lrange i 0 -1
+        1
+        0
+        # 右侧添加
+        127.0.0.1:6379> rpush i -1
+        3
+        # 查看
+        127.0.0.1:6379> lrange i 0 -1
+        1
+        0
+        -1
+        ```
+
+     3. 在一个指定元素的 __前 | 后__ 插入数据，从左边开始数
+
+        `linset key before | after pivot value`
+
+        参数：pivot 元素值
+
+        ```shell
+        # 在元素 0 之前插入一个 100
+        127.0.0.1:6379> linsert i before 0 100
+        4
+        # 查看
+        127.0.0.1:6379> lrange i 0 -1
+        1
+        100
+        0
+        -1
+        # 在 0 之后插入一个 -100
+        127.0.0.1:6379> linsert i after "0" -100
+        5                                        # 返回元素当前个数
+        127.0.0.1:6379> lrange i 0 -1
+        1
+        100
+        0
+        -100
+        -1
+        ```
+
+   - 获取
+
+     1. 移除并返回 key 对应的 list 左侧第一个值
+
+        `lpop key`
+
+        ```shell
+        # 查看元素
+        127.0.0.1:6379> lrange i 0 -1
+        1
+        100
+        0
+        -100
+        -1
+        # 左侧弹出
+        127.0.0.1:6379> lpop i
+        1                       # 弹出的值
+        # 查看
+        127.0.0.1:6379> lrange i 0 -1
+        100
+        0
+        -100
+        -1
+        ```
+
+     2. 移除并返回 右侧第一个值
+
+        `rpop key`
+
+        ```shell
+        # 查看
+        127.0.0.1:6379> lrange i 0 -1
+        100
+        0
+        -100
+        -1
+        # 右侧弹出
+        127.0.0.1:6379> rpop i
+        -1
+        # 查看
+        127.0.0.1:6379> lrange i 0 -1
+        100
+        0
+        -100
+        ```
+
+     3. 获取部分 list 元素值
+
+        `lrange key start stop`
+
+        ```shell
+        # 获取全部元素
+        127.0.0.1:6379> lrange i 0 -1
+        100
+        0
+        -100
+        ```
+
+   - 其他
+
+     1. 返回 list 长度
+
+        `llen key`
+
+        ```shell
+        127.0.0.1:6379> llen i
+        3
+        ```
+
+     2. 返回 list 索引对应的元素
+
+        `lindex key index`
+
+        ```shell
+        127.0.0.1:6379> lindex i 0
+        100
+        ```
+
+     3. 裁剪列表
+
+        `ltrim key start stop`
+
+        ```shell
+        # 原始 list
+        127.0.0.1:6379> lrange i 0 -1
+        0
+        -100
+        1
+        2
+        3
+        4
+        5
+        # 裁剪 索引 1 到 3
+        127.0.0.1:6379> ltrim i 1 3
+        OK
+        # 结果
+        127.0.0.1:6379> lrange i 0 -1
+        -100
+        1
+        2
+        ```
+
+6. __set__
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
