@@ -5161,7 +5161,33 @@ mysql> select * from students;
      4. set：（集合）
      5. zset：（有序集合）
    
-2. __string__
+2. 切换数据库
+
+   - 介绍
+
+     Redis 默认有 16 个数据库，数据库名称从 0 到 15，默认使用 0 的数据库
+
+   - 语法
+
+     `select 数据库名称`
+
+     ```shell
+     # 连接数据库
+     C:\Users\SS沈>redis-cli.exe --raw
+     # 默认连接 0 的数据库
+     127.0.0.1:6379> keys *
+     set_list
+     zset_list
+     i
+     # 切换 1 的数据库
+     127.0.0.1:6379> select 1
+     OK
+     127.0.0.1:6379[1]> keys *
+     
+     127.0.0.1:6379[1]>
+     ```
+
+3. __string__
 
    - 介绍
 
@@ -5342,7 +5368,7 @@ mysql> select * from students;
           8
           ```
 
-3. __键的命令__
+4. __键的命令__
 
    - 查找键，参数支持正则
 
@@ -5434,7 +5460,7 @@ mysql> select * from students;
      name
      ```
 
-4. __hash__
+5. __hash__
 
    说明：hash 用于存储对象，对象的格式为键值对（json ）
 
@@ -5556,7 +5582,7 @@ mysql> select * from students;
 
           出错！！！
 
-5. __list__ 
+6. __list__ 
 
    - 介绍
 
@@ -5733,45 +5759,267 @@ mysql> select * from students;
         2
         ```
 
-6. __set__
+7. __set__（集合）
 
+   - 介绍
+
+     1. 无序集合
+     2. 元素为 string 类型
+     3. 元素具有唯一性，不重复
+
+   - 设置
+
+     1. 添加元素
+
+        `sadd key member [member...]`
+
+        ```shell
+        # 添加元素（重复的没有添加成功）
+        127.0.0.1:6379> sadd set_list 4 1 2 3 3
+        4                                    # 返回元素个数
+        ```
+
+     2. 获取（返回集合所有元素）
+
+        `smembers key`
+
+        ```shell
+        # 元素无序性，不依赖添加顺序
+        127.0.0.1:6379> smembers set_list
+        1
+        2
+        3
+        4
+        (1.43s)
+        ```
+
+     3. 返回元素个数
+
+        `scard key`
+
+        ```shell
+        127.0.0.1:6379> scard set_list
+        4
+        ```
+
+   - 其他
+
+     1. 求多个集合交集
+
+        `sinter key1 key2 [key3...]`
+
+     2. 求某一集合与其他集合的差集
+
+        `sdiff key1 key2 [key3...]`
+
+     3. 求多个集合的合集
+
+        `sunion key1 key2 [key3...]`
+
+     4. 判断元素是否在集合中
+
+        `sismember key member`
+
+        ```shell
+        # 集合元素
+        127.0.0.1:6379> smembers set_list
+        1
+        2
+        3
+        4
+        # 判断 0 是否在集合中
+        127.0.0.1:6379> sismember set_list 0
+        0								  # 0 表示否
+        # 判断 4 是否在集合中
+        127.0.0.1:6379> sismember set_list 4
+        1
+        ```
+
+8. __zset__
+
+   - 介绍
+
+     1. sort set ，有序集合
+     2. 元素为 string 类型
+     3. 元素具有唯一性，不重复
+     4. 每个元素都会关联一个 double 类型的 score，表示权重，通过权大小将元素从小到大排序
+
+   - 设置
+
+     1. 添加
+
+        `zadd key score member [socre1 menber1]`
+
+        ```shell
+        # 注意插入顺序，score value
+        127.0.0.1:6379> zadd zset_list 0 0 1 1 3 2 2 3
+        4
+        (2.24s)
+        ```
+
+     2. 获取
+
+        `zrange key start stop`
+
+        ```shell
+        # 权重越大，越靠前
+        127.0.0.1:6379> zrange zset_list 0 -1
+        0
+        1
+        3
+        2
+        (2.21s)
+        ```
+
+     3. 返回元素个数
+
+        `zcard key`
+
+   - 使用 score 获取
+
+     1. 返回有序集合 key 中，score 值在 min 和 max 之间的成员个数
+
+        `zcount key min max`
+
+        ```shell
+        127.0.0.1:6379> zrange zset_list 0 -1
+        0
+        1
+        3
+        2
+        # 返回 score 在 0，3 之间的元素个数
+        127.0.0.1:6379> zcount zset_list 0 3
+        4
+        127.0.0.1:6379> zcount zset_list 0 1
+        2
+        ```
+
+     2. 返回有序集合 key 中，成员 member 的 score 值
+
+        `zscore key member`
+
+        ```shell
+        # 元素集排列顺序
+        127.0.0.1:6379> zrange zset_list 0 -1
+        0
+        1
+        3
+        2
+        (2.21s)
+        # 获取 元素 2 的 score
+        127.0.0.1:6379> zscore zset_list 2
+        3
+        127.0.0.1:6379> zscore zset_list 3
+        2
+        ```
+
+## Redis 高级操作
+
+### 发布订阅
+
+1. 介绍
    
+   - 发布者不是计划发送消息给特定的接收者（订阅者），而是发布消息的消息分到不同的频道，不需要直到什么样的订阅者订阅
+   - 订阅者对一个或多个频道感兴趣，只需要接受感兴趣的消息，不需要知道什么样的发布者发布的
+   - 发布者和订阅者的解耦合可以带来更大的扩展性和更加动态的网络拓扑
+   - 客户端发送到频道的消息，将会被推送到所有订阅者此频道的客户端
+   - 客户端不需要主动去获取消息，只需要订阅频道，这个频道的内容就会被推送过来
+   
+2. 消息格式
 
+   - 推送消息的格式包含 3 部分
 
+     1. 第一部分：消息类型
+     2. 第二部分：频道
+     3. 第三部分：订阅频道数量、消息内容
 
+   - 消息类型
 
+     1. subscribe：表示订阅成功
+     2. unsubscribe：表示取消订阅成功
+     3. message：表示其终端发布消息
 
+   - 3 种格式说明
 
+     1. 如果消息类型是 __subscribe__ ，则第二部分是 __频道__ ，第三部分是订阅该频道的数量（多少个终端订阅了该频道）
+     2. 如果消息类型是 __unsubscribe__ ，则第二部分是 __频道__ ，第三部分是现在订阅该频道的数量，如果是 0 则表示当前没有订阅任何频道，当在 __Pub / Sub__ 以外状态，客户端可以发出任何 __Redis__ 命令
+     3. 如果消息类型是 __message__ ，则第二部分是 __原频道名称__，第三部分是 __消息的内容__（推送消息）
 
+   - 命令
 
+     1. 订阅
 
+        `subscribe 频道名称 [频道名称1...]`
 
+        ```shell
+        C:\Users\SS沈>redis-cli.exe --raw
+        127.0.0.1:6379> subscribe channel1
+        subscribe           # 订阅频道
+        channel1            # 频道
+        1                   # 状态好像是（客户端状态）
+        
+        # 接受频道发布的消息
+        message
+        channel1
+        hello world welcome
+        ```
 
+     2. 取消订阅
 
+        不写参数，表示取消所有订阅
 
+        `unsubscribe 频道名称 [频道名称1...]`
 
+     3. 发布
 
+        `publish 频道 消息`
 
+        ```shell
+        127.0.0.1:6379> publish channel1 "hello world,welcome" # 发布消息
+        2                       # 被订阅频道状态
+        ```
 
+### 主从配置
 
+1. 介绍
 
+   - 从服务器，轮询主服务器
+   - 可参考 MonogDB 副本集的理论
 
+2. 配置主从服务器
 
+   - 启用两台电脑 A 、B
 
+     1. A 的 IP 为 IP_1
+     2. B 的 IP 为 IP_2
 
+   - 修改两台电脑的 Redis 的配置文件 （redis.conf）
 
+     1. 主服务器 A
 
+        ```tex
+        # Examples:
+        #
+        # bind 192.168.1.100 10.0.0.1
+        # bind 127.0.0.1
+        bind IP_1
+        ```
 
+     2. 从服务器 B
 
+        ```tex
+        # Examples:
+        #
+        # bind 192.168.1.100 10.0.0.1
+        # bind 127.0.0.1
+        bind IP_2
+        
+        slaveof IP_1
+        ```
 
+3. 再次启动服务端，与客户端
 
-
-
-
-
-
-
-
+   - 在主服务器上操作，从服务器可以有相同的操作和数据
 
 ### 待续......
 
