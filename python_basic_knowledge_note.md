@@ -1271,6 +1271,10 @@
 5. 生成发布压缩包
 
    `python setup.py sdist`
+   
+6. 安装
+
+   `python setup.py install`
 
 ## Python 类的应用
 
