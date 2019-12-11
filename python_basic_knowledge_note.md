@@ -1134,6 +1134,148 @@
      main()((1, 2))
      ```
 
+## 包、模块应用
+
+### 术语解释
+
+1. Python 模块
+
+   - 具有独立功能的 Python 文件 `.py` 文件
+
+2. Python 包
+
+   - 包含多个 `.py` 文件的文件夹，其中 Python2 包中必须有 `__init__.py` 文件，才可以导入包（但还是不能使用模块），而 Python3 则不需要有 `__init__.py` 也可以导入包，同样模块一样不能使用。
+
+3. `__init__.py`
+
+   - Python3，文件夹不需要必须有，Python2 必须有 `__init__.py` 才可以将文件夹称之为包，正常都会规范要求包中包含 `__init__.py`
+
+   - 如图
+
+     ![Python包](git_picture/Python包.png)
+
+4. `__all__` 变量的使用
+
+   - 导入模块时，模块文件  `__all__ = ['function', 'args', 'class_name']` 放在文件首行，可以控制 `from 包 import *` 会导入哪些东西
+
+   - 实列
+
+     1. a.py 文件
+
+        ```python
+        def test_1():
+            print('test_1--a')
+        
+        def test_2():
+            print('test_2--a')
+        ```
+
+     2. b.py 文件
+
+        ```python
+        __all__ = ['test_1'] # a.py 文件没有
+        
+        def test_1():
+            print('test_1--b')
+        
+        def test_2():
+            print('test_2--b')
+        ```
+
+     3. 使用 IPython 执行
+
+        ```python 
+        # 使用 import 导入
+        # 导入模块 a 
+        In [1]: import a
+        
+        In [2]: a.test_1()
+        test_1--a
+        
+        In [3]: a.test_2()
+        test_2--a          
+        
+        # 导入模块 b
+        In [4]: import b
+        
+        In [5]: b.test_1()
+        test_1--b
+        
+        In [6]: b.test_2()
+        test_2--b          # 结论：可以正常导入
+        
+        # 使用 fron 导入
+        # a 文件没有设定 __all__ 变量
+        In [7]: from a import *
+        
+        In [8]: test_1()
+        test_1--a
+        
+        In [9]: test_2()
+        test_2--a          # 结论：可以导入
+        
+        # 设置 __all__ 变量
+        In [10]: from b import *
+        
+        In [11]: test_1()
+        test_1--b          # __all__ 变量中有此函数名，可以导入（导入一样模块，前者被覆盖）
+        
+        In [12]: test_2()
+        test_2--a          # 无法导入
+        ```
+
+### 包的使用
+
+1. 问题阐述
+
+   Python 包，含有 `.py` 文件和 `__init__.py`文件，如 `__init__.py` 为空白，导入 Python 模块会出现不能导入问题，所以 `__init__.py` 写什么
+
+2. Python 导包的执行过程
+
+   - 代码 
+
+     1. `import 包`
+     2. `from 包 import 模块, 模块`
+     3. `from 包 import *` 导入所有模块，但是，如果模块名相同，前者会被覆盖
+
+   - 先执行包中的 `__init__.py` 文件
+
+     1. `__init__.py` 会告诉导入哪些模块
+
+   - `__init__.py` 代码
+
+     1. `__all__` 变量
+
+        控制 `from 包 import *` 导入什么模块
+
+     2. `from . import 模块` 从当前路径下导入模块
+
+        控制 `import 包` 、`from 包 import 模块, 模块` 导入什么模块
+
+### 制作包和模块、发布
+
+说明：先从当前路径下寻找模块，没有从系统路径中寻找，没有才报错，所以制作包和模块，应当基于系统路径查找
+
+1. 如发先某一些代码比较好，可以安装到 Python 系统中
+
+2. 制作包和模块
+
+3. 创建 `setup.py`
+
+   - 代码（模式固定）
+
+4. 构建模块
+
+   `python setup.py build`
+
+5. 生成发布压缩包
+
+   `python setup.py sdist`
+   
+6. 安装
+
+   `python setup.py install`
+
 ## Python 类的应用
 
 说明：
