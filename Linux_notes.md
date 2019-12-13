@@ -229,3 +229,80 @@ __说明：Linux 会有很多权限问题__
 
      3. 选项 `-R` 表示递归修改权限，改变了目录及目录下的文件权限
 
+### 文件所有者更改
+
+1. 介绍文件的所有者
+
+   - 文件所有者即使创建文件的用户 `代号 o`
+
+   - 文件的操作权限 __超级管理员、所有者__ 可以修改
+
+   - 文件所有者只能由 __超级管理员__ 修改
+
+   - 使用管理员创建一个用户 `useradd 用户名`  设置密码（也可以不设置）  `passwd 用户名`
+
+     ```shell
+     root@localcomputer:/home/ss/桌面/tmp# useradd s # 创建用户 s
+     root@localcomputer:/home/ss/桌面/tmp# passwd s # 为 s 设置密码
+     输入新的 UNIX 密码： 
+     重新输入新的 UNIX 密码： 
+     passwd：已成功更新密码
+     
+     ```
+
+2. 命令 `chown [用户] [文件及目录]`
+
+   __说明：此 Linux 系统存在超级管理员 root、普通用户 ss、s 两个__
+
+   - 只有 root 可以修改，文件所有者也没有权限修改
+
+   - 演示；使用 ss 创建文件（文件所有者是 ss），使用 ss 用户修改文件所有者，将其修改为 s
+
+     ```shell
+     ss@localcomputer:~/桌面/tmp$ ls -l
+     总用量 0
+     -rw-r--r-- 1 ss ss 0 12月 13 22:01 a.txt
+     ss@localcomputer:~/桌面/tmp$ chown s a.txt 
+     chown: 正在更改'a.txt' 的所有者: 不允许的操作 # 不允许修改
+     ```
+
+     __不允许修改__
+
+   - 演示；使用 root 修改文件所有者，将其修改为 s
+
+     ```shell
+     root@localcomputer:/home/ss/桌面/tmp# chown s a.txt  # 修改成功
+     root@localcomputer:/home/ss/桌面/tmp# ls -l
+     总用量 0
+     -rw-r--r-- 1 s ss 0 12月 13 22:01 a.txt
+     
+     ```
+
+     __修改文件所有者，只能 root 修改__
+
+3. 注意事项
+
+   - 修改的用户，必须系统已经存在
+
+### 文件所属组更改
+
+1. 介绍
+
+   - 使用管理员创建一个所属组 `groupadd 组名`
+
+2. 命令 `chgrp [用户组] [文件或目录]`
+
+   - 修改文件所属组为 g
+
+     ```shell
+     ss@localcomputer:~/桌面/tmp$ ls -l
+     总用量 0
+     -rw-r--r-- 1 s ss 0 12月 13 22:01 a.txt              # 使用管理员修改
+     root@localcomputer:/home/ss/桌面/tmp# chgrp g a.txt  # 更改所属组
+     root@localcomputer:/home/ss/桌面/tmp# ls -l          # 显示已经更改
+     总用量 0
+     -rw-r--r-- 1 s g 0 12月 13 22:01 a.txt
+     ```
+
+     
+
