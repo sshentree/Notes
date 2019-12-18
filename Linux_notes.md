@@ -398,7 +398,9 @@ __说明：Linux 会有很多权限问题__
 
 ### find 使用
 
-1. find 命令使用格式
+1. find 命令原理及使用格式
+
+   - 遍历整个分区及硬盘
 
    - `find 路径 [-选项] 文件名`
 
@@ -474,7 +476,110 @@ __说明：Linux 会有很多权限问题__
      find: ‘./tmp’: 没有那个文件或目录
      ```
 
+
+### locate 使用
+
+1. 使用原理及格式
+
+   - 不会像 `find` 遍历整个目录、分区或硬盘，`locate` 会建立文件资料库，并定期跟新文件资料库（块表），且在建立的文件资料库中查找（速度快哦）
+
+   - `locate 文件名称`
+   - __包含文件名的都会被查找出来，但是查找区分大小写（添加选项 `-i`）__
+
+2. 演示
+
+   - 查找已建立好的文件（隔天建立的）
+
+     ```shell
+     ss@localcomputer:~/桌面/tmp$ ls
+     a  abcdefg.txt
+     ss@localcomputer:~/桌面/tmp$ locate abcdefg.txt 	# 秒搜
+     /home/ss/桌面/tmp/abcdefg.txt
+     ss@localcomputer:~/桌面/tmp$ 
+     ```
+
+   - 查找 locate 建立的文件资料库 `locate locate`
+
+     ```shell
+     ss@localcomputer:~/桌面/tmp$ locate locate
+     ...
+     ...
+     /var/lib/mlocate/mlocate.db 			# 很多文件，只取一个
+     ...
+     ```
+
+3. 问题及解决办法
+
+   - 新建文件，`locate` 并没有刷新资料库，所以 `locate` 找不到文件（`locate` 基于文件资料库的查找）
+
+   - 使用 `updatedb` （使用超级管理员权限）,更新资料库，再次使用 `locate` 就可以查找到新建的文件了
+
+     ```shell
+     ss@localcomputer:~/桌面/tmp$ touch abcde			# 创建一个文件
+     ss@localcomputer:~/桌面/tmp$ ls
+     a  abcde  abcdefg.txt
+     ss@localcomputer:~/桌面/tmp$ locate abcde			# locate 搜索不到
+     /home/ss/桌面/tmp/abcdefg.txt
+     ss@localcomputer:~/桌面/tmp$ updatedb				# 普通用户无权限使用 updatedb
+     updatedb: 无法为 `/var/lib/mlocate/mlocate.db' 打开临时文件
+     ss@localcomputer:~/桌面/tmp$ sudo su				# 切换超级管理员
+     [sudo] ss 的密码： 
+     root@localcomputer:/home/ss/桌面/tmp# updatedb	 # 更新资料库
+     root@localcomputer:/home/ss/桌面/tmp# su ss
+     ss@localcomputer:~/桌面/tmp$ locate abcde			# 可以查找到
+     /home/ss/桌面/tmp/abcde
+     /home/ss/桌面/tmp/abcdefg.txt
+     ss@localcomputer:~/桌面/tmp$ 
+     ```
+
+   - __如果新建文件在更目录下的临时文件目录下（`/tmp/`），`locate` 是无法找到的（`updatedb` 也不好用）__
+
+### which  \ whereis 用法
+
+1. 介绍
+
+   - 两个命令都是用于搜索 __命令__ 的，但是两者搜索结果有所不同
+   - `which` 结果是命令所在路径
+   - `whereis` 结果是命令所在路径及帮助文档所在路径
+
+2. 演示
+
+   - which 演示
+
+     ```shell
+     ss@localcomputer:/$ which cp
+     /bin/cp
+     ss@localcomputer:/$ which rm
+     /bin/rm
+     ```
+
+   - whereis 演示
+
+     ```shell
+     ss@localcomputer:/$ whereis cp
+     cp: /bin/cp /usr/share/man/man1/cp.1.gz
+     ss@localcomputer:/$ whereis rm
+     rm: /bin/rm /usr/share/man/man1/rm.1.gz
+     ```
+
+3. 别名（Alias）
+
+   - 命令存在别名，实际上我们运行的命令是使用的别名
+
+   - 如删除命令 `rm` 别名 `rm -i` 就是询问是否删除
+
+     ```shell
+     ss@localcomputer:~/桌面/tmp$ rm -i abcde
+     rm：是否删除普通空文件 'abcde'？ y			# 删除前询问
+     ss@localcomputer:~/桌面/tmp$ 
      
+     ```
+
+   - Linux 命令本身名由询问，执行命令时，会先去查找别名
+
+   - 使用 `which` 查找命令就可以显示别名（Ubunt 没有，不知道为什么）
+
+
 
 
 
