@@ -540,7 +540,7 @@ __说明：Linux 会有很多权限问题__
 
    - 两个命令都是用于搜索 __命令__ 的，但是两者搜索结果有所不同
    - `which` 结果是命令所在路径
-   - `whereis` 结果是命令所在路径及帮助文档所在路径
+   - `whereis` 结果是命令所在路径及帮助文档（命令帮助信息、配置文件帮助信息）所在路径
 
 2. 演示
 
@@ -578,6 +578,109 @@ __说明：Linux 会有很多权限问题__
    - Linux 命令本身名由询问，执行命令时，会先去查找别名
 
    - 使用 `which` 查找命令就可以显示别名（Ubunt 没有，不知道为什么）
+
+### grep
+
+1. 功能描述及用法
+
+   - 在文件中所寻字符串匹配的行并输出
+   - `grep -iv [指定字符串][文件]`
+   - `-i` 不区分大小写
+   - `-v` 排除指定字符串
+
+2. 演示
+
+   - `-i` 演示
+
+     ```shell
+     ss@localcomputer:~/桌面/tmp$ grep -i jack a
+     jack
+     JACK
+     ```
+
+   - `-v` 屏蔽指定字符串行，一般用于剔除注释 ，以 `#`  开头的行
+
+     `grep -v ^# 文件名称` 以 `#` 开头的行
+
+## Linux 帮助命令
+
+__说明：帮助信息分为很多中，1  表示命令帮助；5 表示配置文件的帮助__
+
+### man 使用
+
+__说明：下载中文 man `sudo apt install manpages-zh`__
+
+1. 功能描述及使用语法
+
+   - __获取帮助信息，查看配置文件信息__
+   - `man [命令或配置信息]`
+   - `/字符串` 搜索字符串，使用 `n` 查看下一个
+
+2. 注意
+
+   - 查看配置文件信息，不要使用绝对路径（/etc/services）
+   - 查看配置文件信息，直接使用配置文件名（services）就可以
+   - 配置文件
+     1. 查看配置文件的介绍
+     2. 配置文件的格式
+     3. `man services` 网络服务配置信息
+     4. `man 5 passwd`  查看 __密码文件__
+
+3. 使用 `man` 查看命令、配置帮助信息
+
+   - 显示内容全面
+
+   - 但过于全面
+
+   - `whatis 命令`
+
+     ```shell
+     ss@localcomputer:~$ whatis ls
+     ls (1)               - 列目录内容
+     ```
+
+   - `apropos 配置文件名`
+
+     ```shell
+     ss@localcomputer:~$ apropos inittab
+     inittab (5)          - 与 sysv 兼容的 init 进程使用的初始化文件...
+     ```
+
+   - 简单，很明了
+
+### info 用法
+
+### help 用法
+
+__说明：查看内置命令，`man` 查看不了内置命令__
+
+1. 用法
+
+   - `help 内置命令`
+
+2. 获取主要选项信息
+
+   - `命令 --help`
+
+3. 确定内置命令，`cd` 内置命令
+
+   - `which 命令`
+
+     ```shell
+     ss@localcomputer:~$ which cd
+     ss@localcomputer:~$ 
+     
+     ```
+
+   - `whereis 命令`
+
+     ```shell
+     ss@localcomputer:~$ whereis cd
+     cd:
+     ss@localcomputer:~$ 
+     ```
+
+     
 
 
 
