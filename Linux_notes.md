@@ -753,9 +753,150 @@ __说明：查看内置命令，`man` 查看不了内置命令__
 
 ## Linux 压缩解压命令
 
+__说明：压缩便于备份、传输和并入一般很难感染压缩文件，.zip 在 Linux 和 Windows 都可以直接使用__
+
 ### 压缩格式  .gz
 
 __说明：在 LInux 中非常常见的一种压缩格式__
+
+#### gzip \ gunzip(gzip -d) 使用
+
+1. 压缩 `gzip` 命令的使用
+
+   - 语法 `gzip 文件名`
+   - __只能压缩文件，压缩比很理性，也不保存源文件__
+
+2. 解压 `gunzip` 命令使用
+
+   - 语法 `gunzip 压缩文件名`
+   - 另一种 `gzip -d 压缩文件名`
+
+3. 演示
+
+   - 压缩
+
+     ```shell
+     ss@localcomputer:~/桌面/tmp$ ls -l
+     总用量 4
+     -rw-r--r-- 1 ss ss 163 12月 23 21:51 a
+     ss@localcomputer:~/桌面/tmp$ gzip a		# 压缩文件
+     ss@localcomputer:~/桌面/tmp$ ls -l
+     总用量 4
+     -rw-r--r-- 1 ss ss 154 12月 23 21:51 a.gz
+     ```
+
+   - 解压
+
+     ```shell
+     
+     ss@localcomputer:~/桌面/tmp$ ls -l
+     总用量 4
+     -rw-r--r-- 1 ss ss 154 12月 23 21:51 a.gz
+     ss@localcomputer:~/桌面/tmp$ gunzip a.gz 		# 解压文件
+     ss@localcomputer:~/桌面/tmp$ ls -l
+     总用量 4
+     -rw-r--r-- 1 ss ss 163 12月 23 21:51 a
+     
+     ```
+
+#### tar 使用（打包\压缩）
+
+1. 介绍
+
+   - `gzip` 命令不可以压缩目录，且不保留源文件
+   - `tar` 可以压缩目录
+     1. 先将目录打包（打包和目录不同），目录打包后的文件格式`.tar`
+     2. 在进行压缩
+     3. 保留源文件
+
+2. 压缩 `tar` 命令使用
+
+   - 功能描述
+     1. 打包目录
+     2. 压缩后文件格式 `.tar.gz`
+
+   - 选项表示
+
+     1. `-c` ：打包
+     2. `-v` ：显示详细信息
+     3. `-f` ：指定文件名
+     4. `-z` ：打包同时压缩
+
+   - 语法
+
+     `tar [-zcf] [压缩后文件名] [目录]` __（注意选项顺序）__
+
+   - 演示
+
+     1. 压缩，分成两部完成
+
+        ```shell
+        ss@localcomputer:~/桌面$ tar -cvf tmp.tar tmp 	# 打包
+        tmp/										  # 显示详细信息
+        tmp/c/
+        tmp/a
+        tmp/b/
+        ss@localcomputer:~/桌面$ ls -l
+        总用量 16
+        drwxr-xr-x 4 ss ss  4096 12月 23 22:07 tmp
+        -rw-rw-r-- 1 ss ss 10240 12月 23 22:15 tmp.tar	# 打包文件
+        
+        ss@localcomputer:~/桌面$ gzip tmp.tar 			# 压缩
+        ss@localcomputer:~/桌面$ ls -l
+        总用量 8
+        drwxr-xr-x 4 ss ss 4096 12月 23 22:07 tmp
+        -rw-rw-r-- 1 ss ss  317 12月 23 22:15 tmp.tar.gz	  # 文件格式
+        ```
+
+     2. 压缩，一步完成
+
+        ```shell
+        ss@localcomputer:~/桌面$ tar -zcvf tmp.tar.gz tmp/	# 打包并进行压缩
+        tmp/
+        tmp/c/
+        tmp/a
+        tmp/b/
+        ss@localcomputer:~/桌面$ ls -l
+        总用量 8
+        drwxr-xr-x 4 ss ss 4096 12月 23 22:07 tmp
+        -rw-rw-r-- 1 ss ss  309 12月 23 22:21 tmp.tar.gz
+        
+        ```
+
+3. 解压 `tar` 命令使用
+
+   - 选项表示
+
+     1. `-v` ：解包
+     2. `-v` ：显示详细信息
+     3. `-f` ：指定解压文件
+     4. `-z` ：压缩文件
+
+   - 语法
+
+     `tar -zxvf 解压文件.tar.gz`
+
+   - 解压缩包
+
+     1. 一步，完成
+
+        ```shell
+        ss@localcomputer:~/桌面$ ls
+        tmp.tar.gz
+        ss@localcomputer:~/桌面$ tar -zxvf tmp.tar.gz 	# 解压缩
+        tmp/
+        tmp/c/
+        tmp/a
+        tmp/b/
+        ss@localcomputer:~/桌面$ ls -l
+        总用量 8
+        drwxr-xr-x 4 ss ss 4096 12月 23 22:07 tmp
+        -rw-rw-r-- 1 ss ss  309 12月 23 22:21 tmp.tar.gz
+        ```
+
+### 压缩格式 .zip
+
+__说明：__
 
 
 
