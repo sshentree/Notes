@@ -928,9 +928,61 @@
    - __在 python 中，if、elif、else、try、expect、for、while__，不改变变量的作用域。
    - 即，在其中定义变量，变量的作用域不变
 
-### 可调用模块
+### 可调用、不可调用模块
 
-### 不可调用模块
+1. 使用 内置函数`callable()` 验证对象是否为可调用对象，返回值为 bool 类型
+
+2. 简单理解
+
+   - 使用 "()" 表示可调用
+   - 反之不可调用
+   - 变量则是不可调用 "对象"，函数则是可调用 "对象"
+   - `A a = A()` 初始化一个实例对象，`a` 默认为不可调用 `a()` 错误，但是类中实现 `__call__()` 则可以实现对象调用
+
+3. 实例
+
+   - 变量
+
+     ```python
+     >>> a = 'hello'
+     >>> callable(a)
+     False
+     ```
+
+   - 函数
+
+     ```python
+     >>> def fun():
+     ...     print('hello world')
+     ...
+     >>> callable(fun)
+     True
+     ```
+
+   - 类
+
+     ```python
+     >>> class A():
+     ...     name = 'test'
+     ...
+     >>> callable(A)      
+     True			# 类是可调用对象
+     >>> a = A()
+     >>> callable(a)
+     False			# 对象不可调用
+     ```
+
+   - 类-实现 `__call__()`
+
+     ```python
+     >>> class A():
+     ...     def __call__():
+     ...             print('hello world')
+     ...
+     >>> a = A()
+     >>> callable(a)
+     True
+     ```
 
 ## 参数传递
 

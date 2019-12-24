@@ -824,7 +824,8 @@ __说明：在 LInux 中非常常见的一种压缩格式__
 
    - 语法
 
-     `tar [-zcf] [压缩后文件名] [目录]` __（注意选项顺序）__
+     1. 打包 `tar [-zcf] [压缩后文件名] [目录]` __（注意选项顺序）__
+     2. 查看包里文件信息 `tar -tf [文件.tar.gz\.bz2]`
 
    - 演示
 
@@ -896,7 +897,128 @@ __说明：在 LInux 中非常常见的一种压缩格式__
 
 ### 压缩格式 .zip
 
-__说明：__
+__说明：.zip linux 和 Windows 都支持，所以两个系统之间相互传文件可以使用__
+
+#### zip 使用
+
+1. 介绍
+
+   - 保留源文件
+   - 可以解压缩文件，及目录使用 `-r` 选项
+   - 压缩格式为 `.zip`
+
+2. 功能及命令
+
+   - 解压缩文件及目录
+
+   - 压缩命令 `zip [-r] [压缩后文件] [文件及目录]` 
+
+     `-r` 压缩目录
+
+   - 解压缩命令 `unzip 文件`
+
+3. 用法
+
+   - 压缩文件
+
+     ```shell
+     ss@localcomputer:~/桌面/tmp$ ls -l
+     总用量 12
+     -rw-r--r-- 1 ss ss  163 12月 23 21:51 a
+     ss@localcomputer:~/桌面/tmp$ zip a.zip a		# 压缩文件
+       adding: a (deflated 18%)					# 显示压缩比
+     ss@localcomputer:~/桌面/tmp$ ls -l
+     总用量 16
+     -rw-r--r-- 1 ss ss  163 12月 23 21:51 a
+     -rw-r--r-- 1 ss ss  286 12月 24 22:09 a.zip	 # 文件格式 .zip
+     ```
+
+   - 压缩目录
+
+     ```shell
+     ss@localcomputer:~/桌面$ zip tmp.zip tmp
+       adding: tmp/ (stored 0%)
+     ss@localcomputer:~/桌面$ ls -l
+     总用量 12
+     drwxr-xr-x 4 ss ss 4096 12月 24 22:09 tmp
+     -rw-rw-r-- 1 ss ss  309 12月 23 22:21 tmp.tar.gz
+     -rw-r--r-- 1 ss ss  158 12月 24 22:12 tmp.zip
+     ```
+
+   - 解压缩
+
+     ```shell
+     ss@localcomputer:~/桌面$ unzip tmp.zip 
+     Archive:  tmp.zip
+        creating: tmp/
+     ```
+
+### 压缩格式 .bzip2
+
+#### bzip 使用
+
+1. 介绍
+
+   - 是 bzip 的升级模式
+   - 可以保留源文件 `-k`
+   - 压缩比惊人，比较大的文件推荐使用 bzip2
+   - 压缩格式 `.bz2`
+   - __只能压缩文件__
+   - 可是和 `tar` 命令一起使用，先将目录打包，在进行压缩
+
+2. 功能及命令
+
+   - 解压缩文件
+
+   - 压缩命令 `bzip2 [-k] [文件]` ，解压缩 `bunzip2 [-k] [压缩文件]`
+
+     `-k` 表示压缩时，产生压缩文件保留源文件；解压时，保留压缩文件
+
+   - 压缩目录 `tar -jcvf [压缩后文件名] [目录]` ，解压缩目录 `tar -jcvf 压缩文件.bz2`
+
+3. 演示
+
+   - 压缩保留源文件
+
+     ```shell
+     ss@localcomputer:~/桌面/tmp$ ls
+     a  b  c
+     ss@localcomputer:~/桌面/tmp$ bzip2 -k a
+     ss@localcomputer:~/桌面/tmp$ ls
+     a  a.bz2  b  c
+     ```
+
+   - 解压缩保留压缩文件
+
+     ```shell
+     ss@localcomputer:~/桌面/tmp$ ls
+     a.bz2  b  c
+     ss@localcomputer:~/桌面/tmp$ bunzip2 -k a.bz2 
+     ss@localcomputer:~/桌面/tmp$ ls
+     a  a.bz2  b  c
+     ```
+
+   - 和 `tar` 一起使用解压缩目录
+
+     ```shell
+     ss@localcomputer:~/桌面$ tar -jcvf tmp.tar.bz2 tmp/	# 压缩目录
+     tmp/
+     tmp/a.bz2
+     tmp/c/
+     tmp/a
+     tmp/b/
+     ss@localcomputer:~/桌面$ tar -jxvf tmp.tar.bz2 		# 解压目录
+     tmp/
+     tmp/a.bz2
+     tmp/c/
+     tmp/a
+     tmp/b/
+     
+     ```
+
+     
+
+
 
 
 
