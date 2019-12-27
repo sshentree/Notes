@@ -748,7 +748,6 @@ __说明：查看内置命令，`man` 查看不了内置命令__
         21:55:55 up  1:54,  1 user,  load average: 0.01, 0.00, 0.00
        USER     TTY      来自           LOGIN@   IDLE   JCPU   PCPU WHAT
        ss       :0       :0               20:01   ?xdm?  41.98s  0.02s /usr/lib/gdm3/gdm
-       
        ```
 
 ## Linux 压缩解压命令
@@ -1028,9 +1027,167 @@ __说明：.zip linux 和 Windows 都支持，所以两个系统之间相互传�
 
 ## Linux 网络命令
 
-### write 使用
+#### write 使用
 
+1. 功能介绍及命令
 
+   - 发送消息给登录的用户
+
+   - 注意
+
+     1. 超级管理员不允许远程登录
+
+     2. Linux 本机登录的用户，不接受 `write` 发送的消息（禁用 mesg），但是可以发送消息
+
+        ```shell
+        $ write ss
+        write: ss has messages disabled
+        ```
+
+   - 命令 `write user`
+
+     - `Enter` 发送    `ctrl + D`  结束
+
+2. 演示
+
+   - Linux 本机用户向远程登录用户发送消息
+
+     ```shell
+     # 发送消息
+     root@localcomputer:/home/ss# write ss	# 命令格式
+     hello
+     world
+     root@localcomputer:/home/ss# 		    # ctrl + D 结束
+     
+     # 接受消息
+     ss@localcomputer:~$
+     Message from ss@localcomputer on pts/0 at 21:44 ...    # 消息来源 pts 本地用户
+     hello											   # pts/0 标识
+     world
+     EOF
+     
+     ss@localcomputer:~$
+     ```
+
+#### wall 使用
+
+1. 功能及命令
+
+   - `wall` 是 `write all` 的缩写。发送广播信息
+   - 命令 `wall 消息`
+   - 注意
+     1. 同样 Linux 本机登录的收不到消息，但是可以广播
+     2. __使用广播时，包括自己也会受到广播的消息__
+
+2. 演示
+
+   - 发送（Linux 本机发送）
+
+     ```shell
+     root@localcomputer:/home/ss# wall hello world    # 发送广播
+     root@localcomputer:/home/ss# 
+     ```
+
+   - 接受
+
+     ```shell
+     # 接受一
+     来自 ss@localcomputer (pts/0) (Fri Dec 27 21:57:38 2019) 的广播消息：
+     
+     hello world
+     # 接受二
+     来自 ss@localcomputer (pts/0) (Fri Dec 27 21:57:38 2019) 的广播消息：
+     
+     hello world
+     ```
+
+   - 统一用户，发送并接受
+
+     ```shell
+     ss@localcomputer:~$ wall hello shenyang		# 发送广播
+     
+     来自 ss@localcomputer (pts/1) (Fri Dec 27 22:01:10 2019) 的广播消息：	# 接受广播，来自第一个远程终端
+     
+     hello shenyang
+     ```
+
+#### ping 使用
+
+1. 功能及命令
+
+   - 测试网络连通性，向远程服务器发送请求包，查看远程主机是否响应
+   - 命令 `ping [-选向] IP地址`
+     1. `-c` 发送指定次数
+   - 注意
+     - Linux `ping` 命令与 Windows 不同，它会一直的 `ping` 下去，而 Windows 只会 `ping` 4 次
+     - 查看 __0% packet loss__ 丢包率，有时候 `ping` 成功，但是会有丢包率，网络也是有问题的
+
+2. 演示
+
+   - 域名
+
+     ```shell
+     root@localcomputer:/home/ss# ping -c 2 www.baidu.com
+     PING www.a.shifen.com (39.156.66.18) 56(84) bytes of data.
+     64 bytes from 39.156.66.18 (39.156.66.18): icmp_seq=1 ttl=50 time=62.4 ms
+     64 bytes from 39.156.66.18 (39.156.66.18): icmp_seq=2 ttl=50 time=57.7 ms
+     # 传输包的统计信息
+     --- www.a.shifen.com ping statistics ---
+     2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+     rtt min/avg/max/mdev = 57.749/60.077/62.406/2.341 ms
+     ```
+
+   - IP
+
+     ```shell
+     root@localcomputer:/home/ss# ping -c 2 39.156.66.14
+     PING 39.156.66.14 (39.156.66.14) 56(84) bytes of data.
+     64 bytes from 39.156.66.14: icmp_seq=1 ttl=50 time=52.2 ms
+     64 bytes from 39.156.66.14: icmp_seq=2 ttl=50 time=51.0 ms
+     
+     --- 39.156.66.14 ping statistics ---
+     2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+     rtt min/avg/max/mdev = 51.062/51.674/52.286/0.612 ms
+     ```
+
+#### ifconfig 使用
+
+1. 功能及命令
+
+   - 查看和设置网卡信息，愿意 *interface configure*
+   - 命令 `ifconfig 网卡名 IP地址`
+   - 注意
+     1. 使用权限 root 超级管理员
+     2. __这条命令主要用来查看当前网络状态，直接使用 `ifconfig` __
+
+2. 演示
+
+   - 所有用户都可以使用，用来查看网络信息（其实就是 IP 地址）
+
+     ```shell
+     ss@localcomputer:~$ ifconfig
+     # 网卡信息
+     ens33: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500	
+     	   # IP 地址								  # 广播地址
+             inet 122.168.22.78  netmask 255.255.255.0  broadcast 122.168.22.255
+             inet6 fe80::6ce6:b88f:1b75:1234  prefixlen 64  scopeid 0x20<link>
+             ether 00:0c:29:57:5a:31  txqueuelen 1000  (以太网)
+             RX packets 91096  bytes 126328758 (126.3 MB)      # 接受包的数量、及大小
+             RX errors 0  dropped 0  overruns 0  frame 0
+             TX packets 64091  bytes 4965679 (4.9 MB)		 # 发送包的数量、及大小
+             TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+     # 回环地址
+     lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+             inet 127.0.0.1  netmask 255.0.0.0
+             inet6 ::1  prefixlen 128  scopeid 0x10<host>
+             loop  txqueuelen 1000  (本地环回)
+             RX packets 574  bytes 35918 (35.9 KB)
+             RX errors 0  dropped 0  overruns 0  frame 0
+             TX packets 574  bytes 35918 (35.9 KB)
+             TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+     ```
+
+     
 
 
 
