@@ -2214,8 +2214,9 @@ __说明：真正存储用户密码的文件，已经加密__
 2. 时间戳计算公式
 
    - 介绍
-     1. 使用 1970 年 1 月 1 日作为标准时间，没过一天时间戳加 1，即是距离 1970 年 1 月 1 日，过了多少天
-
+     
+   1. 使用 1970 年 1 月 1 日作为标准时间，没过一天时间戳加 1，即是距离 1970 年 1 月 1 日，过了多少天
+   
    - 把时间戳换算位日期
 
      1. `date -d "1970-1-1 17000 days"`
@@ -2320,8 +2321,242 @@ __说明：真正存储用户密码的文件，已经加密__
 1. 用户邮箱 `/var/spool/mail/用户名/`
    - 这里说明：Linux 的用户可以收发邮件，是通过 Linux 的 __内存__ 作为转发（用户是指使用同一台 Linux 的用户）
    - 而其他邮箱服务是需要服务器作为基础的（收发邮件是需要服务器作转发）
+   - 每个用户邮箱地址 `/var/spool/mail/` ，每一个用户默认都会有一个邮箱
+
+#### 用户模板目录
+
+1. 用户模板目录 `/etc/skel/` 
+   - 作用：每一个用户都会拷贝 `/etc/skel/` 文件到 __用户家目录__。可以提示用户使用规范、要求（每一个用户创建时都会在家目录拷贝 `/etc/skel/`）
 
 ### 用户管理命令
+
+#### 用户添加命令 `useradd` 
+
+1. `useradd` 命令格式
+   
+   - 命令 `useradd [选项] 用户名`
+   
+   - 选项
+     
+     | 选项 | 意义                                               |
+     | ---- | -------------------------------------------------- |
+     | `-u` | UID：手动指定用户的 UID                            |
+     | `-d` | 用户说明：手动指定用户的说明                       |
+     | `-c` | 用户说明：手动指定用户的说明                       |
+     | `-g` | 组名：手动指定用户的初始组                         |
+     | `-G` | 附加组组名：指定用户的附加组                       |
+     | `-s` | shell：手动指定用户的登录 shell，默认是 `/bin/bash |
+     
+   - 实例
+     1. 添加用户 `useradd shen` ；设置密码 `passwd shen` 
+     2. 添加用户，不设置密码，用户添加不完整，无法登录
+     3. __Ubuntu 的桌面版，好像可以添加用户，但是好像不能登录桌面版（Ubuntu 桌面版默认登录桌面）；远程连接登录（不是桌面版）可以。意思就是只要不是使用桌面版 （`init 5`）都可以登录__
+   
+2. 添加用户会修改什么文件呢？
+   - `useradd shen` 到底执行了什么，以下文件文件正常会添加的
+   
+   - __passwd 文件__ `grep shen /etc/passwd` 
+   
+     ```tex
+     shen:x:1001:1001::/home/shen:/bin/sh
+     ```
+   
+   - __shadow文件__`grep shen /etc/shadow`
+   
+     ```shell
+     shen:$6$rZUIxEBX$cgeCo0RBbArAlktFaz0WF/7wTAezY4AKAZeLxJKA7G8rJtgkmS9upDG70HXQpBnXtqVWaIyn.qNlkDTTkqGJE.:18279:0:99999:7:::
+     ```
+   
+   - __group 文件__`grep shen /etc/group`
+   
+     ```shell
+     shen:x:1001:
+     ```
+   
+   - __gshadow 文件__`grep shen /etc/gshadow`
+   
+     ```shell
+     shen:!::
+     ```
+   
+   - __家目录__`ls -dl shen /home/shen` （无法创建家目录，所以无法登录。如果手动创建，需要修改权限）
+   
+     ```shell
+     root@localcomputer:/etc# ls -d /home/shen
+     ls: 无法访问'/home/shen': 没有那个文件或目录
+     ```
+   
+   - __邮箱__`ls -a /var/spool/mail/shen` (没有邮箱，不知道为什么)
+   
+     ```shell
+     root@localcomputer:/etc# ls -a /var/spool/mail/
+     .  ..  root  ss
+     ```
+   
+   - __所以创建用户时，会对用户配置文件和用户管理文件进行修改和创建__
+   
+3. 实例
+
+   - 创建用户并手动定义几个配置和管理文件
+     1. `useradd -u 1003 -G root,bin -d /home/shen -c "test user" -s /bin/bash shen`
+     2. UID：指定 1003
+     3. 附加组：root，bin
+     4. 创建家目录：/home/shen，可以自定义目录，权限也会分配好
+     5. 用户说明：test user
+     6. 指定内核编译器：/bin/bash
+   - __注意点__
+     1. Linux 将用户添加附加组，和 Windows 添加进组不同，组有组的权限。如果想将用户变成  root 权限，只能修改 UID，将用户 UID 修改成 0 即可。
+     2. __最好不要修改用户初始组__。想要进行其他组权限，可以使用附加组嘛
+
+#### 创建用户默认初始值（仔细查看）
+
+1. 用户默认值文件
+
+   - __`/etc/default/useradd`（有写不同）__
+
+     | 配置设置                   | 意义                                     |
+     | -------------------------- | ---------------------------------------- |
+     | `GROUP=100`                | 用户默认组                               |
+     | `HOME=/home`               | 用户家目录的宿主目录                     |
+     | `INACTIVE=-1`              | 用户密码过期宽限天数（shadow 第 7 字段） |
+     | `EXPIRE=`                  | 密码失效时间（shadow 第 8 字段）         |
+     | `SHELL=/bin/bash`          | 默认 shell                               |
+     | `SKEL=/etc/skel`           | 模板目录                                 |
+     | `CREATE_MAIL_SPOOL=yes/no` | 是否建立邮箱                             |
+
+   - 解释
+
+     1. Linux 有两种模式，一种 __共有模式__，另一种 __私有模式__。现在大部分 Linux 默认时私有模式，初始组会创建同名的初始组，而共有模式，用户初始组会指向 GID=100
+
+   - __`/etc/login.defs` (有些内容不同，仔细查看以下)__
+
+     | 配置设置                | 意义                             |
+     | ----------------------- | -------------------------------- |
+     | `PASS_MAX_DAYS 9999`    | 密码有效期（shadow 第 5 字段）   |
+     | `PASS_MIN_DAYS 0`       | 密码修改间隔（shadow 第 4 字段） |
+     | `PASS_MIN_LEN 5`        | 密码最小 5 为（PAM）             |
+     | `PASS_WARN_AGE 7`       | 密码到期警告（shadow 第 6 字段） |
+     | `UID_MIN`               | 最小和最大 UID 范围（500-6000）  |
+     | `GID_MAX`               |                                  |
+     | `ENCRYPT_METHOD SHA512` | 加密模式                         |
+
+   - 解释
+
+     1. 密码长度为 5 已经失效，密码 PAM 验证生效（升级）
+     2. Ubuntu 的 UID 已经从 1000 开始了
+
+#### 修改用户密码 `passwd`
+
+__说明：创建用户没有设置密码，则无法正常登录__
+
+1. `passwd` 命令格式
+
+   - 命令 `passwd [选项] 用户名`
+
+   - 选项
+
+     | 选项      | 意义                                 |
+     | --------- | ------------------------------------ |
+     | `-S`      | 查询用户密码状态。仅 root 可用       |
+     | `-l`      | 暂时锁定用户。仅 root 用户可用       |
+     | `-u`      | 解锁用户。仅 root 用户可用           |
+     | `--stdim` | 可以通过管道符输出的数据作为用户密码 |
+
+   - 实例 1（root 用户修改密码，可以直接修改，不需要输入之前密码）
+
+     ```shell
+     root@localcomputer:/var/mail# passwd shen
+     输入新的 UNIX 密码： 			# 直接输入新密码
+     重新输入新的 UNIX 密码： 
+     passwd：已成功更新密码
+     ```
+
+   - 实例 2 （普通用户修改密码，需要输入之前密码）
+
+     ```shell
+     ss@localcomputer:/var/mail$ passwd ss
+     更改 ss 的密码。
+     （当前）UNIX 密码： 			# 输入当前密码
+     输入新的 UNIX 密码： 
+     重新输入新的 UNIX 密码： 
+     密码未更改
+     输入新的 UNIX 密码： 
+     ```
+
+   - 实例 3 （`passwd` 修改当前用户密码，root 用户修改 root 用户密码）
+
+     ```shell
+     root@localcomputer:/home/ss# passwd
+     输入新的 UNIX 密码： 			# root 用户修改密码，直接输入新密码
+     重新输入新的 UNIX 密码： 
+     passwd：已成功更新密码
+     ```
+
+2. 小结
+
+   - root 用户：可以给所有用户修改密码，包括自己本身，__且不需要输入当前密码，直接输入新密码，可与当前密码相同__
+   - 普通用户：只可以给自己修改密码，__必须输入当前密码，才可修改，不可与当前密码相同（相同提示密码未修改重新输入）__
+
+3. 实例（超级用户）
+
+   - 命令查看用户密码状态 `passwd -S ss` ，实际就是查看 `/etc/shadow` 对应用户行的时间相关设置
+
+     ```shell
+     root@localcomputer:/home/ss# passwd -S ss
+     ss P 12/04/2019 0 99999 7 -1
+     # 用户名 ss
+     # 状态标志 P没有锁定；L 锁定
+     # 用户密码设定时间 12/04/2019
+     # 修改密码间隔时间 0
+     # 密码有效时间 99999
+     # 警告时间 7
+     # 密码不失效 -1；0 时间到密码立即过期
+     ```
+
+   - 锁定用户 `passwd -l 用户`，__用户在不可登录__；解锁用户 `passwd -u 用户`，__用户可以登录__
+
+     ```shell
+     root@localcomputer:/home/ss# passwd -S ss		# 查看状态信息 P
+     ss P 12/04/2019 0 99999 7 -1
+     root@localcomputer:/home/ss# passwd -l ss		# 锁定用户
+     passwd：密码过期信息已更改。
+     root@localcomputer:/home/ss# passwd -S ss		# 查看状态信息 L
+     ss L 12/04/2019 0 99999 7 -1
+     root@localcomputer:/home/ss# passwd -u ss		# 解锁
+     passwd：密码过期信息已更改。
+     root@localcomputer:/home/ss# passwd -S ss		# 查看状态信息 P
+     ss P 12/04/2019 0 99999 7 -1
+     ```
+
+   - 真正上锁的原理
+
+     1. 上锁是将 `/etc/shadow` 对应用户行的密码加上  `!`，导致密码验证不通过，所以禁止登录
+
+        ```tex
+        ss:!$6$ZY/WU02i$Gx.nqrtxuuYhlMRmyEJpcT7vCVv6ZXE.Pji8Yo1u1YvAuEVWY9Y7z1J0CwEczpdHsYo8PSzmnvU00gfK.JbaP/:18234:0:99999:7:::
+        ```
+
+     2. 解锁（`!` 号去掉）
+
+        ```shell
+        ss:$6$ZY/WU02i$Gx.nqrtxuuYhlMRmyEJpcT7vCVv6ZXE.Pji8Yo1u1YvAuEVWY9Y7z1J0CwEczpdHsYo8PSzmnvU00gfK.JbaP/:18234:0:99999:7:::
+        ```
+
+   - 使用字符串作为用户密码
+
+     __说明：shell 脚本，批量添加用户__
+
+     ```shell
+     echo "123" | passwd --stdin lamp
+     ```
+
+#### 修改用户信息 `usermod`
+
+#### 修改用户密码状态 `chage`
+
+#### 删除用户 `userdel`
+
+#### 用户切换命令 `su`
 
 ### 用户组管理命令
 
