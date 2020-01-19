@@ -2275,7 +2275,6 @@ __说明：真正存储用户密码的文件，已经加密__
 2. 理解
 
    - 查看用户的初始组，先查看 `/etc/passwd` 找到初始组 GID ，在上 `/etc/group` 查找对应 GID 的组名
-   - ____
 
 #### 组密码文件 `/etc/gshadow`
 
@@ -2552,13 +2551,263 @@ __说明：创建用户没有设置密码，则无法正常登录__
 
 #### 修改用户信息 `usermod`
 
+__说明：同 `useradd [-u/g/G/d]` 作用相同__
+
+1. `usermod` 与 `useradd [-u/g/G/d]` 区别
+
+   - `useradd` 添加用户时，设定用户相关选项。__针对新用户__
+   - `usermod` 是修改已存在的用户相关选项。__针对已存在用户__
+
+2. 命令 `usermod [选项] 用户名`
+
+   - 选项 
+
+     | 选项 | 意义                   |
+     | ---- | ---------------------- |
+     | `-u` | 修改用户 UID           |
+     | `-c` | 修改用户的说明信息     |
+     | `-G` | 修改用户附加组         |
+     | `-L` | 临时锁定用户（Lock）   |
+     | `-U` | 解锁用户锁定（Unlock） |
+
+3. 实例
+
+   - 修改 shen 用户
+
+     ```shell
+     usermod -c "test shen" shen
+     usermod -u 1005 shen		# 修改已存在用户信息
+     
+     shen:x:1005:1001:test shen:/home/shen:/bin/sh		# /etc/passwd 文件
+     ```
+
+   - 锁定用户 `usermod -L shen` ；解锁 `usermod -U shen`
+
+     1. 原理：也是将 `/etc/shadow` 的对应行的加密密码前加 `!` ，以达到密码不一致，无法登录
+
 #### 修改用户密码状态 `chage`
+
+1. 命令 `chage [选项] 用户名`
+
+   - 选项
+
+     | 选项      | 意义                                         |
+     | --------- | -------------------------------------------- |
+     | `-l`      | 列出用户详细密码状态                         |
+     | `-d` 日期 | 修改密码最后一次更改日期（shadow 第 3 字段） |
+     | `-m` 天数 | 两次密码修改间隔（shadow 第 4 字段）         |
+     | `-M` 天数 | 密码有效期（shadow 第 5 字段）               |
+     | `-W` 天数 | 密码过期警告天数（shadow 第 6 字段）         |
+     | `-I` 天数 | 密码过期后宽限天数（shadow 第 7 字段）       |
+     | `-E` 日期 | 密码失效时间（shadow 第 8 字段）             |
+
+2. __注意__
+
+   - 修改密码修改时间 `chage -d 0 用户`
+     1. 这个密码其实是把密码修改日期归 0，（从 1970/01/01 就没有修改过密码）`/etc/shadow` 第 3 字段。
+     2. 这样用户一登陆就要修改密码
+   - 使用这条命令。可以时普通用户一登陆就需要修改密码，__系统强制修改密码__
 
 #### 删除用户 `userdel`
 
+1. 命令 `userdel [-r] 用户名`
+   - 选项
+     1. `-r` 删除用户同时删除用户家目录
+2. 手动删除用户
+   - 修改行对应用户 `vim /etc/passwd`
+   - 修改行对应用户 `vim /etc/shadow`
+   - 修改行对应用户 `vim /etc/group`
+   - 修改行对应用户 `vim /etc/gshadow`
+   - 删除 `rm -rf var/spool/mail/username`
+   - 删除 `rm -rf /home/username`
+
+#### 查看用户 ID
+
+1.命令 `id 用户名`
+
+2. 演示
+
+   - 查看 shen 用户：UID；初始组 ID；附加组 ID
+
+     ```shell
+     root@localcomputer:/home/ss# id shen
+     uid=1005(shen) gid=1001(shen) 组=1001(shen),0(root)
+     ```
+
 #### 用户切换命令 `su`
 
+1. 命令 `su [选项] 用户名`
+
+   - 选项
+
+     1. `-` ：选项只使用 `-` 代表连带用户的环境变量一起切换
+
+     2. `-c`  ：仅执行一次命令，而不切换用户身份
+
+        `su - root -c "命令"` 以 root 身份执行命令（必须知晓 root 密码）
+
+2. 演示
+
+   - 切换用户（连带环境一起切换）`su - root`
+
+     ```shell
+     root@localcomputer:~# env		# 查看环境变量
+     ...
+     LC_MEASUREMENT=zh_CN.UTF-8
+     LESSCLOSE=/usr/bin/lesspipe %s %s
+     LC_PAPER=zh_CN.UTF-8
+     LC_MONETARY=zh_CN.UTF-8
+     LANG=zh_CN.UTF-8
+     DISPLAY=:0
+     COLORTERM=truecolor
+     LC_NAME=zh_CN.UTF-8
+     USER=root
+     PWD=/root
+     HOME=/root
+     XDG_DATA_DIRS=/usr/local/share:/usr/share:/var/lib/snapd/desktop
+     LC_ADDRESS=zh_CN.UTF-8
+     LC_NUMERIC=zh_CN.UTF-8
+     MAIL=/var/mail/root
+     SHELL=/bin/bash
+     TERM=xterm-256color
+     SHLVL=1
+     LANGUAGE=zh_CN:zh:en_US:en
+     LC_TELEPHONE=zh_CN.UTF-8
+     LOGNAME=root
+     PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+     LC_IDENTIFICATION=zh_CN.UTF-8
+     LESSOPEN=| /usr/bin/lesspipe %s
+     LC_TIME=zh_CN.UTF-8
+     _=/usr/bin/env
+     ```
+
+   - 使用 root 用户身份，执行一次命令 `su - root -c "passwd -S shen"`
+
+     ```shell
+     ss@localcomputer:~$ su - root -c "passwd -S shen"
+     密码： 
+     shen P 01/18/2020 0 99999 7 -1
+     ```
+
 ### 用户组管理命令
+
+#### 添加用户组
+
+1. 命令 `groupadd [选项] 组名`
+
+   - 选项
+     1. `-g` ：指定组 ID
+
+2. 实例
+
+   - 添加组 `groupadd testgroup`
+
+     ```tex
+     shen:x:1001:shen
+     testgroup:x:1003:
+     ```
+
+   - 指定组 ID `groupadd -g 1009 newtestgroup`，组 ID，Ubuntu 的组 ID 是从 1000 开始这个累加的
+
+     ```tex
+     shen:x:1001:shen
+     testgroup:x:1003:
+     newtestgroup:x:1009:
+     ```
+
+#### 修改用户组
+
+1. 命令 `groupmod [选项] 组名`
+
+   - 选项
+
+     1. `-g` ：修改组 ID
+
+     2. `-n` ：修改组名
+
+        `groupmod -n newgroup oldgroup` 
+
+2. 实例
+
+   - 修改组名 `groupmod -n new testgroup`
+
+     ```tex
+     shen:x:1001:shen
+     newtestgroup:x:1009:
+     new:x:1003:			# 原始 testgroup:x:1003: 
+     ```
+
+#### 删除用户组
+
+1. 命令 `groupdel 组名`
+   - 没有选项----直接可以删除
+2. __注意__
+   - 空组可以直接删除
+   - 组中存在 __初始用户__ ，此组不可以删除
+   - 组中存在 __附加用户，没有初始组__ ，此组可以删除
+
+#### 把用户添加入组或从组中删除
+
+__说明：此命令操作对象为 group，上面的命令是针对 user__
+
+1. 命令 `gpasswd [选项] 组名`
+
+   - 选项
+     1. `-a` 用户名：把用户加入组中
+     2. `-d` 用户名：把用户从组中删除
+   - 注意
+     1. 加入的用户是以附加用户加入的
+     2. __/etc/group 文件中，可以查看到的用户都是附加组 __
+
+2. 演示
+
+   - 添加用户 `gpasswd -a ss root`
+
+     ```shell
+     root@localcomputer:~# gpasswd -a ss root
+     正在将用户“ss”加入到“root”组中
+     
+     root:x:0:ss		# group 文件中
+     ```
+
+   - 删除用户 `gpasswd -d ss root`
+
+     ```shell
+     root@localcomputer:~# gpasswd -d ss root
+     正在将用户“ss”从“root”组中删除
+     ```
+
+## 权限管理
+
+### ACL 权限
+
+#### ACL 权限简介与开启
+
+1. ACL 解决问题描述
+
+   - 问题如图
+
+     ![ACL问题描述](git_picture/ACL问题描述.jpg)
+
+   - 文件或目录有 __所有者权限、所属组权限、其他用户权限__，3 者的权限是所属者权限大于等于所属组（一般大于）、所属组权限大于其他用户权限
+
+   - 如图： 3 者权限分配是 __770__，即所有者、所属组对文件或目录拥有全部权限，其他用户没有任何权限
+
+   - 如图：此时 __用户 A__ 要对 文件或目录拥有 __5 权限__ 时，现有文件权限分配并不能满足用户 A，及一个文件或目录的权限分配不能满足实际情况（理论上一个文件或目录会有 3 中权限分配：所有者、所属组、其他人），所以 __ACL 权限__ 是对此问题的一个解决办法
+
+   - 注意：__文件或目录只能有一个所属组__
+
+#### 查看与设定 ACL 权限
+
+#### 最大有效权限与删除 ACL 权限
+
+#### 默认 ACL 权限和递归 ACL 权限 
+
+### 文件特殊权限
+
+### 文件系统属性 chattr 权限
+
+### 系统命令 sudo 权限
 
 ## Vim 文编编辑器
 
