@@ -2796,8 +2796,86 @@ __说明：此命令操作对象为 group，上面的命令是针对 user__
    - 如图：此时 __用户 A__ 要对 文件或目录拥有 __5 权限__ 时，现有文件权限分配并不能满足用户 A，及一个文件或目录的权限分配不能满足实际情况（理论上一个文件或目录会有 3 中权限分配：所有者、所属组、其他人），所以 __ACL 权限__ 是对此问题的一个解决办法
 
    - 注意：__文件或目录只能有一个所属组__
+   
+2. ACL（与 Windows 相同） 对文件或目录的权限管理解释
+
+   - 不考虑已存在的 __所有者、所属组、其他人__ 的权限问题
+   - 即来一个用户，对这个用户单独分配对文件或目录的权限
+
+3. 查看分区 ACL 权限是否开启
+
+   __说明：ACL 是用户操作文件权限，但是否支持 ACL 权限，不是文件支持、也不是用户支持，而是文件所在的分区是否支持 ACL 权限__
+
+   - 命令 `dumpe2fs -h /dev/sad3`
+
+   - `dumpe2fs` 命令是查询指定分区详细文件系统信息的命令；__各个分区使用情况 `df -h`__
+
+   - 选项
+
+     1. `-h` ：仅显示超级快中信息，而不显示磁盘块组的详细信息
+
+   - 验证分区是否开启 ACL（一般默认都会开启 ACL）
+
+     1. 查看 `/` 分区是否支持 ACL
+
+        ```shell
+        root@localcomputer:~# dumpe2fs -h /dev/sda5  # 查看信息
+        dumpe2fs 1.44.1 (24-Mar-2018)
+        Filesystem volume name:   <none>
+        Last mounted on:          /
+        Filesystem UUID:          f4f8a8cd-3279-4366-8e69-5f7845a78446
+        Filesystem magic number:  0xEF53
+        Filesystem revision #:    1 (dynamic)
+        Filesystem features:      has_journal ext_attr resize_inode dir_index filetype needs_recovery extent 64bit flex_bg sparse_super large_file huge_file dir_nlink extra_isize metadata_csum
+        Filesystem flags:         signed_directory_hash 
+        Default mount options:    user_xattr acl		# 支持 ACL
+        Filesystem state:         clean
+        ```
+
+4. 临时开启分区 ACL 权限
+
+   - 命令 `mount -o remount,acl /` 
+   - 重新挂载根分区，并挂载加入 ACL 权限
+
+5. 永久开启分区 ACL 权限
+
+   - 命令 `vim /etc/fstab`
+     1. 修改添加 `acl` ：`UUID=f4f8a8cd-3279-4366-8e69-5f7845a78446 /               ext4    defaults,acl        0       1`
+     2. 但是我这个 `/etc/fstab` 中这行并不是使用 `defaults` ，而是使用 `errors=remount-ro` ，不知道为什么。可以修改为 `defaults` 不会出错
+   - 重启系统、重新挂载文件系统（`mount -o remount /`）,使修改生效
 
 #### 查看与设定 ACL 权限
+
+__说明：一般分区都会支持 ACL 权限，所以以后可以直接使用，不需要查看是否支持 ACL 权限__
+
+1. 查看 ACL 命令
+
+   - 查看 ACL 权限命令 `getfacl 文件` 
+
+2. 设定 ACL 权限的命令
+
+   - 命令 `setfacl [选项] 文件名`
+
+   - 选项
+
+     | 选项 | 意义              |
+     | ---- | ----------------- |
+     | `-m` | 设定 ACL 权限     |
+     | `-x` | 删除指定 ACL 权限 |
+     | `-b` | 删除所有 ACL 权限 |
+     | `-d` | 设定默认 ACL 权限 |
+     | `-k` | 删除默认 ACL 权限 |
+     | `-R` | 递归设定 ACL 权限 |
+
+3. 演示（`setfacl -m`）
+
+   - 根目录下创建目录 `mkdir /project`
+
+     ```shell
+     
+     ```
+
+     
 
 #### 最大有效权限与删除 ACL 权限
 
