@@ -268,17 +268,17 @@ __说明：Linux 会有很多权限问题__
 
      __不允许修改__
 
-   - 演示；使用 root 修改文件所有者，将其修改为 s
+   - 演示；使用 root 修改文件所有者，将其修改为 s（__组也一起修改 `chown 用户:组 文件`__）
 
      ```shell
      root@localcomputer:/home/ss/桌面/tmp# chown s a.txt  # 修改成功
      root@localcomputer:/home/ss/桌面/tmp# ls -l
      总用量 0
      -rw-r--r-- 1 s ss 0 12月 13 22:01 a.txt
-     
      ```
+     
 
-     __修改文件所有者，只能 root 修改__
+__修改文件所有者，只能 root 修改__
 
 3. 注意事项
 
@@ -2858,34 +2858,226 @@ __说明：一般分区都会支持 ACL 权限，所以以后可以直接使用�
 
    - 选项
 
-     | 选项 | 意义              |
-     | ---- | ----------------- |
-     | `-m` | 设定 ACL 权限     |
-     | `-x` | 删除指定 ACL 权限 |
-     | `-b` | 删除所有 ACL 权限 |
-     | `-d` | 设定默认 ACL 权限 |
-     | `-k` | 删除默认 ACL 权限 |
-     | `-R` | 递归设定 ACL 权限 |
+     | 选项 | 意义                                             |
+     | ---- | ------------------------------------------------ |
+     | `-m` | 设定 ACL 权限 `setfacl -m u/g:用户/组:权限 文件` |
+     | `-x` | 删除指定 ACL 权限                                |
+     | `-b` | 删除所有 ACL 权限                                |
+     | `-d` | 设定默认 ACL 权限                                |
+     | `-k` | 删除默认 ACL 权限                                |
+     | `-R` | 递归设定 ACL 权限                                |
 
 3. 演示（`setfacl -m`）
 
    - 根目录下创建目录 `mkdir /project`
 
      ```shell
+     root@localcomputer:~# mkdir project
+     root@localcomputer:~# ls
+		mbox  project			# 新建 project 目录
+     ```
+     
+   - 创建两个用户和一个组
+   
+     ```shell
+     root@localcomputer:~# useradd a
+     root@localcomputer:~# useradd b
+     root@localcomputer:~# groupadd tgroup
+     
+     ################################### /etc/passwd 文件
+     a:x:1001:1001::/home/a:/bin/sh
+     b:x:1002:1010::/home/b:/bin/sh
+     
+     ################################### /etc/group
+     newtestgroup:x:1009:
+     new:x:1003:
+     a:x:1001:
+     b:x:1010:
+     tgroup:x:1011:
+     ```
+   
+   - 将两个用户添加到一个组中（是添加默认组）
+   
+     ```shell
+     root@localcomputer:~# gpasswd -a b tgroup
+     正在将用户“b”加入到“tgroup”组中
+     root@localcomputer:~# gpasswd -a a tgroup
+     正在将用户“a”加入到“tgroup”组中
+     
+     ############################################# /etc/group
+     new:x:1003:
+     a:x:1001:
+     b:x:1010:
+     tgroup:x:1011:b,a
+     ```
+   
+   - 调整 `/project` 文件所有者和权限
+   
+     ```shell
+     root@localcomputer:~# ls -dl ./project
+     drwxr-xr-x 2 root root 4096 1月  22 19:29 ./project
+     root@localcomputer:~# chown root:tgroup project/    # 修改所有者和组
+     root@localcomputer:~# ls -dl ./project
+     drwxr-xr-x 2 root tgroup 4096 1月  22 19:29 ./project  # 修改结果
+     
+     root@localcomputer:~# chmod 770 project/			# 修改文件权限问题
+     root@localcomputer:~# ls -dl project/
+     drwxrwx--- 2 root tgroup 4096 1月  22 19:29 project/   # 修改结果
+     ```
+   
+   - __使用 `setfacl` 添加一个用户并赋予他其他权限 `setfacl -m u/g:用户/组:权限 文件`__
+   
+     ```shell
+     # 先添加用户，其用户不是所有者、所属组、其他用户，是一个另类用户
+     root@localcomputer:~# useradd c
+     
+     # 设置 acl 权限 rx
+     root@localcomputer:~# setfacl -m u:c:rx ./project
+     root@localcomputer:~# ls -ld ./project/
+     drwxrwx---+ 2 root tgroup 4096 1月  22 19:29 ./project/    # 权限显示有一个 + 号，表示有acl权限
+     root@localcomputer:~# getfacl ./project/	# 查看具体acl权限
+     # file: project/
+     # owner: root
+     # group: tgroup
+     user::rwx		# 所有者权限
+     user:c:r-x		# acl权限
+     group::rwx		# 所属组权限
+     mask::rwx		# 应该是最大有效权限
+     other::---		# 其他用户权限
+     ```
+   
+
+#### 最大有效权限与删除 ACL 权限
+
+1. 最大有效权限
+
+   - mask 是用来指定最大有效权限的。如果 root 给用户赋予了 acl 权限，是需要与 __mask 权限 相与__ 才能得到用户真正的权限
+
+   - 既可以通过 mask 权限来控制 ACl 真正的权限
+
+   - mask 权限会与 acl 权限、组权限 __相与__
+
+   - 修改 mask 权限 `setfacl -m m:权限 文件` (注释写的很明白，真正的权限是什么)
+
+     ```shell
+     root@localcomputer:~# setfacl -m m:r ./project/
+     root@localcomputer:~# getfacl ./project/
+     # file: project/
+     # owner: root
+     # group: tgroup
+     user::rwx
+     user:c:r-x			#effective:r--
+     group::rwx			#effective:r--
+     group:t:rw-			#effective:r--
+     mask::r--
+     other::---
+     ```
+
+     `user:c:r-w` 与 mask 权限 `mask::r--` 相与，所以实际用户 c 的权限是 `r` ,__而 group 组也是受 mask 影响__
+
+2. 最大权限作用
+
+   - 保证目录权限在可控范围之内，即可以先设定 mask 权限，即使其他用户权限设定过高也没事，最后实际权限和 __最大权限有关__
+   - 不受 mask 权限影响的 __所有者、其他用户__
+
+3. __删除 ACL 权限__
+
+   - 删除指定用户 ACL 权限命令 `setfacl -x u:用户名 文件名`
+   - 删除指定用户组 ACL 权限命令 `setfacl -x g:组名 文件名`
+   - 删除文件的所有 ACL 权限 `setfacl -b 文件`
+
+4. 实例
+
+   - 删除组 ACL 权限，删除 tgroup 组 ACL 权限
+
+     ```shell
+     root@localcomputer:~# getfacl ./project/
+     # file: project/
+     # owner: root
+     # group: tgroup
+     user::rwx
+     user:c:r-x			#effective:r--
+     group::rwx			#effective:r--
+     group:t:rw-			#effective:r--
+     mask::r--
+     other::rwx
+     
+     root@localcomputer:~# setfacl -x g:t ./project/
+     root@localcomputer:~# getfacl ./project/
+     # file: project/
+     # owner: root
+     # group: tgroup
+     user::rwx
+     user:c:r-x
+     group::rwx
+     mask::rwx
+     other::rwx
+     ```
+
+   - 删除文件所有 ACL 权限
+
+     ```shell
+     root@localcomputer:~# setfacl -x g:t ./project/
+     root@localcomputer:~# getfacl ./project/
+     # file: project/
+     # owner: root
+     # group: tgroup
+     user::rwx
+     user:c:r-x
+     group::rwx
+     mask::rwx
+     other::rwx
+     
+     root@localcomputer:~# setfacl -b ./project/
+     root@localcomputer:~# getfacl ./project/
+     # file: project/
+     # owner: root
+     # group: tgroup
+     user::rwx
+     group::rwx
+     other::rwx
      
      ```
 
      
 
-#### 最大有效权限与删除 ACL 权限
-
-#### 默认 ACL 权限和递归 ACL 权限 
+#### 默认 ACL 权和递归 ACL 权限 
 
 ### 文件特殊权限
 
 ### 文件系统属性 chattr 权限
 
 ### 系统命令 sudo 权限
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Vim 文编编辑器
 
