@@ -3036,12 +3036,81 @@ __说明：一般分区都会支持 ACL 权限，所以以后可以直接使用�
      user::rwx
      group::rwx
      other::rwx
-     
      ```
-
      
 
 #### 默认 ACL 权和递归 ACL 权限 
+
+1. 递归 ACL 权限
+
+   - 递归是父目录在设定 ACL 权限时，所有子文件和子目录也会拥有相同的 ACL 权限
+
+   - 命令 `setfacl -m u:用户:权限 -R 目录` （只能是 __目录__ ，因为是递归嘛！！！）
+
+   - 注意
+
+     1. 递归只能对现有文件做 ACL 权限，__现有文件也只能使用 递归 ACL 权限__
+     2. 新建文件使用默认 ACL 权限，会继承父目录 ACL 权限
+
+   - 实例
+
+     1. 使用递归 ACL 权限，__只能对已存在文件使用递归 ACL，新建文件没用__
+
+        ```shell
+        root@localcomputer:/home/ss# ls -dl ./project/
+        drwxr-xrwx+ 2 root tgroup 4096 1月  26 21:59 ./project/		# 权限表示有 +，有 ACL 权限
+        root@localcomputer:/home/ss# cd ./project/
+        root@localcomputer:/home/ss/project# ls -l 
+        总用量 0
+        -rw-r--r-- 1 root root 0 1月  26 21:59 a
+        -rw-r--r-- 1 root root 0 1月  26 21:59 b				# 新建文件没有 ACL 权限
+        root@localcomputer:/home/ss/project# setfacl -m u:c:rwx -R ../project/  # 使用递归 ACL 权限
+        root@localcomputer:/home/ss/project# ls -l
+        总用量 0
+        -rw-rwxr--+ 1 root root 0 1月  26 21:59 a
+        -rw-rwxr--+ 1 root root 0 1月  26 21:59 b		# 有 ACL权限
+        root@localcomputer:/home/ss/project# touch c	 # 新建文件 c
+        root@localcomputer:/home/ss/project# ls -l
+        总用量 0
+        -rw-rwxr--+ 1 root root 0 1月  26 21:59 a
+        -rw-rwxr--+ 1 root root 0 1月  26 21:59 b
+        -rw-r--r--  1 root root 0 1月  26 22:07 c        # 新建文件 c ，没有 ACL 权限
+        ```
+
+2. 默认 ACL 权限
+
+   - 默认 ACL 权限的作用是如果给父目录设定了默认 ACL 权限，那么父目录中所有新建的子文件都会继承父目录的 ACL 权限
+
+   - 命令 `setfacl -m d:u:用户名:权限 文件名` ，`-R` 加不加不一样，默认 ACL 权限也会递归的
+
+   - 注意
+
+     1. 默认 ACL 权限，只针对新建文件
+     2. 已有文件还得使用 __递归 ACL 权限__
+     3. 在目录下创建的目录、文件都会遵守默认 ACL 权限
+
+   - 实例 
+
+     1. 使用默认 ACL 权限，新建文件继承父目录的 ACL 权限
+
+        ```shell
+        root@localcomputer:/home/ss# setfacl -m d:u:c:rwx  ./project/		# 设置默认 ACL 权限
+        root@localcomputer:/home/ss# cd ./project/
+        root@localcomputer:/home/ss/project# ls
+        a  b  c
+        root@localcomputer:/home/ss/project# ls -l
+        总用量 0
+        -rw-rwxr--+ 1 root root 0 1月  26 21:59 a
+        -rw-rwxr--+ 1 root root 0 1月  26 21:59 b
+        -rw-r--r--  1 root root 0 1月  26 22:07 c
+        root@localcomputer:/home/ss/project# touch d			# 新建文件 d
+        root@localcomputer:/home/ss/project# ls -l
+        总用量 0
+        -rw-rwxr--+ 1 root root 0 1月  26 21:59 a
+        -rw-rwxr--+ 1 root root 0 1月  26 21:59 b
+        -rw-r--r--  1 root root 0 1月  26 22:07 c
+        -rw-rw-rw-+ 1 root root 0 1月  26 22:20 d				# 新建文件 d，继承父目录，ACL 权限	
+        ```
 
 ### 文件特殊权限
 
