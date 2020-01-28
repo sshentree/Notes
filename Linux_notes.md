@@ -2957,7 +2957,7 @@ __说明：一般分区都会支持 ACL 权限，所以以后可以直接使用�
 
    - mask 权限会与 acl 权限、组权限 __相与__
 
-   - 修改 mask 权限 `setfacl -m m:权限 文件` (注释写的很明白，真正的权限是什么)
+   - 修改 mask 权限 `setfacl -m m:权限 文件` (注释 `#effective` 写的很明白，真正的权限是什么)
 
      ```shell
      root@localcomputer:~# setfacl -m m:r ./project/
@@ -3045,7 +3045,7 @@ __说明：一般分区都会支持 ACL 权限，所以以后可以直接使用�
 
    - 递归是父目录在设定 ACL 权限时，所有子文件和子目录也会拥有相同的 ACL 权限
 
-   - 命令 `setfacl -m u:用户:权限 -R 目录` （只能是 __目录__ ，因为是递归嘛！！！）
+   - 命令 `setfacl -m u:用户:权限 -R 目录` （只能是 __目录__ ,文件不可以，因为是递归嘛！！！）
 
    - 注意
 
@@ -3054,7 +3054,7 @@ __说明：一般分区都会支持 ACL 权限，所以以后可以直接使用�
 
    - 实例
 
-     1. 使用递归 ACL 权限，__只能对已存在文件使用递归 ACL，新建文件没用__
+     1. 使用递归 ACL 权限，__只能对已存在文件使用递归 ACL 权限，新建文件没用（新建文件使用默认 ACL 权限）__
 
         ```shell
         root@localcomputer:/home/ss# ls -dl ./project/
@@ -3112,7 +3112,126 @@ __说明：一般分区都会支持 ACL 权限，所以以后可以直接使用�
         -rw-rw-rw-+ 1 root root 0 1月  26 22:20 d				# 新建文件 d，继承父目录，ACL 权限	
         ```
 
-### 文件特殊权限
+### 文件特殊权限  
+
+#### SetUID
+
+1. SetUID 的功能
+
+   - 只有可执行的二进制程序才能设定 SUID 权限，普通文件、目录不能设 SUID 权限（设置也不会报错，只是没有意义）
+   - 命令执行者（一般是普通用户）要对该程序拥有 x（执行）权限
+   - 命令执行者在执行该程序时获得该程序文件属主身份（__在执行程序的过程中灵魂附体为文件属主__）
+   - SetUID 权限只在该程序执行过程有效，也就是说身份改变只在程序执行过程中有效
+   - __SetUID 的作用是，任何一个用户在执行拥有 SetUID 权限程序时，会暂时获得文件所有者的身份__
+
+2. 用此功能的实际作用
+
+   - `passwd` 命令拥有 SetUID 权限，所以普通用户可以修改自己密码
+
+     1. SetUID 中 U 是所有者的意思，__表现形式：可执行文件的所有者权限 `-rwsr-xr-x` 的 s 权限__ ，即是 SetUID 的作用（任何用户执行拥有 SetUID 权限程序时，会暂时获得所有者身份）
+
+        ```shell
+        root@localcomputer:/home/ss# whereis passwd
+        passwd: /usr/bin/passwd  /passwd /usr/share/man/man5/passwd.5.gz /usr/share/man/man1/passwd.1.gz /usr/share/man/man1/passwd.1ssl.gz
+        root@localcomputer:/home/ss# ls -l /usr/bin/passwd
+        -rwsr-xr-x 1 root root 59640 1月  25  2018 /usr/bin/passwd
+        ```
+        
+     2. 解释：程序 passwd 所有者拥有 SetUID 权限，使得任何用户运行 passwd 程序时，会获得 __所有者身份__，即修改密码会将密码写入 `/etc/shadow` 文件中，而 `/etc/shadow` 的权限是 `-rw-r----- 1 root shadow 1489 1月  22 20:02 /etc/shado` ，可以看出普通用户没有权限修改文件，所以这个权限的作用再次体现
+     
+   - `cat` 命令没有 SetUID 权限，所以普通用户不能查看 `/etc/shadow` 文件内容
+   
+     1. 查看 `/bin/cat` 文件程序权限，`cat` 所有者权限没有 SetUID 权限
+   
+        ```shell
+        ss@localcomputer:~$ ls -l /bin/cat
+        -rwxr-xr-x 1 root root 35064 1月  18  2018 /bin/cat
+        ```
+   
+     2. 解释：当 `/bin/cat` 程序文件没有 SetUID 权限，普通用户执行 `cat` 命令时，不能获得 __所有者身份__，即没有权限查看 `/etc/shadow` 文件
+   
+        ```shell
+        ss@localcomputer:~$ cat /etc/shadow
+        cat: /etc/shadow: 权限不够
+        ```
+   
+   - __SetUID 理解__
+   
+     1. SetUID 是为了，普通用户修改或者其他操作属于自己的设置，但这些设置又设计系统安全，所以给用户提供了这种权限
+     2. 只适用于 __二进制程序文件__
+   
+3. 设定 SetUID 的方法
+
+   - 4 代表 SUID
+     1. 设定 SUID 权限 `chmod 4755 文件名` 
+        - 4 表示 SUID 权限，7 表示所有者，5 表示所属组，5 表示其他，这时一个完整的文件表现形式
+        - 2 表示 SGID
+        - 1 表示 BIT 
+        - 7 表示三个权限多拥有，但是没有意义，三个权限对 3 种文件操作
+     2. `chmod u+s 文件名`
+
+4. 取消 SetUID 的方法
+
+   - 取消 SUID 命令 `chmod 755 文件名`
+   - `chmod u-s`
+
+5. 注意
+
+   - 使用 SUID 权限，留意 __文件是二进制可执行程序、任何用户都用可在执行权限__
+
+   - 演示
+
+     ```shell
+     root@localcomputer:/home/ss# ls -l tc
+     -rw-r--r-- 1 root root 0 1月  28 21:48 tc		# tc 文件任何用户都没有可执行权限
+     root@localcomputer:/home/ss# chmod 4755 tc		# 使用 chmod 4755 可以直接修改，即使文件不是二进制，不是可执行程序，用户没有执行权限（没有意义）
+     root@localcomputer:/home/ss# ls -l tc
+     -rwsr-xr-x 1 root root 0 1月  28 21:48 tc		# 修改成功
+     root@localcomputer:/home/ss# chmod 755 tc		# 修改回去，去掉 SUID 权限
+     root@localcomputer:/home/ss# ls -l tc
+     -rwxr-xr-x 1 root root 0 1月  28 21:48 tc		# 显示去掉 SUID 权限，但其他权限使用 chmod 修改
+     root@localcomputer:/home/ss# chmod 644 tc		# 彻底修改回去
+     root@localcomputer:/home/ss# ls -l tc
+     -rw-r--r-- 1 root root 0 1月  28 21:48 tc
+     root@localcomputer:/home/ss# chmod u+s tc		# 这种方式修改 SUID 会报错，这里强调上面 2 种条件，缺一不可
+     root@localcomputer:/home/ss# ls -l tc
+     -rwSr--r-- 1 root root 0 1月  28 21:48 tc		# 这里 S 是报错提示，不是可执行的二进制文件，用户没有执行权限
+     ```
+
+6. __危险的 SetUID__
+
+   - 关键目录应严格控制写权限。比如 `/` 、`/user` 等
+
+   - 用户的密码设置要严格遵循密码三原则
+
+   - 对系统中默认应该具有 SetUID 权限文件作一列表，定期检查有没有这之外的文件被设置了 SetUID 权限
+
+   - 解释
+
+     1. 查看 `vim` 命令文件权限
+
+        ```shell
+        ss@localcomputer:~$ whereis vim
+        vim: /usr/bin/vim.basic /usr/bin/vim.tiny /usr/bin/vim /etc/vim /usr/share/vim /usr/share/man/man1/vim.1.gz
+        ss@localcomputer:~$ ls -l /usr/bin/vim.basic 
+        -rwxr-xr-x 1 root root 2671240 6月   7  2019 /usr/bin/vim.basic
+        ```
+
+     2. `vim` 没有 SUID 权限，如果将 `vim` 修改为拥有 SUID 权限。任何用户执行 `vim` 命令时，将会转换为所有者身份（root），将会有权限修改 `/etc/shadow` 等一些文件，这将是很可怕的。
+
+#### SetGID
+
+1. SetGID 针对文件作用
+   - 只有可执行的二进制程序才能设置 SGID 权限
+   - 命令执行者要对该程序拥有 x （执行）权限
+   - 命令执行在执行程序的时候，组身份升级为该程序文件的属组
+   - SetGID 权限同样只在该程序执行过程中有效，也就是说组身份改变只在程序执行过程中有效
+2. SetGID 针对目录作用
+   - 普通用户必须对此目录拥有 r 和 x 权限，才能进入此目录
+   - 普通用户在此目录中的有效组会变成此目录的属组
+   - 若普通用户对此目录拥有 w 权限时，新建的文件的默认属组是这个目录的属组
+
+#### Sticky BIT
 
 ### 文件系统属性 chattr 权限
 
