@@ -752,7 +752,7 @@ __说明：查看内置命令，`man` 查看不了内置命令__
 
 ## Linux 压缩解压命令
 
-__说明：压缩便于备份、传输和并入一般很难感染压缩文件，.zip 在 Linux 和 Windows 都可以直接使用__
+__说明：压缩便于备份、传输和病毒一般很难感染压缩文件，.zip 在 Linux 和 Windows 都可以直接使用__
 
 ### 压缩格式  .gz
 
@@ -3221,15 +3221,87 @@ __说明：一般分区都会支持 ACL 权限，所以以后可以直接使用�
 
 #### SetGID
 
+##### 针对文件
+
 1. SetGID 针对文件作用
    - 只有可执行的二进制程序才能设置 SGID 权限
    - 命令执行者要对该程序拥有 x （执行）权限
    - 命令执行在执行程序的时候，组身份升级为该程序文件的属组
    - SetGID 权限同样只在该程序执行过程中有效，也就是说组身份改变只在程序执行过程中有效
-2. SetGID 针对目录作用
-   - 普通用户必须对此目录拥有 r 和 x 权限，才能进入此目录
-   - 普通用户在此目录中的有效组会变成此目录的属组
+   
+2. 演示：命令 `locate` 是查询 `/var/lib/mlocate/mlocate.db ` 文件内容
+
+   - 文件 `/var/lib/mlocate/mlocate.db ` 权限__（640、所有者 root、所属组 mlocate，其中所属组有读权限）__
+
+     ```shell
+     ss@localcomputer:~$ ls -l /var/lib/mlocate/mlocate.db 
+     -rw-r----- 1 root mlocate 9794090 1月  29 15:19 /var/lib/mlocate/mlocate.db
+     ```
+
+   - `locate` 二进制程序文件的权限（Ubuntu 软连接，最总指向 `/usr/bin/mlocate`），__其所属组为 mlocate__
+
+     ```shell
+     ss@localcomputer:~$ whereis locate		# 查询 locate 位置
+     locate: /usr/bin/locate /usr/share/man/man1/locate.1.gz
+     ss@localcomputer:~$ ls -l /usr/bin/locate
+     lrwxrwxrwx 1 root root 24 12月  4 14:14 /usr/bin/locate -> /etc/alternatives/locate # 软链接
+     ss@localcomputer:~$ ls -l /etc/alternatives/locate
+     lrwxrwxrwx 1 root root 16 12月  4 14:14 /etc/alternatives/locate -> /usr/bin/mlocate # 软连接
+     ss@localcomputer:~$ ls -l /usr/bin/mlocate
+     -rwxr-sr-x 1 root mlocate 43088 3月   2  2018 /usr/bin/mlocate  # 最终指向 
+     ```
+
+   - 对 `locate` 命令执行解释
+
+     1. 文件 `/usr/bin/locate` 最终指向 `/usr/bin/mlocate` 具有 SGID 权限
+     2. 命令 `locate` 操作的文件是 `/var/lib/mlocate/mlocate.db` 文件 ，而文件的权限和所属组（mlocate 组）值得注意（具有 SGID 权限）
+     3. 当任何用户执行 `locate` 命令时，用户组身份将会变成 mlocate 组，此时用户对于 `/var/lib/mlocate/mlocate.db` 具有查看权限，所以普通用户可以使用 `locate` 命令
+
+3. 设置 SetGID
+
+   - 2 表示 SGID
+     1. 设置命令 `chmod 2755 文件`（借鉴 SUID 设置特点）
+     2. `chmod g+s 文件`
+
+4. 取消 SetGID
+
+   - 2 表示 SGID
+     1. 取消命令 `chmod 755 文件`
+     2. `chmod g-s 文件`
+
+5. 总结
+
+   - __注意不要修改这个权限__
+
+   - `/usr/bin/locate` （软链接）是可执行的二进制程序文件，可以赋予 SGID 权限
+   - 执行用户 test 对 `locate` 拥有可执行权限
+   - 执行 `locate` 命令时，test 组身份会变成 mlocate 组，而 mlocate 组对 `/var/lib/mlocate/mlocate.db` 数据库有查询权限，所以普通用户可以使用 `locate` 查询数据库
+   - 命令结束，test 用户组身份变回原来组
+
+##### 针对目录
+
+1. SetGID 针对目录作用
+   - 普通用户必须对此目录拥有 r 和 x 权限，才能进入此目录和查看目录（没有 w 权不能创建文件或目录）
+   - 普通用户在此目录中的有效组会变成此目录的所属组（这句话的意义，是在于有 w 权限的表现）
    - 若普通用户对此目录拥有 w 权限时，新建的文件的默认属组是这个目录的属组
+   
+2. 实例
+
+   - 加入 root 创建目录，普通用户需要对此目录有 w 权限，才可以创建文件或目录
+
+   - 目录拥有 SGID 权限时，普通用户创建文件或目录时，文件的所属组，实际是目录的所属组
+
+     ```shell
+     ss@localcomputer:~$ ls -dl test/
+     drwxrwsrwx 2 root root 4096 1月  29 22:21 test/	# 目录拥有 SGID 权限，所有者 root、所属组 root
+     ss@localcomputer:~$ cd test/
+     ss@localcomputer:~/test$ touch a		# ss 普通用户创建文件
+     ss@localcomputer:~/test$ ls -l 
+     总用量 0
+     -rw-rw-r-- 1 ss root 0 1月  29 22:28 a	# 文件所属组是目录的所属组
+     ```
+
+   - __实际使用中，感觉没有什么意义__
 
 #### Sticky BIT
 
