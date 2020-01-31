@@ -3305,9 +3305,246 @@ __说明：一般分区都会支持 ACL 权限，所以以后可以直接使用�
 
 #### Sticky BIT
 
+__说明：stricky 黏着；bit 位，简称：位黏着位__
+
+1. SBIT 黏着位作用
+
+   - 黏着位目前只对目录有效
+   - 普通用户对该目录拥有 w 和 x 权限，即普通用户拥有对该目录的写入权限
+   - 如果没有黏着位，因为普通用户拥有 w 权限，所以可以删除此目录下的所有文件，包括其他用户建立的文件。一旦赋予黏着位，除了 root 可以删除所有文件，普通用户就算拥有 w 权限，也只能删除自己建立的文件，但不能删除其他用户建立的文件
+
+2. 注意
+
+   - 黏着位主要还是限制普通用户对目录的操作权限
+   - 对 root 不起作用
+
+3. 实例讲解
+
+   - 根下的 `/tmp` 目录就是一个拥有黏着位的目录
+
+     1. 查看 `/tmp` 的权限表现形式
+
+        ```shell
+        ss@localcomputer:/$ ls -ld tmp/
+        drwxrwxrwt 18 root root 4096 1月  30 21:03 tmp/
+        ```
+
+     2. 权限表型形式为 __其他用户权限 x 变成 t__ ，`/tmp` 使用数字表示权限为 `1777`
+
+     3. __普通用户即使拥有对 `/tmp` 拥有 rwx（t），但是有 SBIT 权限的作用，普通用户也只能对自己创建的文件删除操作（删除文件是用户对目录拥有 w 权限，不是对文件拥有什么）。这样保障了普通用户的权限__
+
+        ```shell
+        ss@localcomputer:/tmp$ rm -rf a
+        rm: 无法删除'a': 不允许的操作
+        ss@localcomputer:/tmp$ mv a b
+        mv: 无法将'a' 移动至'b': 不允许的操作
+        ```
+
+4. 设置与取消粘着位
+
+   - 设置粘着位
+     1. `chmod 1755 目录名`
+     2. `chmod o+t 目录名`
+   - 取消粘着位
+     1. `chmod 755 目录名`
+     2. `chmod o-t 目录名`
+
+#### 总结
+
+1. SUID 
+   - 只能赋予文件（可执行文件）
+2. SGID
+   - 可以赋予可执行文件
+   - 可以赋予目录（似乎没什么用）
+3. SBIT
+   - 只能赋予目录
+4. 注意
+   - 从以上三种特殊权限的描述，一个文件或目录不可能 __在特殊权限中出现 7 这个权限__ ，因为作用的不是可执行文件就是目录
+
 ### 文件系统属性 chattr 权限
 
+__说明：之前讲的文件或目录的权限对 root 都是无效的（umask 为默认权限），但是 chattr 对 root 有效__
+
+1. 介绍
+   
+   - chattr - 修改 Linux 文件系统中的文件属性
+   - chattr 是防止，包括 root 用户在内对 __文件误操作__ 的一把锁，既然是锁，那么既能上锁，也能解锁
+   
+2. chattr 命令格式
+   - 命令格式 `chattr [+-=] [选项] 文件或目录名``
+     1. ``+` ：增加权限
+     2. `=` ：等于某权限
+     3. `-` ：删除某权限
+   - 选项
+     1. `i` ：如果对文件设置 i 属性，那么不允许对文件进行删除、改名、也不能添加和修改数据；如果对目录设置 i 属性，那么只能修改目录下文件的数据，但不允许建立和删除文件。
+     2. `a` ：如果对文件设置 a 属性，那么只能在文件中添加数据，但是不能删除也不能修改数据；如果对目录设置 a 属性，那么只允许在目录中建立和修改文件，但不允许删除
+   
+3. 查看文件系统属性
+
+   - 命令 `lsattr [选项] 文件名`
+   - 选项
+     1. `-a` ：显示所有文件和目录
+     2. `-d` ：若目标是目录，仅列出目录本身属性，而不是子文件的
+
+4. 实例
+
+   - chattr 连 root 都可以限制，__root 创建文件操作实例，添加 i 属性__
+
+     1.  root 创建的文件或目录都会有默认的权限（`-rw-r--r--` 就是默认的权限）
+
+        ```shell
+        root@localcomputer:~# ls -ld test 
+        -rw-r--r-- 1 root root 72 1月  30 22:53 test
+        ```
+
+     2. 使用 `lsattr -a 文件` 查看文件系统属性（e 表示 ext4 文件系统下创建的文件）
+
+        ```shell
+        root@localcomputer:~# ls -ld test 
+        -rw-r--r-- 1 root root 72 1月  30 22:53 test
+        root@localcomputer:~# lsattr -a test 
+        --------------e--- test					# e 表示此文件在 ext4 文件系统下创建，默认不能取消
+        ```
+
+     3. 使用 `chattr +i 文件` 命令给文件添加 i 属性
+
+        ```shell
+        root@localcomputer:~# chattr +i test 
+        root@localcomputer:~# lsattr -a test 
+        ----i---------e--- test					# 添加 i 属性
+        ```
+
+     4. root 也没有权限删除文件，说明此权限对 root 也有效
+
+        ```shell
+        root@localcomputer:~# rm -rf test 
+        rm: 无法删除'test': 不允许的操作
+        ```
+
+     5. 去掉 chattr 权限
+
+        ```shell
+        root@localcomputer:~# lsattr -a test 
+        ----i---------e--- test
+        root@localcomputer:~# chattr -i test 		# 去掉文件属性 i 权限
+        root@localcomputer:~# lsattr -a test 
+        --------------e--- test
+        ```
+
+   - root 创建文件添加 a 属性
+
+     1. 文件（touch 创建的）追加文件内容 `echo 内容 >> 文件名`
+
+        ```shell
+        root@localcomputer:~# echo permit to write >> a		# 向文件 a 追加 permit to write 内容
+        ```
+
+     2. 创建文件，添加 a 属性，__此时文件只能追加，不能修改删除__
+
+        ```shell
+        root@localcomputer:~# chattr +a a
+        root@localcomputer:~# lsattr -a a
+        -----a--------e--- a				# 文件 a 添加 a 属性
+        ```
+
+     3. 只能使用 `echo 内容 >> 文件` 添加数据，__不能使用向 Vim 这样的编辑器__
+
+        ```shell
+        root@localcomputer:~# echo you >> a
+        ```
+
 ### 系统命令 sudo 权限
+
+__说明：以上讲解的权限都是用户对文件的操作权限，这次的被操作的对象是系统命令（虽然也是文件）__
+
+1. sudo 权限
+
+   -  root 把本来只能超级用户执行的命令赋予普通用户执行
+   - sudo 的操作对象是系统命令（Linux 中命令也是文件）
+
+2. sudo 使用
+
+   - 切换 root 用户，使用命令 `visudo` ，实际修改的文件是 `/etc/sudoers` 文件内容
+   - 格式 `root ALL=(ALL)    ALL` 
+     1. 用户名 被管理主机的地址=(可使用的身份)    授权命令(绝对路径)
+     2. 允许 __某个用户__ 使用 __某一个命令__ 在 __这一台主机上__
+     3. ALL 表示本机，或者使用本机 IP也表示本机，也可以是网段（但是是针对一些服务的）
+     4. (ALL) 表示任何一个用户，即用户在本机上执行命令代表任何一个用户（主要是 root 用户），__写不写都一样__
+   - 格式 `%wheel ALL=(ALL)    ALL` 
+     1. %组名 被管理主机的地址=(可使用的身份)    授权命令(绝对路径)
+
+3. 授权 ss 用户可以添加用户
+
+   - `useradd` 普通用户无权执行，所以 root 授权普通用户可以执行
+
+     1. 查看 root 授权的，给 ss 用户哪些命令（我也不知道什么意思）
+
+        ```shell
+        匹配 %2$s 上 %1$s 的默认条目：		# 默认的环境变量
+            env_reset, mail_badpass,
+            secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+        
+        用户 ss 可以在 localcomputer 上运行以下命令：  # ss 可以执行的命令
+            (ALL : ALL) ALL
+        ```
+
+     2. 使用 `visudo` 编辑 `/etc/sudoers` 文件（root 执行，直接修改，使用 ^O 写入保存，^X 退出），__命令精确，权限相对较小__
+
+        ```shell
+        # Host alias specification
+        
+        # User alias specification
+        
+        # Cmnd alias specification
+        
+        # User privilege specification
+        root    ALL=(ALL:ALL) ALL
+        ss      ALL=(ALL:ALL) /usr/sbin/useradd		# 给 ss 用户赋予 passwd 命令
+        
+        # Members of the admin group may gain root privileges
+        %admin ALL=(ALL) ALL
+        ```
+
+     3. 使用 `sudo -l` (ss 用户执行)
+
+        ```shell
+        匹配 %2$s 上 %1$s 的默认条目：
+            env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+        
+        用户 ss 可以在 localcomputer 上运行以下命令：
+            (ALL : ALL) /usr/sbin/useradd	# root 授权 ss 用户执行 passwd 命令，以任何用户身份，在本机上
+            (ALL : ALL) ALL
+        ```
+
+     4. 执行授权命令 `sudo /usr/sbin/useradd 用户` ，ss 执行的（不是绝对路径也可以）
+
+        ```shell
+        ss@localcomputer:~$ sudo useradd e
+        ss@localcomputer:/root$ su - root
+        密码： 
+        root@localcomputer:~# su e
+        $ whoami
+        e
+        ```
+
+   - 注意
+
+     1. 不要修改 `vim` 命令，因为修改 `vim` 命令后，将对用户没有任何限制。
+     2. 任何用户执行 `vim` 时，都会拥有 root 权限，一些系统配置文件将没有限制
+
+## 文件系统管理
+
+### 回顾分区和文件系统
+
+### 文件系统常用命令
+
+### fdisk 分区
+
+### /etc/fstab 文件修复
+
+### 分配 swap 分区
+
+
 
 
 
