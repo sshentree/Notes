@@ -3866,30 +3866,177 @@ __说明：以上讲解的权限都是用户对文件的操作权限，这次的
 
      2. -L 卷标名：挂载指定卷标的分区，而不是按照设备文件名挂载
 
-     3. -o 特殊选项：可以指定挂载的额外选项
+     3. -o 特殊选项：可以指定挂载的额外选项，针对分区__（有时候可执行文件不能执行，并不一定是权限问题，也有可能是文件系统的特殊选项没有给定）__
 
         | 参数            | 说明                                                         |
         | --------------- | ------------------------------------------------------------ |
         | `atime/noatime` | 更新访问时间/不更新访问时间。访问分区文件时，是否更新文件的访问时间，默认为更新 |
         | `async/sync`    | 异步/同步，默认是异步                                        |
         | `default`       | 自动/手动，`mount -a` 命令执行时，是否会自动安装 `/etc/fstab` 文件内容挂载，默认为自动 |
-        | `exec/noexec`   |                                                              |
-        | `remount`       |                                                              |
-        | `rw/ro`         |                                                              |
-        | `suid/nosuid`   |                                                              |
-        | `user/nouser`   |                                                              |
-        | `usrquota`      |                                                              |
-        | `grpquota`      |                                                              |
+        | `exec/noexec`   | 执行/不执行，设定是否在文件系统中（分区中）执行可执行文件，默认是 exec 允许 |
+        | `remount`       | __重新挂载已经挂载的文件系统，一般用于指定修改特殊权限__     |
+        | `rw/ro`         | 读写/只读，文件系统挂载时，是否具有读写权限，默认是 rw       |
+        | `suid/nosuid`   | 具有/不具有SUID 权限，设定文件是否具有 SUID 权限和 SGID 权限，默认是具有的 |
+        | `user/nouser`   | 允许/不允许普通用户挂载，设定文件系统是否允许普通用户挂载，默认是不允许普通用户挂载，只有 root 可以挂载分区 |
+        | `usrquota`      | 写入代表文件系统支持用户磁盘配额，默认不支持                 |
+        | `grpquota`      | 写入代表文件系统支持组磁盘配额，默认不支持                   |
 
-        
-
-
+   - 实例
+   
+     1. 创建 shell 脚本 `#!/bin/bash echo "hello world"` （输出 hello world）
+   
+        ```shell
+        root@localcomputer:/home/ss# vim hello.sh		# 创建 shell 脚本
+        root@localcomputer:/home/ss# ls -ld hello.sh 
+        -rw-r--r-- 1 root root 31 2月   3 15:13 hello.sh
+        root@localcomputer:/home/ss# chmod 755 hello.sh 	# 赋予执行权限
+        root@localcomputer:/home/ss# ./hello.sh 		# 执行 shell 脚本
+        hello world		# 输出 hello world
+        ```
+   
+     2. 重新挂载分区（/home 挂载点），__并使用 noecex 权限__ `mount -o remount,noexec /home` (最好不要改根分区，会出现问题)
+   
+        ```shell
+        root@localcomputer:/home/ss# mount -o remount,noexec /home		# 重新挂载，设定 noexec选项
+        root@localcomputer:/home/ss# ./hello.sh		# 执行 shell 脚本
+        -su: ./hello.sh: 权限不够
+        root@localcomputer:/home/ss# ls -ld hello.sh 
+        -rwxr-xr-x 1 root root 31 2月   3 15:13 hello.sh
+        root@localcomputer:/home/ss# mount -o remount,exec /home		# 重新挂载，设定 exec 选项
+        root@localcomputer:/home/ss# ls -ld hello.sh 
+        -rwxr-xr-x 1 root root 31 2月   3 15:13 hello.sh
+        root@localcomputer:/home/ss# ./hello.sh 		# 执行脚本
+        hello world
+        ```
+   
 
 #### 挂载光盘与 U 盘
 
+##### 挂载光盘
+
+1. 挂载光盘
+
+   - 建立挂载点（现在一般都会自动进行创建 `/media/ss` 挂载点）
+
+     1. `mkdir /media/ss`
+
+   - 挂载光盘（自动挂载）`mount -t iso9660 设备文件名 挂载点`
+
+     1. `mount -t iso9660 /dev/chrom /media/ss` 
+     2. `mount /dev/sr0 /media/ss` 
+     3. 这是第一个光盘其设备文件名为（chrom、sr0），第二个光盘为（chrom1，rs1）等
+
+   - 注意
+
+     1. 两个设备文件名 `/dev/cdrom` 和 `/dev/sr0` 都是光盘文件设备名
+
+        ```shell
+        root@localcomputer:/dev# ls -ld /dev/cdrom
+        lrwxrwxrwx 1 root root 3 2月   3 18:04 /dev/cdrom -> sr0
+        ```
+
+     2. 实际 `/dev/cdrom` 是 `/dev/sr0` 的软链接
+
+2. 卸载光盘
+
+   - 命令 
+
+     1. `umount 设备文件名或挂载点`
+
+   - 实例
+
+     1. 卸载光盘
+
+        ```shell
+        root@localcomputer:/dev# umount /dev/sr0
+        ```
+
+3. 注意
+
+   - 挂载点好像必须是空目录，但是 Ubuntu 的桌面版，光盘和 U 盘是自动挂载，且‘ 挂载点都是 `/media/ss/` 中
+
+##### 挂载 U盘
+
+1. 挂载 U 盘
+
+   - 注意
+     1. U 盘和硬盘采用相同的命令规则，第一块硬盘为 sda，分区为 sda1、sda2；U 盘则是第二块硬盘 sdb，分区为 sdb1（自动识别）。
+
+   - 查看 U 盘设备文件名
+
+     1. `fdisk -l` （关键信息）
+
+        ```shell
+        # 硬盘主要信息（第一块硬盘）
+        Disk /dev/sda：20 GiB，21474836480 字节，41943040 个扇区
+        单元：扇区 / 1 * 512 = 512 字节
+        扇区大小(逻辑/物理)：512 字节 / 512 字节
+        I/O 大小(最小/最佳)：512 字节 / 512 字节
+        磁盘标签类型：dos
+        磁盘标识符：0x591cf093
+        	# 分区主要信息
+        设备       启动     起点     末尾     扇区  大小 Id 类型
+        /dev/sda1  *        2048  7813119  7811072  3.7G 83 Linux
+        /dev/sda2        7813120  9766911  1953792  954M 82 Linux swap / Solaris
+        /dev/sda3        9766912 17580031  7813120  3.7G 83 Linux
+        /dev/sda4       17582078 41940991 24358914 11.6G  5 扩展
+        /dev/sda5       17582080 41940991 24358912 11.6G 83 Linux
+        
+        # U盘主要信息（第二块硬盘）
+        Disk /dev/sdb：29.8 GiB，32018268160 字节，62535680 个扇区
+        单元：扇区 / 1 * 512 = 512 字节
+        扇区大小(逻辑/物理)：512 字节 / 512 字节
+        I/O 大小(最小/最佳)：512 字节 / 512 字节
+        磁盘标签类型：dos
+        磁盘标识符：0x486407cf
+        	# 分区主要信息
+        设备       启动    起点     末尾     扇区  大小 Id 类型
+        /dev/sdb1  *    1593344 62535679 60942336 29.1G  7 HPFS/NTFS/exFAT
+        ```
+
+   - 挂载 U 盘
+
+     1. `mount -t vfat /dev/sdb1 /media/ss` 
+     2. 文件系统 `vfat` 是 fat32 分区，`fat` 是 fat16分区（不懂）
+     3. `mount /dev.sdb1 /media/ss` 如 U 盘的文件系统是 NTFS，不需要指定文件系统
+     4. 这个挂载点和光盘的挂载点相同，__两个都是自动挂载__，之后访问挂载点即可
+     5. __注意：Linux 默认不支持 NTFS 文件系统（现在好像是支持了）__
+
 #### 支持 NTFS 文件系统
 
+##### 驱动程序（device driver）
+
+1. 解释
+   - 操作系统与硬件之间的桥梁，协调两者之间的关系
+2. 作用
+   - 第一：将硬件本身的功能告诉操作系统
+   - 第二：主要功能是将硬件设备 __电子信号__与操作系统及软件的 __高级编程语言__ 之间的互相 __转换__
+   - 如播放音乐时，音乐播放器需使用声卡，操作系统控制器会向声卡驱动器发送指令，然后声卡驱动器将操作系统指令转换为声卡可以识别的电子信号
+
+##### Linux 与 Win 在驱动方面的区别
+
+1. Win 的驱动程序需要手动安装
+   - Win 系统安装完成之后，需要手动安装所有硬件驱动，才可以正常使用
+2. Linux 的驱动程序是在内核中，一般不需要手动安装。如需安装驱动程序，需要重新编译 Linux 内核
+   - Linux 系统可以自动识别大部分硬件，因为 Linux 内核中包含了市面上的大部分驱动程序，系统会为硬件选择合适的驱动程序（显卡驱动好像就没有）
+   - 需要手动安装驱动程序
+     1. 驱动程序出现过晚，Linux 内核发布早于驱动程序，想使用驱动程序自然需要手动安装
+     2. Linux 内核默认没有安装某种驱动程序
+     3. 注意：手动安装驱动程序是给内核使用的，__所以需要重新编译内核__
+
+##### 解决 Linux 内核默认没有的驱动程序
+
+1. 使用第三方软甲
+2. Linux 有的不支持 NTFS 文件系统（早期 Linux 内核），NTFS文件系统是驱动程序，在不重新编译内核的情况下，使用第三方工具 __NTFS-3G 插件__ ，可以解决 Linux不支持 NTFS文件系统
+3. 安装 NTFS-3G
+4. 使用 NTFS-3G
+   - 命令 `mount -t ntfs-3g 分区设备文件名 挂载点` ，其中文件系统是此软件自东安装的文件系统
+
 ### fdisk 分区
+
+#### fdisk 命令分区过程
+
+#### 分区自动挂载与 fstab 文件修复
 
 ### /etc/fstab 文件修复
 
@@ -4113,6 +4260,10 @@ __说明：一下设置可以写入用户目录下的 `.vimrc` 文件写入配�
 2. 实例
    - 邮箱使用特殊字符代替
      1. `:ab mail ShenDeZ@163.com` ，vim 插入 mail 时，会自动转变成 `ShenDeZ@163.com`
+
+### 分屏
+
+
 
 
 
