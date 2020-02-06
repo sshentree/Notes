@@ -4417,6 +4417,9 @@ __说明：以上讲解的权限都是用户对文件的操作权限，这次的
 
 5. 执行 `partprobe` ，重新读取分区表信息
 
+   - 分区后 Linux 系统重启，而系统重启比较麻烦
+   - 所以使用 `partprobe` 命令，重新读取分区信息
+
 6. 执行格式化命令 `mkswap 设备文件名` 
 
    - `mkswap /dev/sdb1`
@@ -4427,7 +4430,20 @@ __说明：以上讲解的权限都是用户对文件的操作权限，这次的
 
 8. 使用 `free -h` 查看内存和 swap使用情况
 
+   - 实例
+
+     ```shell
+     ss@localcomputer:~$ free -h
+                   总计         已用        空闲      共享    缓冲/缓存    可用
+     内存：        1.9G        1.3G        121M         14M        531M        473M
+     交换：        953M         11M        942M
+     
+     ```
+
 9. 为使系统启动时自动启用 swap
+
+   - __使用命令启动 swap 或使用 `mount` 挂载的设备，重启时必须重新挂载__
+   - 系统启动时自动挂载或使用，就必须修改 `/etc/fstab` 配置文件
 
    - 修改 `/etc/fstab` 配置文件（UUID 或者是设备文件名 /dev/sdb1）
 
@@ -4435,39 +4451,6 @@ __说明：以上讲解的权限都是用户对文件的操作权限，这次的
      # swap was on /dev/sda2 during installation
      UUID=73c2fb14-9e4d-41d4-8245-f2eaf277499b none            swap    sw              0       0	
      ```
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ## Vim 文编编辑器
@@ -4720,6 +4703,88 @@ __说明：此处使用的命令是在文件名由修改的情况下使用__
    - 命令 `ctrl+w x`
 2. 所有窗口恢复均等
    - 命令 `ctrl+w =`
+
+# shell 编程
+
+## Shell 基础
+
+### shell 概述
+
+#### shell 是什么
+
+1. Shell 是命令行解释器，将高级语言（abcd 命令行）转换为机器语言（01010）。它为用户提供了一个向 Linux 内核发送请求以便运行程序的界面 __系统及程序__ ，用户可以用 Shell 来启动、挂载、停止甚至是编写一些程序。 
+   - 外层应用程序 --> Shell 命令解释器 --> 内核 --> 硬件。__内核使用机器语言调用硬件，Shell 就是一层内核的外壳。__
+2. Shell 还是一个功能相当强大的编程的语言，易编写、易调试、灵活性较强。Shell 是解释执行的脚本语言，在 Shell 中可以直接调用 Linux 系统命令
+
+#### Shell 的分类
+
+1. Bourne Shell（BShell）：从 1979 年起 Unix 就开始使用 Bourne Shell，Bunrne Shell 的主文件名为 `.sh` 。
+2. C Shell：C Shell 主要是在 BSD 版的 Unix 系统中使用，其语法和 C 语言相似而得名。
+3. Shell 得两种主要语法类型有 Bourne 和 C。两种语法彼此不兼容。Bourne 家族主要包括：sh、ksh、Bash、psh、zsh；C 家族主要包括：csh、tcsh。
+4. __Bash：Bash 与 sh 兼容，现在使用的 Linux 就是使用 Bash 作为用户的基本 Shell__
+
+#### Linux 支持的 Shell
+
+1. 文件 `/etc/shells` 
+
+   - 查看 Linux系统支持哪种 Shell
+
+     ```shell
+     # /etc/shells: valid login shells
+     /bin/sh
+     /bin/bash
+     /bin/rbash
+     /bin/dash
+     ```
+
+   - 查看系统使用哪种 Shel ，命令 `echo $SHELL` ；直接输入 Shell 切换
+
+     ```shell
+     ss@localcomputer:~$ echo $SHELL
+     /bin/bash
+     ss@localcomputer:~$ sh		# 切换 Shell
+     $ exit						# 退出
+     ss@localcomputer:~$ 
+     ```
+
+### Shell 脚本执行方式
+
+#### echo 输出命令
+
+1. 命令格式
+
+   - `echo [选项] [输出内容]`
+
+   - 选项
+
+     1. `-e` ：支持反斜杠控制的字符转换
+
+        | 控制字符 | 作用                                                         |
+        | -------- | ------------------------------------------------------------ |
+        | `\\`     | 输出 \ 本身                                                  |
+        | `\a`     | 输出警告音                                                   |
+        | `\b`     | 退格键，就是向左删除键                                       |
+        | `\c`     | 取消输出行末的换行符，和 -n 选项一致                         |
+        | `\e`     | ESCAPE 键                                                    |
+        | `\f`     | 换页符                                                       |
+        | `\n`     | 换行符                                                       |
+        | `\r`     | 回车键                                                       |
+        | `\t`     | 制表符，也就是 tab 键                                        |
+        | `\v`     | 垂直制表符                                                   |
+        | `\0nnn`  | 按照八进制 ASCII 码表输出字符。其中 0 为数字零，nnn 是三位八进制数 |
+        | `\xhh`   | 按照八进制 ASCII 码表输出字符。其中 0 为数字零，hh 是两位十六进制数 |
+
+        
+
+### Bash 的基本功能
+
+### Bash 的变量
+
+### Bash 的运算符
+
+### 环境变量配置文件
+
+
 
 
 
