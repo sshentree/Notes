@@ -4772,9 +4772,164 @@ __说明：此处使用的命令是在文件名由修改的情况下使用__
         | `\t`     | 制表符，也就是 tab 键                                        |
         | `\v`     | 垂直制表符                                                   |
         | `\0nnn`  | 按照八进制 ASCII 码表输出字符。其中 0 为数字零，nnn 是三位八进制数 |
-        | `\xhh`   | 按照八进制 ASCII 码表输出字符。其中 0 为数字零，hh 是两位十六进制数 |
+        | `\xhh`   | 按照十六进制 ASCII 码表输出字符。其中 0 为数字零，hh 是两位十六进制数 |
 
-        
+   - 支持颜色输出
+   
+     1. 输出格式 `echo -e "\e[1;31m 字符 \e[0m"` __（字符：是要输出的内容，其他的是格式要求）__
+   
+        | 颜色 | 代码 |
+        | ---- | ---- |
+        | 黑色 | 30m  |
+        | 红色 | 31m  |
+        | 绿色 | 32m  |
+        | 黄色 | 33m  |
+        | 蓝色 | 34m  |
+        | 洋红 | 35m  |
+        | 青色 | 36m  |
+        | 白色 | 37m  |
+   
+2. 演示
+
+   - `\b` 退格键，向左删除一个字符
+
+     ```shell
+     ss@localcomputer:~$ echo "abc"
+     abc
+     ss@localcomputer:~$ echo -e "ab\bc"		# 使用 \b 向左删除一个字符
+     ac
+     ```
+
+   - `\t` 制表符，`\n` 换行符
+
+     ```shell
+     ss@localcomputer:~$ echo -e "a\tb\tc\nd\te\tf"
+     a	b	c
+     d	e	f
+     ```
+
+   - `\x` 、`\0` 按照 十六、八进制输出 ASCII 表中对应的字符__（在 ASCII 中十六进制 61 表示字符 a）__
+
+     ```shell
+     ss@localcomputer:~$ echo -e "\x61"
+     a
+     ```
+
+   - 支持颜色演示
+
+     ```shell
+     ss@localcomputer:~$ echo -e "\e[1;31m hello world-->red \e[0m"			# 红色输出
+      hello world-->red
+      ss@localcomputer:~$ echo -e "\e[1;33m hello world-->yellow \e[0m"		# 黄色输出
+      hello world-->yellow 
+     ```
+
+
+#### 第一个脚本
+
+1. 注意
+
+   - Linux 不区分扩展名，但是 Linux 的脚本是 `.sh` 结尾，目的是告诉系统这是一个脚本，使用 Vim 编辑器时，会有颜色帮助信息
+   - __Linux 不区分扩展名，非不写扩展名，也没有问题__
+   - 脚本的第一行为 `#!/bin/Bash` 标志为 Shell 脚本（声明以下为 Shell 脚本）。可以省略，但是与其他语言一起使用时，会出现其他错误。
+
+2. Shell 脚本样式
+
+   - 简单实例
+
+     ```shell
+     #!/bin/bash		# Shell 脚本声明
+     # program name	# 项目名称
+     # Author:sshen(E-emai:ShenDeZ@163.com)		# 作者及联系方式
+     
+     echo "hello world"		# 项目体
+     ```
+
+#### 执行脚本
+
+__说明：两种执行方式__
+
+1. 赋予执行权限，直接运行
+
+   - `chmod 755 demo.sh`
+
+   - `./demo.sh`
+
+   - 演示__（脚本需要有执行权限）__
+
+     ```shell
+     root@localcomputer:~/test# ./demo.sh
+     -su: ./demo.sh: 权限不够
+     root@localcomputer:~/test# chmod 755 demo.sh 
+     root@localcomputer:~/test# ./demo.sh
+     hello world
+     ```
+
+2. 通过 Bash 调用执行脚本
+
+   - `bash demo.sh`
+
+   - 演示__（使用 bash 调用脚本，则不需要执行权限）__
+
+     ```shell
+     root@localcomputer:~/test# bash demo.sh 
+     hello world
+     ```
+
+#### Windows 脚本与 Linux 脚本的区别
+
+__说明：`cat -A` 命令 显示文件中所有字符，包括回车符等……__
+
+1. Windows 下编写脚本，在 Linux 上运行 __可能__ 报错
+
+   - 回车符的区别（`^M$`）
+
+     ```shell
+     root@localcomputer:~/test# cat -A demo1.sh 
+     #/bin/bash^M$
+     # hello world^M$
+     # Author:sshen E-mail:ShenDeZ@163.com^M$
+     echo "hello world"^M$
+     ```
+
+2. Linux 下编写脚本
+
+   - 回车符（`$`）
+
+     ```shell
+     root@localcomputer:~/test# cat -A demo.sh 
+     #!/bin/bash$
+     # hello world$
+     # Author:sshen E-main:ShenDeZ@163.com$
+     $
+     echo "hello world"$
+     ```
+
+3. 分析及解决
+
+   - 分析
+
+     1. 不同的操作系统回车符有可能不同。在 Linux 上显示有所不同，Linux 的回车符是 `M`；Windows 的回车符是 `^M$` ，所以会造成 Linux 的 Shell 编译器不识别或识别错误，报错。
+     2. 现在的 Ubuntu 好像自动解决了这个问题，就是不管是 dos 格式还是 unix 格式都照常执行，不会报错。
+
+   - 解决办法
+
+     1. 命令 `dos2unix file` ，将 dos 格式转换成 unix 格式__（dos2unix 需要手动下载）__。当然还有 `unix2dos` 命令 
+
+        ```shell
+        root@localcomputer:~/test# cat -A demo1.sh 
+        #/bin/bash^M$
+        # hello world^M$
+        # Author:sshen E-mail:ShenDeZ@163.com^M$
+        echo "hello world"^M$
+        root@localcomputer:~/test# dos2unix demo1.sh		# 转换格式 
+        dos2unix: 正在转换文件 demo1.sh 为Unix格式...
+        root@localcomputer:~/test# cat -A demo1.sh 
+        #/bin/bash$
+        # hello world$
+        # Author:sshen E-mail:ShenDeZ@163.com$
+        echo "hello world"$
+        ```
 
 ### Bash 的基本功能
 
