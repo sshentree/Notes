@@ -5007,15 +5007,366 @@ __说明：`cat -A` 命令 显示文件中所有字符，包括回车符等…�
 
 1. 命令别名
    - 设定别名命令 
+     
      1. `alias 别名='原命令'`
+     
    - 查询别名命令
+     
      1. `alias`
+     
+   - 删除别名 `unalias 别名`
+   
+   - 演示
+   
+     1. 添加别名 __（临时生效，切换用户都会失效）__ 最好不要与系统命令重名
+   
+        ```shell
+        ss@localcomputer:~$ alias ls='ls --color'
+        ss@localcomputer:~$ alias
+        alias ls='ls --color'
+        ```
+   
+     2. 删除别名
+   
+        ```shell
+        ss@localcomputer:~$ alias
+        alias ls='ls --color'
+        ss@localcomputer:~$ unalias ls
+        ss@localcomputer:~$ alias
+        ```
+   
+        
+   
+2. 命令执行顺序
+
+   - 第一顺序位执行绝对路径或相对路径执行的命令
+
+     1. 如：在 `/bin` 下执行 `ls` 命令时，不会去找别名，只会执行单纯的 `ls` 命令
+
+   - 第二顺位执行别名
+
+   - 第三顺位执行 Bash 内部命令
+
+     1. Bash 本身自己的功能，没有执行文件
+     2. `whereis 命令` ，查不到执行文件，只有帮助文档
+
+   - 第四顺位执行按照 $PATH 环境变量定义的目录查询顺序找到的第一个命令
+
+     1. 环境变量，以 ":" 分割（在以下目录中查找是否有这些命令）
+
+        ```shell
+        ss@localcomputer:~$ echo $PATH
+        /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+        ```
+
+     2. 外部命令就是有执行文件，`whereis 命令` 可以找到执行文件，在环境变量的目录下
+
+3. 让别名永久生效
+
+   - 永久生效，因为使用 `alias 别名='命令'` 只会临时生效，系统重启就结束
+
+   - 系统永久生效，归根结底要写入配置文件中
+
+   - 家目录下的 `.bashrc` 配置文件
+
+     1. `root/.bashrc`
+
+        ```shell
+        # some more ls aliases
+        alias ll='ls -alF'
+        alias la='ls -A'
+        alias l='ls -CF'
+        
+        # Alias definitions.
+        # You may want to put all your additions into a separate file like
+        # ~/.bash_aliases, instead of adding them here directly.
+        # See /usr/share/doc/bash-doc/examples in the bash-doc package.
+        ```
+
+     2. Ubuntu 下的普通用户家目录下 `/home/ss` 没有 `.bashrc` 文件。~~查看 `root/.bashrc` 文件注释，在用户目录下创建 `~/.bash_aliases` 文件，写入别名命令，重启系统即可生效。~~ 不好用
 
 ##### 常用快捷键
 
+1. 快捷键，直接使用 `ctrl+字母` 不用管大小写（默认大写）
+
+   - 如表（重点标粗）
+
+     | 快捷键       | 作用                                                         |
+     | ------------ | ------------------------------------------------------------ |
+     | `ctrl+A`     | 把光标移动到命令行开头。如果我们输入的命令过长，想把光标移动到命令行开头时使用 |
+     | `ctrl+E`     | 把光标移动到命令行结尾                                       |
+     | __`ctrl+C`__ | 强制终止当前命令                                             |
+     | `ctrl+L`     | 清屏，相当于 clear 命令                                      |
+     | __`ctrl+U`__ | 删除或剪切光标之前的命令。如输入一个很长的命令，不用使用退格键一个一个删除字符，使用这个快捷键更加方便 |
+     | __`ctrl+K`__ | 删除或剪切光标之后的内容                                     |
+     | __`ctrl+Y`__ | 粘贴 `ctrl+K` 或 `ctrl+U` 的内容                             |
+     | __`ctrl+R`__ | 在历史命令中搜索，按下 `ctrl+R` 之后，就会出现搜索界面，只要输入搜索内容，就会从历史命令中搜索 |
+     | `ctrl+D`     | 退出当前终端                                                 |
+     | `ctrl+Z`     | 暂停，并放入后台。这个快捷键牵扯工作管理的内容，在系统管理章节详细介绍 |
+     | `ctrl+S`     | 暂停屏幕输出                                                 |
+     | `ctrl+Q`     | 恢复屏幕输出                                                 |
+
 #### 输入输出重定向
 
+##### 正确与错误命令输出分开保存
+
+1. 标准的输入输出
+
+   - 标准（standard in、out、err）输入、输出、错误输出。设备文件名不太好记忆，所以有了 __文件描述符__ 0 表示键盘、1 表示标准输出、2 表示错误输出
+
+     | 设备   | 设备文件名    | 文件描述符 | 类型         |
+     | ------ | ------------- | ---------- | ------------ |
+     | 键盘   | `/dev/stdin`  | 0          | 标准输入     |
+     | 显示器 | `/dev/stdout` | 1          | 标准输出     |
+     | 显示器 | `/dev/stderr` | 2          | 标准错误输出 |
+
+2. 输出重定向
+
+   - 输出重定向是，命令执行结果不在输出到屏幕上，而是输出到文件中。因为改变了输出方向，所以叫输出重定向
+
+     | 类型               | 符号              | 作用                                                         |
+     | ------------------ | ----------------- | ------------------------------------------------------------ |
+     | 标准输出重定向     | 命令 > 文件       | 以 __覆盖__的方式，把命令的正确输出输出到指定 __文件中或设备当中__ |
+     |                    | 命令 >> 文件      | 以 __追加__ 的方式，把命令的正确输出输出到指定 __文件中或设备当中__ |
+     | 标准错误输出重定向 | 错误命令 2> 文件  | 以 __覆盖__ 的方式，把命令的错误输出输出到指定 __文件中或设备当中__ |
+     |                    | 错误命令 2>> 文件 | 以 __追加__ 的方式，把命令的错误输出输出到指定 __文件中或设备当中__ |
+
+3. 何时使用重定向
+
+   - 需要保留命令执行结果，以供管理员参考
+   - 命令得有输出结果
+
+4. 实例
+
+   - 重定向命令 `date` ，标准输出重定向
+
+     ```shell
+     ss@localcomputer:~$ date > time
+     ss@localcomputer:~$ cat time
+     2020年 02月 09日 星期日 18:22:02 CST
+     ```
+
+   - 错误命令得重定向 `lst` ，标准错误命令输出重定向（得使用 `2>` 或 `2>>`）
+
+     ```shell
+     ss@localcomputer:~$ lst		# 提示信息没有此命令
+     
+     Command 'lst' not found, but there are 17 similar ones.
+     
+     ss@localcomputer:~$ lst > time		# 重定向并没有作用
+     
+     Command 'lst' not found, but there are 17 similar ones.
+     
+     ss@localcomputer:~$ lst 2>time		# 使用 2> 表示错误命令提示信息
+     ss@localcomputer:~$ cat time		# 显示重定向文件信息
+     
+     Command 'lst' not found, but there are 17 similar ones.
+     
+     ```
+
+##### 正确与错误命令输出同时保存
+
+1. 同时保存
+
+   - 如表
+
+     | 类型                       | 符号                    | 作用                                                     |
+     | -------------------------- | ----------------------- | -------------------------------------------------------- |
+     | 正确输出和错误输出同时保存 | 命令 > 文件 2>&1        | 以覆盖得方式，把正确输出和错误得输出都保存到同一个文件中 |
+     |                            | 命令 >> 文件 2>&1       | 以追加得方式，把正确输出和错误得输出都保存到同一个文件中 |
+     |                            | 命令 &> 文件            | 以覆盖得方式，把正确输出和错误得输出都保存到同一个文件中 |
+     |                            | 命令 &>> 文件           | 以追加得方式，把正确输出和错误得输出都保存到同一个文件中 |
+     |                            | 命令 >> 文件1 2>> 文件2 | 把正确得输出追加到文件 1 中，把错误得输出追加到文件 2 中 |
+
+2. 实例
+
+   - 个人感觉 `命令 &>> 文件` 好用
+
+     ```shell
+     ss@localcomputer:~$ date &>> time		# 正确命令输出
+     ss@localcomputer:~$ cat time
+     2020年 02月 09日 星期日 18:52:39 CST
+     ss@localcomputer:~$ lst &>> time		# 错误命令输出
+     ss@localcomputer:~$ cat time			# 显示所有
+     2020年 02月 09日 星期日 18:52:39 CST
+     
+     Command 'lst' not found, but there are 17 similar ones.
+     
+     ```
+
+   - __一般都会使用 `命令 >> file1 2>> file2`__
+
+   - __/dev/null 像是个垃圾桶，不是文件也不是目录，就好比是一个垃圾桶。可以把一些命令输出得无用信息放入其中__
+
+##### 输入重定向
+
+1. 输入重构定向介绍
+
+   - 一般键盘作为输入对象，现在使用文件作为输入对象，叫作输入重定向
+   - __一般不常见__
+
+2. 实例
+
+   - 统计命令 `wc [选项] [文件名]` 
+
+   - 选项
+
+     1. `-c` ：统计字节
+     2. `-w` ：统计单词
+     3. `-l` ：统计行数
+
+   - 使用 `wc` 统计命令，按 `ctrl+D` 结束，统计行数、单词、字符
+
+     ```shell
+     ss@localcomputer:~$ wc
+     hello world
+     I am lover
+           2       5      23
+     
+     ```
+
+   - 输入重定向使用 `wc < 文件`
+
+     ```shell
+     ss@localcomputer:~$ wc < time		# 将 time 文件作为 wc 得输入
+       4  16 101
+     ss@localcomputer:~$ wc time			# 命令格式有，规范
+       4  16 101 time
+     
+     ```
+
+   - `<<` 使用，`wc <<hello` ，不再以 `ctrl+D` 结束，而是以输入`hello` 结束，统计 `hello` 中间得输入符
+
+     ```shell
+     ss@localcomputer:~$ wc << hello
+     > scs
+     > vssv
+     > svs
+     > sdhello
+     > hello
+      4  4 21
+     ```
+
 #### 多命令顺序执行与管道符
+
+##### 多命令顺序执行
+
+1. 多命令顺序执行
+
+   - 就是几条命令存在或不存在某种关系
+
+     | 多命令执行符 | 格式             | 作用                                                         |
+     | ------------ | ---------------- | ------------------------------------------------------------ |
+     | ;            | 命令1 ; 命令2    | 多条命令顺序执行，命令之间没有任何逻辑关系（1错了，2也执行；2错了，1也会执行得） |
+     | &&           | 命令1 && 命令2   | 逻辑与 <br> 当命令1 正确执行，则命令2 才会执行<br> 当命令1 不正确执行，命令2 不会执行 |
+     | \|\|         | 命令1 \|\| 命令2 | 逻辑或<br> 当命令1 不正确执行，命令2 才会执行<br> 当命令1 正确执行，命令2 不会执行 |
+
+2. 实例
+
+   - 使用 `;` 分割命令，就是存粹为了方便几条命令缩写
+
+     ```shell
+     ss@localcomputer:~$ ls; cd /user; date; pwd
+     mbox  time  VScode  公共的  模板  视频	图片  文档  下载  音乐	桌面
+     bash: cd: /user: 没有那个文件或目录		# 命令报错，没有影响其他命令
+     2020年 02月 09日 星期日 22:03:04 CST
+     /home/ss
+     ```
+
+##### 多命令执行演示
+
+1.  命令 `dd if=file1 of=file2 bs=字节数 count=个数 `
+
+   - 作用：数据复制命令，可以复制分区（包括文件系统）、硬盘（包括文件系统）、文件及特殊文件
+
+   - 选项
+
+     1. `if=输入文件` ：指定源文件或原设备
+     2. `of=输出文件` ：指定目标文件或目标设备
+     3. `bs=字节数` ：指定一次输入、输出多少字节，即把这些字节看成一个数据块
+     4. `count=个数` ：指定输入、输出多少个数据块
+
+   - 解释命令
+
+     1. 从 file1 中复制数据到 file2 中，一次复制一个数据块（bs 设置数据块大小），复制多少个数据块（count）
+     2. $bs \times count = 复制数据大小$ ，如果复制数据大于源文件，则会复制源文件所有内容（目标文件大小=源文件大小）；如果复制数据小于源文件，则复制部分数据
+     3. __不能复制目录__
+
+   - 实例
+
+     1. `/dev/zero` 与 `/dev/null` 都是特殊文件，一个是白洞，一个是黑洞
+
+     2. `date ; dd if=/dev/zero of=/home/ss/testfile bs=1K count=100000 ; date` ，__复制 `/dev/zero` 等于创建将近 100MB 大小得空白文件，使用多长时间__
+
+        ```shell
+        ss@localcomputer:~$ date ; dd if=/dev/zero of=/home/ss/testfile bs=1K count=100000 ; date
+        2020年 02月 09日 星期日 22:44:31 CST		# date 命令输出
+        记录了100000+0 的读入
+        记录了100000+0 的写出
+        # 复制 102400000 字节（实际复制数据是 102MB 到 98MB 之间）使用了 0.337895 s
+        102400000 bytes (102 MB, 98 MiB) copied, 0.337895 s, 303 MB/s	
+        2020年 02月 09日 星期日 22:44:31 CST		# date 命令输出
+        ss@localcomputer:~$ ls -ldh testfile 
+        -rw-r--r-- 1 ss ss 98M 2月   9 22:44 testfile
+        ss@localcomputer:~$ cat testfile 			# 文件什么都没有
+        ss@localcomputer:~$ 
+        
+        ```
+
+2. `&&` 逻辑与使用
+
+   - 有些命令需要前一条命令正确执行，才可以执行
+     1. 如：源码包安装 `./configure && make && make install` ，第一条命令正确执行，在执行第二条，最后执行第三条。这些命令又相互依赖关系。
+
+   - `ls && echo yes` 
+
+     1. 只有 `ls` 正确执行，才会输出 yes
+
+        ```shell
+        ss@localcomputer:~$ ls && echo yes		# 命令 ls 正确执行，输出 yes
+        mbox  test  test1  time  VScode  公共的  模板  视频  图片  文档  下载  音乐  桌面
+        yes						# 输出 yes
+        ss@localcomputer:~$ lst user && echo yes	命令 lst 错误，yes不输出
+        ls: 无法访问'user': 没有那个文件或目录
+        ```
+
+3. `||` 逻辑或使用
+
+   - `ls || echo no`
+
+     1. 只有 `ls` 报错，才会输出 no
+
+        ```shell
+        ss@localcomputer:~$ lst || echo no		# 命令 lst报错，输出 no
+        
+        Command 'lst' not found, but there are 17 similar ones.
+        
+        no		# 输出 no
+        ss@localcomputer:~$ ls || echo no		# 命令 ls 正确执行
+        mbox  test  test1  time  VScode  公共的  模板  视频  图片  文档  下载  音乐  桌面
+        
+        ```
+
+4. `&&` 与 `||` 同时执行
+
+   - `ls && echo yes || echo no` ，顺序两两判断是否正确。此命令判断 `ls` 是否正确执行。
+
+     ```shell
+     ss@localcomputer:~$ ls || echo no
+     mbox  test  test1  time  VScode  公共的  模板  视频  图片  文档  下载  音乐  桌面
+     ss@localcomputer:~$ ls && echo yes || echo no
+     mbox  test  test1  time  VScode  公共的  模板  视频  图片  文档  下载  音乐  桌面
+     yes
+     ss@localcomputer:~$ lst && echo yes || echo no
+     
+     Command 'lst' not found, but there are 17 similar ones.
+     
+     no
+     ```
+
+     
+
+
 
 #### 通配符与其他特殊符
 
