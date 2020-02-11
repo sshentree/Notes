@@ -5591,17 +5591,25 @@ __说明：`cat -A` 命令 显示文件中所有字符，包括回车符等…�
         ss@localcomputer:~$ name="sshen"
 ss@localcomputer:~$ email="ShenDeZ@163.com"
         
-     # 将变量 email 声明为环境变量
-        ss@localcomputer:~$ export email
-     
-        # 创建子 Shell
-        ss@localcomputer:~$ bash
-        
-        # set 查看变量，只有环境变量 email
-        email=ShenDeZ@163.com
-        
         ```
-        
+     
+     2. 将变量 email 声明为环境变量
+     
+        ```shell
+        ss@localcomputer:~$ export email
+        ```
+     
+     3. 创建子 Shell
+     
+        ```shell
+        ss@localcomputer:~$ bash
+        ```
+     
+     4. set 查看变量，只有环境变量 email
+     
+        ```shell
+        email=ShenDeZ@163.com   
+        ```
 
 ##### 系统常见环境变量
 
@@ -5660,20 +5668,217 @@ ss@localcomputer:~$ email="ShenDeZ@163.com"
 
 1. 位置参数变量
 
-   - 如图
+   - 用户向程序传入参数，以达到程序运行的不同效果。这个参数是相对编程来说的。
 
-     | 位置参数变量 | 作用 |
-     | ------------ | ---- |
-     | `$n`         |      |
-     | `$*`         |      |
-     | `$@`         |      |
-     | `$#`         |      |
+   - 如图（程序中代表位置的参数）
+   
+     | 位置参数变量 | 作用                                                         |
+     | ------------ | ------------------------------------------------------------ |
+     | `$n`         | n 为数字，`$0` 表示命令本身，`$0-$9` 表示第一到第九个参数，十个以上参数需要使用大括号包括，如 `${10}` |
+     | `$*`         | 这个参数代表命令行所有参数，`$*` 把所有的参数看成一个整体（循环按照一个计算） |
+    | `$@`         | 这个变量也代表命令行中所有参数，不过 `$@` 把每一个参数区别对待（循环可打印每一个变量） |
+     | `$#`         | 这个参数代表命令行中所有参数的个数                           |
+   
+2. 实例 1
 
+   - 编写脚本
+
+     ```shell
+     #!/bin/bash
      
+     echo $0		# 代表执行时的命令
+     echo $1		# 执行时跟的参数 1
+     echo $2		……
+     echo $3
+     echo $4
+     ```
+
+   - 执行
+
+     1. 不传递位置参数
+
+        ```shell
+        ss@localcomputer:~/test$ ./argutrain.sh 		# 没有传递参数
+        ./argutrain.sh		# 只打印出执行命令本身
+        
+        
+        
+        
+        
+        ```
+
+     2. 传递位置参数
+
+        ```shell
+        ss@localcomputer:~/test$ ./argutrain.sh 1 2 3 4		# 传递 4 个位置参数
+        ./argutrain.sh		# 打印命令本身
+        1					# 打印第一个位置参数
+        2
+        3
+        4
+        
+        ```
+
+3. 实例 2
+
+   - 编写一个加法计算器（add.sh 文件）
+
+     ```shell
+     #!/bin/bash
+     
+     num1=$1		# 第一个位置变量
+     num2=$2		# 第二个位置变量
+     sum=$(($num1+$num2))	# 两个变量相加，记住格式两个括号
+     echo $sum		# 打印变量 sum
+     ```
+
+   - 执行 add.sh 文件
+
+     ```shell
+     ss@localcomputer:~/test$ ./add.sh 2 4		# 执行 2+4 等于？
+     6
+     ```
+
+4. 实例 3
+
+   - 使用 `$#` 代表所有参数个数
+     1. `echo "A total of $# parameters"`
+   - 使用 `$*` 代表所有参数
+     1. `echo "The parameters is:$*"`
+   - 使用 `$@` 代表所有参数
+     1. `echo "The parameters is:$@"`
 
 #### 预定义变量
 
+##### 预定义变量
+
+1. 介绍
+
+   - __位置参数就是预定义变量的一种，都是系统或程序预先定义好__
+
+   - 预定义变量
+
+     | 预定义变量 | 作用                                                         |
+     | ---------- | ------------------------------------------------------------ |
+     | `$?`       | 最后一次执行的命令的返回状态。<br> 如果这个变量值为 0，证明上一个命令正确执行；<br> 如果这个变量值为非 0（具体哪一个数，由命令自己决定），则证明上一个命令执行不正确 |
+     | `$$`       | 当前进程的进程号（PID）                                      |
+     | `$!`       | 后台运行的最后一个进程的进程号                               |
+
+2. 实例
+
+   - 上一个命令执行状态 `$?`，返回 0 正确执行；非 0 命令执行错误__（每一个错误对应这一个数字）__
+
+     ```shell
+     ss@localcomputer:~$ ls
+     mbox  test  VScode  公共的  模板  视频	图片  文档  下载  音乐	桌面
+     ss@localcomputer:~$ echo $?
+     0
+     ss@localcomputer:~$ lst
+     
+     Command 'lst' not found, but there are 17 similar ones.
+     
+     ss@localcomputer:~$ echo $?
+     127
+     ```
+
+   - 打印进程号 `$$` ，和后台最后一个进程号 `$!`
+
+     1. 编写脚本
+
+        ```shell
+        #!/bin/bash
+        
+        echo $$		# 打印此进程 PID
+        
+        find /root -name mo &		# & 表示命令放入后台执行
+        echo $!			# 打印最后一个后台执行进程 PID
+        ```
+
+     2. 执行脚本
+
+        ```shell
+        root@localcomputer:/home/ss/test# ./pid.sh 
+        3306		# ./pid.sh 进程号
+        3307		# find 放入后台执行的命令
+        ```
+
+##### 接受键盘输入（类似 input）
+
+1. 介绍
+
+   - 命令 `read [选项] [变量名]`
+   - 选项
+     1. `-p 提示信息` ：在等待 `read` 输入时，输出提示信息
+     2. `-t 秒数` ：`read` 命令会一直等候用户输入，使用此选项可以指定等待时间
+     3. `-n` 字符数量：`read` 命令只接受指定的字符数，就会执行
+     4. `-s` ：隐藏输入的数据，适用于机密信息输入
+
+2. 实例 1
+
+   - 编写脚本，提示 “请输入姓名” 并等待 20 秒，把用户的输入保存入变量 name 中
+
+     ```shell
+     #!/bin/bash
+     
+     read -t 20 -p "Please input your name " name
+     echo "Name is $name"
+     ```
+
+   - 执行脚本
+
+     ```shell
+     root@localcomputer:/home/ss/test# ./input.sh 	# 执行脚本
+     Please input your name sshen		# 提示信息，并输入 sshen
+     Name is sshen			# 打印姓名
+     ```
+
 ### Bash 的运算符
+
+#### 数值运算与运算符
+
+##### 类型变量声明
+
+1. 介绍
+
+   - 在 Linux 的 Shell 中，变量的类型默认是 __字符串__
+   - 在 Linux 的 Shell 中，想要进行数值运算就需要使用特殊的 __运算符__
+
+2. `declare` 声明变量类型
+
+   - 格式 `declare [+/-] [选项] [变量名]` 
+   - 选项
+     1. `-` ：给变量设定类型属性
+     2. `+` ：取消变量的类型属性
+     3. `-i` ：将变量声明为整型（integer）
+     4. `-x` ：将变量声明为环境变量
+     5. `-p` ：显示指定变量的被声明的类型
+
+3. 实例
+
+   - `declare -p 变量名` 查看类型
+
+     ```shell
+     ss@localcomputer:~$ name="sshen"	# 设定用户变量
+     ss@localcomputer:~$ declare -p name		# 查看变量声明类型
+     declare -- name="sshen"
+     ss@localcomputer:~$ export name		# 将用户变量声明为环境
+     ss@localcomputer:~$ declare -p name		# 查看变量类型
+     declare -x name="sshen"		# -x 表示环境变量（`export` 和 `-x` 一样）
+     
+     ```
+
+##### 数值运算
+
+1. 方法一
+   - 声明变量，给变量赋值
+     1. `aa=11`
+     2. `bb=22`
+   - `declare -i cc=$aa+$bb`，声明了变量 `cc` 为整数型，可是 `aa` 、`bb` 还是字符串啊。不是特别理解。
+2. 方法二：`expr` 或 `let` 数值运算工具
+
+#### 变量测试与
+
+#### 内容替换
 
 ### 环境变量配置文件
 
