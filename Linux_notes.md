@@ -5988,7 +5988,7 @@ ss@localcomputer:~$ email="ShenDeZ@163.com"
 
 #### 环境变量得配置文件简介
 
-##### `source` 命令及
+##### `source` 命令
 
 1. 命令 `source 配置文件` 或 `. 配置文件`
    - 修改配置文件系统必须重新登录，此命令解决系统重启
@@ -5997,16 +5997,65 @@ ss@localcomputer:~$ email="ShenDeZ@163.com"
    - 环境变量配置文件中主要是定义对系统得操作环境生效得系统默认环境变量，比如 PATH（定义系统查找命令得路径）、HISTSIZE（历史命令的显示命令条数）、PS1（提示符）、HOSTNAME（主机名） 等等默认环境变量。
    - __centOS__ （Linux也一样）的环境变量配置文件体系是一个层级体系。这与其他用户应用系统配置文件类似，有全局、有局部（用户），另外不同层级有时类似继承关系。
 
+##### 5 类环境配置文件及启动过程
+
+1. 5 类配置文件__（在 `/etc/` 下的配置文件对所有用户都生效，在某个用户家目录下的配置文件对这个用户有效）__
+
+   - __`/etc/profile`__
+     1. 第一次系统启动后第一个用户登录时执行 `/etc/profile` 文件，该文件是 Shell 默认主启动文件。
+     2. bash 执行该文件时，会读取 `/etc/profile.d/` 下所有 `*.sh` 文件，通过 `.` 或者 `source` 来加载变量
+     3. bash 执行该文件时，会调用 `/etc/bashrc`（Ubuntu 下为 `/etc/bash.bashrc`） 文件来执行
+     4. `/etc/profile` 、`/etc/bash.bashrc` 和 `/etc/profile.d/*.sh` 都是全局环境变量，对所有用户有效
+     5. __`/etc/environment` 保存环境变量 PATH 的值。据说 `/etc/profile` 保存所有用户的环境变量，`/etc/environment` 保存系统的环境变量__
+
+   - `/etc/profile.d/*.sh`（为一组配置文件）
+
+     1. 全局环境变量，对所有用户有效。
+     2. 通过 `/etc/profile` 调用
+
+   - __`/etc/bashrc`（Ubuntu `/etc/` 下的文件是 `bash.bashrc`）__
+
+     - 全局环境变量，对所有用户有效
+- 通过 `/etc/profile` 调用
+     
+   - __`~/.bash_profile` (Ubuntu 用户家目录下的文件是 `.profile`)__
+  1. 家目录下的启动文件都是用户专属启动文件，定义了该用户的环境变量
+     2. bash 执行该文件，会调用 `/etc/.bashrc`
+     3. bash 会按照下列顺序，执行第一个找到的文件，余下被忽略
+        - `~/.bash_profile`
+        - `~/.bash_login`
+        - `~/.profile`
+        - 仅对此用户有效
+   
+   - __`~.bashrc`__
+
+     - 仅对此用户有效
+- 通过 `~/.profile` 调用
+   
+2. 5 类配置文件的优先级（在 Ubuntu 系统下；每一个 Linux 的发行版本都不样）
+
+   __说明：数字越大，优先级越低__
+
+   - `/etc/profile` 的优先级为 5
+   - `/etc/profile.d` 为 `/etc/profile` 调用，并继承上述配置文件，优先级为 4
+   - /etc/bash.bashrc` 为 `/etc/profile` 调用，并继承上述配置文件，优先级为 3
+   - `~/.profile` 的优先级为 2
+   - `~/.bashrc` 为 `~/.profile` 调用，并继承上述配置文件，优先级为 1
+   - 修改环境配置在以上 5 个文件都可以，只是优先级高的会覆盖掉优先级低的。
+
 ##### Shell bash 不同类别介绍
 
 1. Shell bash 不同类别介绍
+
    - 分为 login shell（登录式 shell）、non-login shell（非登录式 shell）；interactive shell（交互 shell）和 non-interactive shell（非交互式 shell）。__这两种分类相互交叉。__
      1. 交互式，登录 shell
      2. 非交互式，登录 shell
      3. 交互式，非登录 shell
      4. 非交互式，非登录 shell
    - __注意：只要记住什么是 login shell、non-login shell 和 non-interactive 非登录式 shell__
+
 2. 介绍 3 种
+
    - 什么是 login shell
      1. 使用 bash 时需要完整的登录流程。就是说通过输入账号和密码登录系统，此时取得的 shell 称为 login shell。例如 `ssh` 登录或者 `su - root` 切换 root 用户都会启动 login shell
      2. 在 shell bash下使用 `--login` 选项调用 bash（前一个 shell bash 的子进程 `bash --login`），可以获得一个交互式 login shell。
@@ -6019,82 +6068,97 @@ ss@localcomputer:~$ email="ShenDeZ@163.com"
    - 什么是非交互，非登录式 shell
      - 执行脚本
 
-2. 不同 shell bash 的启动过程
+3. 不同 shell bash 的启动过程
 
-- login shell（登录式 Shell）
-  1. 使用 bash 时需要完整的登录流程。就是说通过输入账号和密码登录系统，此时取得的shell称为login shell。例如 `ssh` 登录或者 `su - root` 切换 root 用户都会启动 `login shell`
-- non-login shell（非登录式 Shell）
-  1. 非登录 Shell 不会执行任何 `profile` 文件
-  2. 交互式 Shell，等待用户输入命令
-  3. 非交互式 Shell，只运行家脚本，且不执行任何 `bashrc` 文件
+   - __不同的 shell bash 启动时会读取不同的配置文件，从而导致环境变量不一样。__
+     1. 实际上，在 Ubuntu 系统中 `/etc/profile` 配置文件会调用 `/etc/profile.d/*.sh` 和 `/etc/bash.bashrc` 配置文件；`~/.profile` 配置文件会调用 `.bashrc` 配置文件。
+     2. 在 `/etc` 下的环境配置文件，如同全局变量；在 `~/.` 下的配置文件，如同局部变量，__局部变量优先级大于全局变量__。
 
-##### 5 类配置文件及启动过程
+   - login shell 
+     1. shell bash 启动时首先读取 `/etc/profile` 全局配置，然后查找（`~/.bash_profile` 、`~/.bash_login`、`~/.profile`）3 个文件任何一个配置文件（找到一个即可），login shell 退出时读取 `~/.bash_logout`。
 
-1. 5 类配置文件__（在 `/etc/` 下的配置文件对所有用户都生效，在某个用户家目录下的配置文件对这个用户有效）__
+   - non-login shell
+     1. non-login shell 启动时读取 `~/.bashrc` 配置文件
+     2. 不会读取任何 `profile` 文件
+   - 非交互，non-login shell
+     1. 非交互式，non-login shell 不会读取 上述 5 类配置文件，而是查找环境变量 BASH_ENV。
 
-   - __`/etc/profile`__
-     1. 系统启动后第一个用户登录时执行 `/etc/profile` 文件，该文件是 Shell 默认主启动文件。
-     2. bash 执行该文件时，会读取 `/etc/profile.d/` 下所有 `*.sh` 文件，通过 `.` 或者 `source` 来加载变量
-     3. bash 执行该文件是，会调用 `/etc/bashrc`（Ubuntu 下为 `/etc/bash.bashrc`） 文件来执行
-     4. `/etc/profile` 、`/etc/bash.bashrc` 和 `/etc/profile.d/*.sh` 都是全局环境变量，对所有用户有效
-     5. __`/etc/environment` 保存环境变量 PATH 的值。据说 `/etc/profile` 保存所有用户的环境变量，`/etc/environment` 保存系统的环境变量__
+4. 测试使用何种 shell
 
-   - `/etc/profile.d/*.sh`（为一组配置文件）
+   __说明：只区分 3 种 shell（login shell、non-login shell、非交互 non-login shell）；我是用的是图形化 Ubuntu 系统（init 5）；前一个 shell 是哪种类型与后一个 shell 是哪种类型无关，至于注入的命令有关。__
 
-     1. 全局环境变量，对所有用户有效。
-     2. 通过 `/etc/profile` 调用
+   - 登录图像化 Ubunut 系统后，开启终端是 non-login shell
 
-   - __`/etc/bashrc`（Ubuntu `/etc/` 下的文件是 `bash.bashrc`）__
+   - 输入 `bash` 命令之后也是 non-login shell
 
-     - 设置全局交互式 bash shell
+   - 输入 `bash --login` 命令之后是 login shell
 
-     - 全局环境变量，对所有用户有效
-     - 通过 `/etc/profile` 调用
+   - 输入 `su - root` 命令之后是 login shell
 
-   - __`~/.bash_profile` (Ubuntu 用户家目录下的文件是 `.profile`)__
-     1. 家目录下的启动文件都是用户专属启动文件，定义了该用户的环境变量
-     2. bash 执行该文件，会调用 `/etc/.bashrc`
-     3. bash 会按照下列顺序，执行第一个找到的文件，余下被忽略
-        - `~/.bash_profile`
-        - `~/.bash_login`
-        - `~/.profile`
-        - 仅对此用户有效
+   - 输入 `su root` 命令之后是 non-login shell
 
-   - __`~.bashrc`__
+   - __可以在 `/etc/profile` 中设置环境变量，理由 login 与 non-login 的区别在此__
 
-     - 设置此用户的交互式 bash shell
+     1. 添加环境变量在 `/etc/profile` 文件中 `spro="login shell"`
 
-     - 仅对此用户有效
-     - 通过 `~/.profile` 调用
+     2. 验证是否为 login 和 non-login
 
-2. Shell 的不同，bash 如何执行启动文件
+        ```shell
+        ss@localcomputer:~$ echo $spro		# 开启 non-login shell
+        
+        ss@localcomputer:~$ su - root		# 开启 login shell
+        密码： 
+        root@localcomputer:~# echo $spro
+        login shell
+        root@localcomputer:~# bash
+        ```
 
-   - 下列描述了 bash 如何执行它的启动文件。如果这些启动文件中的任一个 __存在但是不可读取__， bash 将报告一个错误。
+#### 环境变量配置文件作用（此处记录不清楚）
 
-   - login shell（登录 shell）或指定 `--login` 选项的 shell 的非交互式
-     1. 它首先读取并执行 `/etc/profile` 中的命令，只要那个文件存在。此文件调用 `/etc/bashrc`（Ubuntu 下位 `/etc/bash.bashrc`）和 `/etc/profile.d/*.sh`
-     2. 读取那个文件之后，它以如下的顺序查找 `~/.bash_profile`, `~/.bash_login` , 和 `~/.profile` , 从存在并且可读的第一个文件中读取并执行其中的命令。此文件调用 `~/.bashrc` 文件
-     3. 当一个登录 shell 退出时， bash 读取并执行文件 `~/.bash_logout` 中的命令，只要它存在。
-   - interactive shell（交互式 shell，但不是登录式 shell）
-     1. bash 从文件 `~/.bashrc` 中读取并执行命令，只要它存在。
-   - 当 bash 以非交互的方式启动时
-     1. 另有安排，与环境变量配置文件无关
+__说明：不同的发行版本不相同，从 `/etc/profile` 自己看就可以__
 
-#### 环境变量配置文件作用
-
-1. 环境变量配置文件区分优先级
+1. 环境变量配置文件区分优先级__（Ubuntu 系统下）__
 
    - `/etc/` 配置文件，对所有用户生效，但优先级低
 
    - `~` 用户家目录的配置文件，对用户本身生效，优先级高
 
-   - 配置文件优先级 __示意图__
+   - 配置文件优先级 
 
-     ![Linux的Shell变量配置优先级](git_picture/Linux的Shell变量配置优先级.jpg)
+     1. 示意图（是 Ubuntu 图像界面操作系统；centOS 与下图不同）
 
-   - 用户登录首先读取 `/etc/profile` 配置文件，再分成两个路线，分别调用 `~` 家目录下的配置文件 __和__ `/etc/profile.d` 目录的配置文件。这些环境变量配置文件不管哪个文件写的用户登录环境变量配置，都会再用户登录时生效。
+        ![Linux的Shell变量配置优先级](git_picture/Linux的Shell变量配置优先级.jpg)
+   
+     2. shell 的登录方式主要分为两种，两种的登录启动的环境配置文件不同，造成了环境变量的不一样。实际在 Ubuntu 中 `profile` 配置文件都是调用 `bashrc` 配置文件。`bashrc` 的优先级高于 `profile` 。
+   
+   - 在 centOS 的系统中各个环境配置文件对环境变量的定义（Ubuntu 中变量作用相同，但定义的文件有所变化）
+   
+     1. `/etc/profile` 的作用
+        - 定义了哪些环境变量
+          1. USER
+          2. LOGNAME
+          3. MAIL
+          4. PATH
+          5. HOSTNAME
+          6. HISTSIZE
+          7. umask
+          8. 调用 `/etc/profile.d/*.sh`
+     2. `~/.bash_profile` 的作用
+        - 调用了 `~/.bashrc` 文件
 
 #### 其他配置文件和登录信息
+
+1. 注销时生效的环境配置变量文件 `~/.bash_logout`
+   - 有则使用，没有也没有问题，但又不能读取则报错
+   - 只有 login shell 登录 shell bash 退出登录时生效
+   - 可以在 `~/.bash_logout` 编写 
+     1. 清空历史命令
+     2. 清空环境变量等等
+2. 历史命令存放文件 `~/.bash_history`
+   - 本次登录不如写入，只会写入内存中，当注销登录时才会写入文件
+   - 不赞成清空（mysql 设置密码时，明文保存）
+3. Shell 登录信息
+   - 本地终端欢迎登录信息 `/etc/issue`
 
 
 
