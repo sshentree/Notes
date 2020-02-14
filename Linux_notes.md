@@ -5988,7 +5988,7 @@ ss@localcomputer:~$ email="ShenDeZ@163.com"
 
 #### 环境变量得配置文件简介
 
-##### `source` 命令及 Shell bash 种类
+##### `source` 命令及
 
 1. 命令 `source 配置文件` 或 `. 配置文件`
    - 修改配置文件系统必须重新登录，此命令解决系统重启
@@ -5996,13 +5996,37 @@ ss@localcomputer:~$ email="ShenDeZ@163.com"
 2. 介绍
    - 环境变量配置文件中主要是定义对系统得操作环境生效得系统默认环境变量，比如 PATH（定义系统查找命令得路径）、HISTSIZE（历史命令的显示命令条数）、PS1（提示符）、HOSTNAME（主机名） 等等默认环境变量。
    - __centOS__ （Linux也一样）的环境变量配置文件体系是一个层级体系。这与其他用户应用系统配置文件类似，有全局、有局部（用户），另外不同层级有时类似继承关系。
-3. Shell bash 不同类别介绍
-   - 登录式 Shell
-     1. 需要输入密码，例如 `ssh` 登录或者 `su - root` 切换 root 用户都会启动 `login shell`
-   - 非登录式 Shell
-     1. 非登录 Shell 不会执行任何 `profile` 文件
-     2. 交互式 Shell，等待用户输入命令
-     3. 非交互式 Shell，只运行家脚本，且不执行任何 `bashrc` 文件
+
+##### Shell bash 不同类别介绍
+
+1. Shell bash 不同类别介绍
+   - 分为 login shell（登录式 shell）、non-login shell（非登录式 shell）；interactive shell（交互 shell）和 non-interactive shell（非交互式 shell）。__这两种分类相互交叉。__
+     1. 交互式，登录 shell
+     2. 非交互式，登录 shell
+     3. 交互式，非登录 shell
+     4. 非交互式，非登录 shell
+   - __注意：只要记住什么是 login shell、non-login shell 和 non-interactive 非登录式 shell__
+2. 介绍 3 种
+   - 什么是 login shell
+     1. 使用 bash 时需要完整的登录流程。就是说通过输入账号和密码登录系统，此时取得的 shell 称为 login shell。例如 `ssh` 登录或者 `su - root` 切换 root 用户都会启动 login shell
+     2. 在 shell bash下使用 `--login` 选项调用 bash（前一个 shell bash 的子进程 `bash --login`），可以获得一个交互式 login shell。
+     3. 在脚本中使用 `--login` 选项调用 bash（shell 脚本第一行做如下指定：`#!/bin/bash --login`），此时得到一个非交互式的 login shell
+     4. 使用 `su -` 切换到指定用户时，获得此用户的 login shell。如果不使用 `-`，则获得 non-login shell。
+   - 什么是 non-login shell
+     1. 使用 bash 接口的方法不需要重复登录的举动。
+     2. 例如：以图形界面（`init 5`）登录 Linux 再启动终端机，此时这个终端机并没有需要输入账号和密码，这个bash 环境就是 non-login shell。
+     3. 在原本的 bash 再次执行 `bash`命令，同样也没有输入账号密码就进入新的bash环境（前一个bash的子进程），新的bash也是non-login shell。
+   - 什么是非交互，非登录式 shell
+     - 执行脚本
+
+2. 不同 shell bash 的启动过程
+
+- login shell（登录式 Shell）
+  1. 使用 bash 时需要完整的登录流程。就是说通过输入账号和密码登录系统，此时取得的shell称为login shell。例如 `ssh` 登录或者 `su - root` 切换 root 用户都会启动 `login shell`
+- non-login shell（非登录式 Shell）
+  1. 非登录 Shell 不会执行任何 `profile` 文件
+  2. 交互式 Shell，等待用户输入命令
+  3. 非交互式 Shell，只运行家脚本，且不执行任何 `bashrc` 文件
 
 ##### 5 类配置文件及启动过程
 
