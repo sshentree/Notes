@@ -6017,7 +6017,7 @@ ss@localcomputer:~$ email="ShenDeZ@163.com"
 
      - 全局环境变量，对所有用户有效
 - 通过 `/etc/profile` 调用
-     
+  
    - __`~/.bash_profile` (Ubuntu 用户家目录下的文件是 `.profile`)__
   1. 家目录下的启动文件都是用户专属启动文件，定义了该用户的环境变量
      2. bash 执行该文件，会调用 `/etc/.bashrc`
@@ -6026,12 +6026,12 @@ ss@localcomputer:~$ email="ShenDeZ@163.com"
         - `~/.bash_login`
         - `~/.profile`
         - 仅对此用户有效
-   
+  
    - __`~.bashrc`__
 
      - 仅对此用户有效
 - 通过 `~/.profile` 调用
-   
+  
 2. 5 类配置文件的优先级（在 Ubuntu 系统下；每一个 Linux 的发行版本都不样）
 
    __说明：数字越大，优先级越低__
@@ -6148,19 +6148,300 @@ __说明：不同的发行版本不相同，从 `/etc/profile` 自己看就可�
 
 #### 其他配置文件和登录信息
 
+##### 其他配置文件
+
 1. 注销时生效的环境配置变量文件 `~/.bash_logout`
    - 有则使用，没有也没有问题，但又不能读取则报错
    - 只有 login shell 登录 shell bash 退出登录时生效
    - 可以在 `~/.bash_logout` 编写 
      1. 清空历史命令
      2. 清空环境变量等等
+   
 2. 历史命令存放文件 `~/.bash_history`
    - 本次登录不如写入，只会写入内存中，当注销登录时才会写入文件
    - 不赞成清空（mysql 设置密码时，明文保存）
-3. Shell 登录信息
-   - 本地终端欢迎登录信息 `/etc/issue`
+   
 
+##### 登录信息
 
+1. Shell 登录信息
+
+   - 什么是终端登录提示信息，建议提示警告信息（无权用户进制登录等……），而不是欢迎信息。
+
+     1. 就是使用 shell bash（`init 3`） 登录系统前的提示信息（如下实例）
+
+        ![Linux本地登录提示信息](git_picture/Linux本地登录提示信息.png)
+
+   - 终端提示信息分为：登陆前提示信息；登陆后提示信息。
+
+   - 三种配置文件
+
+     1. `/etc/issue`
+     2. `/etc/issue.net`
+     3. `/etc/update-motd.d/` (目录)
+
+2. 本地终端登录信息 （登录前提示信息） ，配置文件 `/etc/issue` 作用
+
+   - __只对本地用户登录有效__（远程登录无效），在提示输入用户名上方的提示信息配置文件（如上图实例）
+
+   - 转移字符作用
+
+     | 转义符 | 作用                             |
+     | ------ | -------------------------------- |
+     | `\d`   | 显示当前系统日期                 |
+     | `\s`   | 显示操作系统名称                 |
+     | `\l`   | 显示登录终端号（这个比较有用）   |
+     | `\m`   | 显示硬件体系结构（如 i386\i686） |
+     | `\n`   | 显示主机名                       |
+     | `\o`   | 显示域名                         |
+     | `\r`   | 显示内核版本                     |
+     | `\t`   | 显示当前系统时间                 |
+     | `\u`   | 显示当前登录用户的序列号         |
+
+   - 查看 `/etc/issue` ，`\n` 表示 __显示主机名__；`\l` 表示 __显示登录终端号__
+
+     ```shell
+     Ubuntu 18.04.1 LTS \n \l
+     ```
+
+3. 远程终端信息（笔者这个也是登录后提示信息，有的系统是登录前信息），配置文件 `/etc/issue.net`
+
+   - __对远程登录有效__，在提示输入用户名上方的提示信息配置文件（Ubuntu 系统）
+
+     ![linux远程登录提示信息](git_picture/linux远程登录提示信息.png)
+
+   - 上一个转移字符表在 `/etc/issue.net` 文件中不能使用
+
+   - __是否显示此提示信息，由 ssh 配置文件 `/etc/ssh/ssh_config` 决定（Ubuntu 是 `/etc/ssh/shhd_config`），加入 `Banner /etc/issue.net` 行才能显示（重启 SSH 服务 `service sshd restart`）__
+
+4. 登录后信息，配置文件 `/etc/motd`（Ubuntu 是 `/etc/update-motd.d` 目录）
+
+   - 不管是本地登录，还是远程登录，都可以显示信息。此提示信息是登陆后的提示信息。
+
+   - Ubuntu 系统是 `/etc/update-motd.d` 目录下的文件对终端登录后的提示信息
+
+     ```shell
+     root@localcomputer:/etc/update-motd.d# tree
+     .
+     ├── 00-header
+     ├── 10-help-text
+     ├── 50-motd-news
+     ├── 80-esm
+     ├── 80-livepatch
+     ├── 90-updates-available
+     ├── 91-release-upgrade
+     ├── 95-hwe-eol
+     ├── 98-fsck-at-reboot
+     └── 98-reboot-required
+     ```
+
+   - 笔者对几个配置文件进行测试，查看了两个配置文件对提示信息的控制
+
+     ![linux登陆后提示信息](git_picture/linux登陆后提示信息.png)
+
+   - 对 `00-header` 文件进行修改后，登录提示信息
+
+     ![linux登录测试信息](git_picture/linux登录测试信息.png)
+
+## shell 编程
+
+### 正则表达式
+
+1. 正则表达式与通配符
+
+   - 正则表达式是用来在文件中匹配符合条件的字符串，正则是 __包含匹配__（字符串包含匹配的内容即可，如，abcd、bcde 两个字符串，匹配带有 b 字符的字符串，结果这两个字符串都是搜索结果） 。`grep` 、`awk`、 `sed` 等命令可以支持正则表达式
+   - 通配符是用来匹配符合条件的文件名，通配符是 __完全匹配__（搜索字符串，与结果一一对应）。`ls` 、`find` 、`cp` 这些命令不支持正则表达式，所以只能使用 shell 自己的通配符来进行匹配。
+
+2. 基础正则表达式
+
+   - 如表格
+
+     | 元字符    | 作用                                                         |
+     | --------- | ------------------------------------------------------------ |
+     | `*`       | 匹配前一个字符 0 次或任意多次                                |
+     | `.`       | 匹配除换行符外的任意一个字符                                 |
+     | `^`       | 匹配行首。例如：`^#start` ，则会匹配行首的 `#start` 字符串，而不是其位置的相同字符串 |
+     | `$`       | 匹配行尾。例如：`end$` ，则会匹配行尾的 `end` 字符串，而不是其他位置的相同字符串 |
+     | `[]`      | 匹配中括号中指定的任意一个字符，且只会匹配一个字符。<br> 例如：`[abcd]` 匹配其中任意一个字符；`[0-9]` 匹配任意一个数字 |
+     | `[^]`     | 匹配中括号字符意外的字符。<br> 例如：`[^0-9]` 匹配任意一个非数字的字符；`[^a-z]` 匹配非小写字母 |
+     | `\`       | 转义符，用于取消特殊符号的含义                               |
+     | `\{n\}`   | 表示其前面的字符恰好出现 n 次。<br> 例如：`[0-9]\{4,\}`  匹配一个 4 为数字 |
+     | `\{n,\}`  | 表示其前面的字符出现不小于 n 次。<br/> 例如：`[0-9]\{2,\}`  匹配一个 2 位及 2 位以上的数字 |
+     | `\{n,m\}` | 标识前面的字符至少出现 n 次，最多出现 m 次。<br> 例如：`[a-z]\{2, 4\}` 匹配 2 到 4 个字符 |
+
+3. 实例
+
+   __说明：命令 `grep` 对文件内容的搜索，返回匹配的行。__
+
+   - `*` 前一个字符匹配 0 次，或任意多次
+     1. `grep "a*" file` ：匹配所有内容，包括空白行。
+     2. `grep "aa*" file` ：匹配至少包含一个 a 的行
+     3. `grep "aaa*" file` ：匹配至少包含 2 个连续 a 的行
+   - `.` 匹配除了换行符以外的任意一个字符
+     1. `grep "s..d" file` ：会匹配在 s 和 d 这两个字符之间一定有 2 个字符的行
+     2. `grep "s.*d" file` ：匹配在 s 和 d 字符之间有任意字符
+     3. `grep ".*" file` ：匹配所有内容（所有行）
+   - `^` 匹配行首，`$` 匹配行尾
+     1. `grep "^M" file` ：匹配以大写 M 开头的行
+     2. `grep "n$" file` ：匹配以小写 n 结尾的行
+     3. `grep -n "^$" file` ：匹配空白行
+   - `[]` 匹配中括号中指定的任意一个字符（只匹配一个字符）
+     1. `grep "s[ao]id" file` ：匹配 said 或 soid 这两个字符串的行
+     2. `grep "[0-9]" file` ：匹配含有一个数字的行
+     3. `grep "^[a-z]"` ：匹配以小写字母开头的行
+   - `[^]` 匹配除中括号以外的字符
+     1. `grep "^[^a-z]" file` ：匹配不用小写字母开头的行
+     2. `grep "^[^a-zA-Z] file"` ：匹配不是字母开头的行
+   - `\` 转义符
+     1. `grep "\.$" file` ：匹配使用 . 结尾的行
+   - `\{n\}` 表示前面的数字正好出现 n 次
+     1. `grep "a\{3\}" file` ：匹配 a 字符连续出现 3 次的行
+     2. `grep "[0-9]\{3\}"` ：匹配包含连续出现 3 个数字的行
+   - `\{n,m\}` 匹配其前面字符至少出现 n 次，最多出现 m 次
+     1. `grep "sa\{1,2\}b" file` ：匹配在 s 和 i 字符之间 a 至少出现 1 次，最多出现 2 次。如出现 sab 或 saab 这两个字符。
+
+###   字符截取命令
+
+#### cut 字段提取命令
+
+__说明：命令 `cut` 提取的是列，而命令 `grep` 提取的是行__
+
+1. 命令格式 
+
+   - `cut [选项] 文件名` ，一列作为分割对象，默认以 __制表符__ 作为分隔符，当然使用选项 `-d` 也可以自己指定分隔符。
+   - 选项
+     1. `-f` 列号：提取第几列
+     2. `-d` 分隔符：按照指定分隔符分割列
+
+2. 作用
+
+   - 命令 `cut` 和 命令 `grep` 结合才能达到效果。一个对行一个对列。
+
+   - 对 `/etc/passwd` 进行搜索，搜索 包含 `/bin/bash` 字符串行（含有 `bin/bash` 是可以登录的字段）
+
+     1. 命令 `cat passwd | grep /bin/bash`
+
+        ```shell
+        root@localcomputer:/etc# cat passwd | grep /bin/bash
+        root:x:0:0:root:/root:/bin/bash
+        ss:x:1000:1000:ss,,,:/home/ss:/bin/bash
+        ```
+
+   - 在对上述结果剔除 root 用户
+
+     1. 命令 `cat passwd | grep /bin/bash | grep -v root`
+
+        ```shell
+        root@localcomputer:/etc# cat passwd | grep /bin/bash | grep -v root
+        ss:x:1000:1000:ss,,,:/home/ss:/bin/bash
+        ```
+
+   - 对上述结果提取用户名，最终达到筛选出除了 root 用户之外的可以正常登录的用户
+
+     1. 命令 `cat passwd | grep /bin/bash | grep -v root | cut -d ":" -f 1`
+
+        ```shell
+        root@localcomputer:/etc# cat passwd | grep /bin/bash | grep -v root | cut -d ":" -f 1
+        ss
+        ```
+
+3. `cut` 命令的局限性
+
+   - `cut` 命令默认分割符 __制表符__，也可以使用 `-d` 指定分隔符，但是注意指定分割符后 `cut` 会严格按照指定的分割符分割列。
+
+   - 对 `df -h` 命令输出的结果进行筛选，`df -h | grep /dev/sda5`
+
+     1. 命令 `df -h` 输出分区信息（这里的空格不是制表符，是空格键）
+
+        ```shell
+        文件系统        容量  已用  可用 已用% 挂载点
+        udev            957M     0  957M    0% /dev
+        tmpfs           198M  1.8M  196M    1% /run
+        /dev/sda5        12G  5.6G  5.3G   52% /
+        tmpfs           986M     0  986M    0% /dev/shm
+        tmpfs           5.0M  4.0K  5.0M    1% /run/lock
+        ```
+
+     2. 筛选设备文件名为 `/dev/sda5` 的分区，命令 `df -h | grep /dev/sda5`
+
+        ```shell
+        root@localcomputer:/etc# df -h | grep /dev/sda5
+        /dev/sda5        12G  5.6G  5.3G   52% /
+        ```
+
+     
+
+   - 在使用 `cut` 命令进行提取，但是可以看出 `df -h` __输出的结果列的间隔不一致__，命令 `cut` 无法很好的分割
+
+     1. 使用 `cut -d " " -f 6` 命令，对 `df -h | grep /dev/sad5` 输出结果再次筛选（输出的是空格，因为 `cut` 是以一个空格分割的，但实际上 `/dev/sda5        12G  5.6G  5.3G   52% /` 每一个间隙是不一致的）
+
+        ```shell
+        root@localcomputer:/etc# df -h | grep /dev/sda5 | cut -d " " -f 6
+        
+        root@localcomputer:/etc# 
+        ```
+
+4. 实例
+
+   - 使用 `-f` 选项，提取列信息
+
+     1. 创建一个文件（文件格式类似表格形式，空格是 tab 键）
+
+        ```shell
+        ss@localcomputer:~/test$ cat grade 	# 构成如表格
+        ID	name	grade
+        1	tom		78
+        2	jack	89
+        ```
+
+     2. 命令 `cut -f 1 grade` 查看第一列；命令 `cut -f 1,3 grade` 查看 1 列和 3 列
+
+        ```shell
+        ss@localcomputer:~/test$ cut -f 1 grade
+        ID
+        1
+        2
+        ss@localcomputer:~/test$ cut -f 1,3 grade
+        ID	grade
+        1	78
+        2	89
+        ```
+
+   - 使用 `-d` 指定分割符。提取 `/etc/passwd` 文件
+
+     1. `/etc/passwd` 文件样式，是以 `:`  分割字符的
+
+        ```shell
+        root:x:0:0:root:/root:/bin/bash
+        daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+        bin:x:2:2:bin:/bin:/usr/sbin/nologin
+        sys:x:3:3:sys:/dev:/usr/sbin/nologin
+        sync:x:4:65534:sync:/bin:/bin/sync
+        ```
+
+     2. 使用 `-d` 指定分割符，命令 `cut -d ":" -f 1,7 /etc/passwd` 提取第一列和第二列。
+
+        ```shell
+        root@localcomputer:/etc# cut -d ":" -f 1,7 /etc/passwd
+        root:/bin/bash
+        daemon:/usr/sbin/nologin
+        bin:/usr/sbin/nologin
+        sys:/usr/sbin/nologin
+        sync:/bin/sync
+        games:/usr/sbin/nologin
+        ```
+
+#### printf 命令
+
+#### awk 命令
+
+#### scd 命令
+
+### 字符处理命令
+
+### 条件判断
+
+### 流程控制
 
 
 
