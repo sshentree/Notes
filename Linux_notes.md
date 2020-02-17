@@ -6369,18 +6369,16 @@ __说明：命令 `cut` 提取的是列，而命令 `grep` 提取的是行__
         /dev/sda5        12G  5.6G  5.3G   52% /
         ```
 
-     
-
    - 在使用 `cut` 命令进行提取，但是可以看出 `df -h` __输出的结果列的间隔不一致__，命令 `cut` 无法很好的分割
 
      1. 使用 `cut -d " " -f 6` 命令，对 `df -h | grep /dev/sad5` 输出结果再次筛选（输出的是空格，因为 `cut` 是以一个空格分割的，但实际上 `/dev/sda5        12G  5.6G  5.3G   52% /` 每一个间隙是不一致的）
 
         ```shell
-        root@localcomputer:/etc# df -h | grep /dev/sda5 | cut -d " " -f 6
+     root@localcomputer:/etc# df -h | grep /dev/sda5 | cut -d " " -f 6
         
         root@localcomputer:/etc# 
         ```
-
+   
 4. 实例
 
    - 使用 `-f` 选项，提取列信息
@@ -6433,9 +6431,247 @@ __说明：命令 `cut` 提取的是列，而命令 `grep` 提取的是行__
 
 #### printf 命令
 
+__说明：参看 c 语言的 printf 用法__
+
+1. 介绍
+
+   - `printf` 为格式化输出命令
+   - 命令 `printf '输出类型输出格式' 输出内容` 
+   - 输出类型
+     1. '%ns' ：输出字符串。n 是数字代之输出几个字符串
+     2. `%ni` ：输出整数。n 是数字代之输出几个数字
+     3. `%m.nf` ：输出浮点数。m 和 n 是数字代之输出数字的位数。`%4.2f` 表示输出 4 位数，其中 2 位为小数位。 
+   - 输出格式
+     1. `\a` ：输出警告音
+     2. `\b` ：输出退格键，backspace 键
+     3. `\f` ：清除屏幕
+     4. `\n` ：换行
+     5. `\r` ：回车，enter 键
+     6. `\t` ：水平输出退格键，tab 键
+     7. `\v` ：垂直输出退格键，tab 键
+   - __注意__
+     1. 命令 `printf` 不能与管道符连用
+     2. 命令 `printf` 不能接文件名，会把文件名当成要输出的字符串
+
+2. 实例
+
+   __说明：参照 c printf__
+
+   - 打印单个字符串
+
+     1. 命令 `printf '%s\n' "hello world"` ，输出内容使用 `""` 括起来，代表一个字符串
+
+        ```shell
+        ss@localcomputer:~$ printf '%s\n' "hello world"
+        hello world
+        ss@localcomputer:~$ 
+        ```
+
+     2. 命令 `printf '%s\n' hello world` ，输出格式只有一个 `%s` ，所以值对应了 hello ，然后换行，在输出 world
+
+        ```shell
+        ss@localcomputer:~$ printf '%s\n' hello world
+        hello
+        world
+        ss@localcomputer:~$ 
+        ```
+
+   - 打印多个字符串
+
+     1. 命令 `printf '%s %s %s\n' welcome to china !` ，以空格作为分割打印 3 个字符串，然后换行，！没有对应格式
+
+        ```shell
+        ss@localcomputer:~$ printf '%s %s %s\n' welcome to china !
+        welcome to china
+        !  
+        ss@localcomputer:~$ 
+        ```
+
+   - 输出文件内容
+
+     1. 文件内容
+
+        ```shell
+        ss@localcomputer:~/test$ cat grade 
+        ID	name	grade
+        1	tom	78
+        2	jack	89
+        ```
+
+     2. 命令 `printf '%s' $(cat 文件名)`
+
+        ```shell
+        ss@localcomputer:~/test$ printf '%s' $(cat grade)
+        IDnamegrade1tom782jack89ss@localcomputer:~/test$ 
+        ```
+
+     3. 命令 `printf '%s\n' $(cat 文件名)`，这也证实了 `$(cat grade)` 变量不是一个整体
+
+        ```shell
+        ss@localcomputer:~/test$ printf '%s\n' $(cat grade)
+        ID
+        name
+        grade
+        1
+        tom
+        78
+        2
+        jack
+        89
+        ss@localcomputer:~/test$
+        ```
+
+     4. 命令 `printf "$(cat 文件名)\n"`
+
+        ```shell
+        ss@localcomputer:~/test$ printf  "$(cat grade)\n"
+        ID	name	grade
+        1	tom		78
+        2	jack	89
+        ```
+
 #### awk 命令
 
+1. 介绍
+
+   - 命令 `awk` 和 `cut` 一样都是对列进行筛选，而命令 `grep` 是对行进行筛选，但是命令 `cut` 有一些局限性（会严格遵循分割符分割列，如同 `df -h` 的信息使用 `cut` 就不能很好的筛选出来）
+   - 命令 `awk` 包含 `cut` 的使用技巧，但是相对更加复杂，如果内容格式相对整齐，可以考虑使用 `cut` ，因为其方便简洁。
+   - 默认是 __制表符 或 空格（无论几个空格连用）作为分隔符__
+
+2. 命令格式
+
+   - `awk '条件1{动作1} 条件2{动作2} 条件3{动作3}……' 文件名`
+   - 条件（Pattern）
+     1. __一般使用关系表达式作为条件__
+     2. `x>10` ：判断变量是否大于 10
+     3. `x<=10` ：判断变量是否小于等于 10
+     4. `cat file | grep -v ID | awk '$2>=78{print $2}'` ，文件 file 中去掉含有 name 的行（一般是标题行），`awk` 命令中，比较 file 文件中第二行数据大于 78 的，大于输出屏幕上。
+   - 动作（Action）
+     1. 格式化输出
+     2. 流程控制语句
+   - BEGIN
+     1. 输出一个多余的动作，在输出匹配内容之前输出 BEGIN 的内容
+     2. 命令 `awk` 实际上是按行读入数据的，先读入一行数据，在进行判断及匹配，而 BEGIN 在读入第一行数据之前完成，所以下面的指定分割符要与 BEGIN 连用。
+     3. `awk 'BEGIN{print "The is first worlds"} {print $1"\t"$3}' 文件名`
+   - FS 内置变量（指定分割符，与 BEGIN 连用）
+     1. 在匹配时指定分割符，与 BEGIN 连用，才能把第一行也正常匹配。
+     2. `awk 'BEGIN{FS=":"} {print $1"\t"$3}' 文件名`
+   - END
+     1. 与 BEGIN 作用相同，在所有数据匹配完成，输出结束语。
+     2. `awk 'END{print "end end end"} {print $1"\t"$3}' 文件名`
+   - __注意__
+     1. 虽然 `awk` 是列提取命令，但是其读入数据时，是按行读取的，下面实例中可以感觉出来
+     2. `$0` 代表一整行、`$1` 代表第一列……
+     3. 格式化输出命令 `printf` 或 `print`
+     4. `awk` 支持 `printf` (不能自动换行，换行使用 `\n`) 和 `print`（可以自动换行）。`printf '\n'` 等价于 `print`
+
+3. 实例
+
+   - 编辑文件（制表符 tab 键）
+
+     ```shell
+     ss@localcomputer:~/test$ cat grade 
+     ID	name	grade
+     1	tom		78
+     2	jack	89
+     ```
+
+   - 对文件进行列提取
+
+     1. 命令 `awk '{printf $1"\t"$3"\n"}' 文件名` ，`$n` 表示第几列
+
+        ```shell
+        ss@localcomputer:~/test$ awk '{printf $1"\t"$3"\n"}' grade 
+        ID	grade
+        1	78
+        2	89
+        ```
+
+     2. 使用 `BEGIN` ，命令 `awk 'BEGIN{print "these are id and grades"} {print $1"\t"$3}' grade `
+
+        ```shell
+        ss@localcomputer:~/test$ awk 'BEGIN{print "these are id and grades"} {print $1"\t"$3}' grade 
+        these are id and grades			# 先输出指定字符串
+        ID	grade
+        1	78
+        2	89
+        ss@localcomputer:~/test$ 
+        ```
+
+   - 指定分割符，使用 `/etc/passwd` 文件
+
+     1. 搜索含有 `/bin/bash` 的行，`cat /etc/passwd | grep /bin/bash`
+
+        ```shell
+        ss@localcomputer:~/test$ cat /etc/passwd | grep /bin/bash
+        root:x:0:0:root:/root:/bin/bash
+        ss:x:1000:1000:ss,,,:/home/ss:/bin/bash
+        ```
+
+     2. 以 `:` 作为分割符，提取第 1 列和第 6 列，`cat /etc/passwd | grep /bin/bash | awk 'BEGIN{FS=":"} {print $1"\t"$6}'`。__如果不写 BEGIN ，则文件内容第一行将不会处理。__
+
+        ```shell
+        ss@localcomputer:~/test$ cat /etc/passwd | grep /bin/bash | awk 'BEGIN{FS=":"} {print $1"\t"$6}'
+        root	/root
+        ss	/home/ss
+        
+        ```
+
+   - 可以和管道符一起使用
+
+     1. 命令 `df -h | awk '{printf $1"\t"$3"\t"$4"\n"}'` ，__可以进行提取但是输出的格式有些不规整__
+
+        ```shell
+        文件系统	已用	可用
+        udev	0	957M
+        tmpfs	1.8M	196M
+        /dev/sda5	5.6G	5.3G
+        tmpfs	0	986M
+        tmpfs	4.0K	5.0M
+        tmpfs	0	986M
+        
+        ```
+
+   - 与 `grep` 和 `cut` 连用，命令 `df -h | grep /dev/sda5 | awk '{print $5}' | cut -d "%" -f 1`
+
+     1. 命令 `df -h` ，各个分区使用情况
+
+        ```shell
+        ss@localcomputer:~/test$ df -h
+        文件系统        容量  已用  可用 已用% 挂载点
+        udev            957M     0  957M    0% /dev
+        tmpfs           198M  1.8M  196M    1% /run
+        /dev/sda5        12G  5.6G  5.3G   52% /
+        tmpfs           986M     0  986M    0% /dev/shm
+        tmpfs           5.0M  4.0K  5.0M    1% /run/lock
+        ```
+
+     2. 命令 `df -h | grep /dev/sda5` ，提取含有 /dev/sda 的行（就是设备文件名为 /dev/sda5）的分区信息
+
+        ```shell
+        ss@localcomputer:~/test$ df -h | grep /dev/sda5 
+        /dev/sda5        12G  5.6G  5.3G   52% /
+        ```
+
+     3. 命令 `df -f | grep /dev/sda5 | awk '{print $5}'` ，提取 __已用%__ 这一列
+
+        ```shell
+        ss@localcomputer:~/test$ df -h | grep /dev/sda5 | awk '{print $5}'
+        52%
+        ```
+
+     4. 命令 `df -h | grep /dev/sda5 | awk '{print $5}' | cut -d "%" -f 1` ，第 5 列有 % 号，去掉 % 号
+
+        ```shell
+        ss@localcomputer:~/test$ df -h | grep /dev/sda5 | awk '{print $5}' | cut -d "%" -f 1
+        52
+        ```
+
 #### scd 命令
+
+1. 介绍
+   - `sed` 是一种几乎包括所有 UNIX 平台（包括 Linux） 的轻量级流编辑器。主要是用来将数据进行筛选、替换、删除、新增的命令。
+   - sed 几乎就是一个编辑器（vim 只能对文件进行编辑），但 sed 可以对文件和管道符（流编辑）连用，对命令的结果再进行筛选，修改……。
 
 ### 字符处理命令
 
