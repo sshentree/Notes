@@ -6667,11 +6667,165 @@ __说明：参看 c 语言的 printf 用法__
         52
         ```
 
-#### scd 命令
+#### sed 命令
 
 1. 介绍
    - `sed` 是一种几乎包括所有 UNIX 平台（包括 Linux） 的轻量级流编辑器。主要是用来将数据进行筛选、替换、删除、新增的命令。
    - sed 几乎就是一个编辑器（vim 只能对文件进行编辑），但 sed 可以对文件和管道符（流编辑）连用，对命令的结果再进行筛选，修改……。
+   - 命令 `sed` 一般是与管道符 `|` 连用，不直接修改文件内容（容易出错）
+   
+2. 命令格式
+
+   - `sed [选项] '[动作]' 文件名`
+
+   - 选项
+
+     1. `-n` ：一般 sed 命令会把所有数据都输出到屏幕上，如果加入此选项，则会把经过 sed 命令处理的行输出到屏幕上
+     2. `-e` ：允许对输入数据应用多条 `sed` 命令编辑
+     3. `-i` ：用 `sed` 的修改结果直接修改读取数据的文件（源文件会随之改变），而不是由屏幕输出
+
+   - 动作
+
+     | 符号 | 作用                                                         |
+     | ---- | ------------------------------------------------------------ |
+     | `a\` | 追加，在当前行后添加一行或多行。添加多行时，除最后一行外，每一行末尾都需要使用 `\` 表示数据未完结。 |
+     | `c\` | 行替换，用 c 后面的字符串替换源数据行，替换多行时，除最后一行外，每一行末尾都需要使用 `\` 表示数据未完结。 |
+     | `i\` | 插入，在当前行前插入一行或多行。出入数据时，除最后一行外，每一行末尾都需要使用 `\` 表示数据未完结。 |
+     | `d:` | 删除，删除指定的行。                                         |
+     | `p:` | 打印，输出指定的行。                                         |
+     | `s:` | 字符串替换，用一个字符串替换另一个字符串。<br> 格式为 `行的范围s/旧字符串/新字符串/g` （与 vim 相似，表示 `%` 全部行） |
+
+3. 实例
+
+   - 编写测试文件（空格是 __制表符__ tab 键）
+
+     ```shell
+     ss@localcomputer:~/test$ cat grade 
+     ID	name	grade
+     1	tom		78
+     2	jack	89
+     3	marry	100
+     4	kacy	67
+     ```
+
+   - 测试动作 `d` 删除指定行
+
+     1. 命令 `sed '2,4d' grade` ，删除第二行 __到__第四行数据，但不修改文件本身。是不是用 `""` 、`''` 都可以
+
+        ```shell 
+        ss@localcomputer:~/test$ sed '2,4d' grade 
+        ID	name	grade
+        4	kacy	67
+        # "" \ '' 都可以使用
+        ss@localcomputer:~/test$ sed 2,4d grade 
+        ID	name	grade
+        4	kacy	67
+        ss@localcomputer:~/test$ sed '2,4d' "grade"
+        ID	name	grade
+        4	kacy	67
+        ss@localcomputer:~/test$ sed "2,4d" "grade"
+        ID	name	grade
+        4	kacy	67
+        
+        ```
+
+   - 测试动作 `p` 打印指定行（一般与选项 `-n` 连用）
+
+     1. 命令 `sed -n '2p' grade` ，打印指定行，选项 `-n` 只打印指定行
+
+        ```shell
+        ss@localcomputer:~/test$ sed -n "2p" "grade"
+        1	tom	78
+        ```
+
+     2. 命令 `sed '2p' grade` ，第 2 行打印了两遍，在没有 `-n` 的选项
+
+        ```shell
+        ss@localcomputer:~/test$ sed "2p" "grade"
+        ID	name	grade
+        1	tom		78
+        1	tom		78
+        2	jack	89
+        3	marry	100
+        4	kacy	67
+        ```
+
+     3. __命令 `df -h sed -n '2p' grade` ，`sed` 与管道符连用__
+
+        ```shell
+        ss@localcomputer:~/test$ df -h | sed -n '4p'
+        /dev/sda5        12G  5.6G  5.3G   52% /
+        ```
+
+   - 测试动作 `a` 在当前行后追加字符串；动作 `i` 在当前行前插入字符串
+
+     1. 命令 `sed '2a default' grade` ，在第 2 行后追加 default
+
+        ```shell
+        ss@localcomputer:~/test$ sed '2a default' grade
+        ID	name	grade
+        1	tom	78
+        default			# 追加的数据
+        2	jack	89
+        3	marry	100
+        4	kacy	67
+        ```
+
+     2. 命令 `sed '2i one \`
+
+        tow`' grade` ，在第 2 行前插入两行数据（`\` enter 表示此行命令没有输完，下行接着说）
+
+        ```shell
+        ss@localcomputer:~/test$ sed '2i one \
+        > two' grade
+        ID	name	grade
+        one 				# 插入的两行数据
+        two					# 插入的两行数据
+        1	tom	78
+        2	jack	89
+        3	marry	100
+        4	kacy	67
+        ss@localcomputer:~/test$
+        ```
+
+   - 测试动作 `c` 数据整行替换；测试动作 `s` 字符串替换
+
+     1. 命令 `sed '2c Nothing' grade` ，替换第 2 行整行数据
+
+        ```shell
+        ss@localcomputer:~/test$ sed '2c Nothing' grade
+        ID	name	grade
+        Nothing				# 第 2 行数据替换
+        2	jack	89
+        3	marry	100
+        4	kacy	67
+        ```
+
+     2. 命令 `sed '3s/89/99/g' grade` ，替换第 3 行中 89 替换成 99 数据
+
+        ```shell
+        ss@localcomputer:~/test$ sed '3s/89/99/g' grade
+        ID	name	grade
+        1	tom		78
+        2	jack	99		# 将 89 替换成 99
+        3	marry	100
+        4	kacy	67
+        ```
+
+   - 测试动作 `s` 与选项 `-i` 和 `-e` 连用
+
+     1. 命令 `sed -i '3s/89/99/g' grade` ，操作的数据直接写入文件（屏幕不会输出）
+
+     2. 命令 `sed -e '2s/78//g';'3/89//g' grade` ，同时把 2 行 、3 行的分数置空
+
+        ```shell
+        ss@localcomputer:~/test$ sed -e '2s/78//g;3s/89//g' grade
+        ID	name	grade
+        1	tom				# 置空
+        2	jack	
+        3	marry	100
+        4	kacy	67
+        ```
 
 ### 字符处理命令
 
