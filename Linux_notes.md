@@ -6829,11 +6829,514 @@ __说明：参看 c 语言的 printf 用法__
 
 ### 字符处理命令
 
+##### 排序命令 sort
+
+1. 排序命令 sort 介绍
+
+   - 格式 `sort [选项] 文件名`
+   - 选项（一般情况不怎么使用）
+     1. `-f` ：忽略大小写
+     2. `-n` ：以数值型进行排序，默认使用字符串型排序
+     3. `-r` ：反向排序
+     4. `-t` ：指定分割符，默认分割符为制表符
+     5. `-k n[,m]` ：按照指定的字段范围排序。从第 n 字段开始，m 结束字段（默认到行尾）
+   - 注意
+     1. 排序的是文件内容，以行信息为排序单位，默认使用行首字符进行排序
+     2. 可以与管道符连用
+     3. 默认使用字母顺序进行排序（abcd）
+
+2. 实例
+
+   - 排序用户信息文件 `/etc/passwd`
+
+     1. 命令 `sort /etc/passwd` ，会按照字母顺序进行排序
+
+        ```shell
+        root@localcomputer:~# sort /etc/passwd
+        _apt:x:104:65534::/nonexistent:/usr/sbin/nologin
+        avahi-autoipd:x:106:112:Avahi autoip daemon,,,:/var/lib/avahi-autoipd:/usr/sbin/nologin
+        avahi:x:116:122:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/usr/sbin/nologin
+        backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+        bin:x:2:2:bin:/bin:/usr/sbin/nologin
+        ```
+
+   - 反向排序，使用选项 `-r`
+
+     1. 命令 `sort -r /etc/passwd`
+
+   - 指定分割符，指定字段进行排序
+
+     1. 命令 `sort -t ":" -k 3,3 /etc/passwd` ，指定 `:` 为分隔符，使用选项 `-k` 指定使用 `:` 分割的字段（`3,3` 意思只是用第 3 个字段进行排序）。用户文件 `/etc/passwd` 使用 `:` 分割的第三个字段为 __用户的 UID__
+
+        ```shell
+        root@localcomputer:~# sort -t ":" -k 3,3 /etc/passwd
+        root:x:0:0:root:/root:/bin/bash
+        daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+        uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+        systemd-network:x:100:102:systemd Network Management,,,:/run/systemd/netif:/usr/sbin/nologin
+        ss:x:1000:1000:ss,,,:/home/ss:/bin/bash
+        systemd-resolve:x:101:103:systemd Resolver,,,:/run/systemd/resolve:/usr/sbin/nologin
+        syslog:x:102:106::/home/syslog:/usr/sbin/nologin
+        ```
+
+        __可以看出排序结果不没有按照我们之前的想法进行排序，UID=102 竟然排在 UID=1000 的后面，原因为并没有把 UID 当成数字来进行排序，而还是当作字段（使用第一个字符排序）__
+
+     2. 为指定排序字段使用数字进行排序，使用 `-n` ，解决了数字较大排序在数字较小前面
+
+        ```shell
+        root@localcomputer:~# sort -n -t ":" -k 3,3 /etc/passwd
+        root:x:0:0:root:/root:/bin/bash
+        daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+        bin:x:2:2:bin:/bin:/usr/sbin/nologin
+        sys:x:3:3:sys:/dev:/usr/sbin/nologin
+        sync:x:4:65534:sync:/bin:/bin/sync
+        games:x:5:60:games:/usr/games:/usr/sbin/nologin
+        man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+        lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+        mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+        news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+        uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+        ```
+
+##### 统计命令 wc
+
+1. 统计命令 wc 介绍（word count）
+
+   - 格式 `wc [选项] 文件名`
+   - 选项
+     1. `-l` ：只统计行数
+     2. `-w` ：只统计单词数
+     3. `-m` ：只统计字符数
+   - 注意
+     1. 可以与管道符连用
+
+2. 实例
+
+   - 统计 `/etc/passwd` 文件
+
+     1. 命令 `wc /etc/passwd` ，显示所有统计内容
+
+        ```shel
+        root@localcomputer:~# wc /etc/passwd
+          43   71 2497 /etc/passwd
+          行数  单词 字符
+        ```
+
+     2. 指定统计内容 `wc -l /etc/passwd` 统计行数
+
+        ```shell
+        root@localcomputer:~# wc -l /etc/passwd
+        43 /etc/passwd
+        ```
+
+   - 与管道符连用
+
+     1. `df -h | wc -l`
+
+        ```shell
+        root@localcomputer:~# df -h | wc -l
+        28
+        ```
+
 ### 条件判断
+
+#### 按照文件类型判断
+
+1. 按照文件类型进行判断
+
+   - 如表格（加粗为常用选项）
+
+     | 测试选项      | 作用                                                         |
+     | ------------- | ------------------------------------------------------------ |
+     | `-b file`     | 判断该文件是否存在，并且判断是否为 __块设备文件__（是块设备文件为真） |
+     | `-c file`     | 判断该文件是否存在，并且判断是否为 __字符设备文件__（是字符设备文件为真） |
+     | __`-d file`__ | 判断该文件是否存在，并且判断是否为 __目录文件__（是目录文件为真） |
+     | __`-e file`__ | 判断该文件是否 __存在__（存在为真）                          |
+     | __`-f file`__ | 判断该文件是否存在，并且判断是否为 __普通文件__（是普通文件为真） |
+     | `-L file`     | 判断该文件是否存在，并且判断是否为 __符号链接文件__（是符号链接文件为真） |
+     | `-p file`     | 判断该文件是否存在，并且判断是否为 __管道文件__（是管道文件为真） |
+     | `-s file`     | 判断该文件是否存在，并且判断是否为 __非空__（非空为真）      |
+     | `-S file`     | 判断该文件是否存在，并且判断是否为 __套接字文件__（是套接字文件为真） |
+
+2. 两种判断格式
+
+   - 命令 `test -e /root` 判断文件是否存在（`echo $?` 显示上一条命令是否正确执行）
+
+     ```shell
+     root@localcomputer:~# test -e test/
+     root@localcomputer:~# echo $?		# 0 表示正确
+     0
+     root@localcomputer:~# test -e t
+     root@localcomputer:~# echo $?		# 1 表示错误
+     1
+     ```
+
+   - 命令 `[ -e /root ]` 判断文件是否存在（注意中括号与内容之间有空格），__习惯使用此种方法__
+
+     ```shell
+     root@localcomputer:~# [ -e ./test/ ]
+     root@localcomputer:~# echo $?
+     0
+     root@localcomputer:~# [ -e ./tes ]
+     root@localcomputer:~# echo $?
+     1
+     root@localcomputer:~# 
+     ```
+
+3. 方便书写（不适用 `echo $?`）
+
+   - 命令 `[ -d /root ] && echo "yes" || echo "no"` ，正确直接打印 yes，反之打印 no
+
+     ```shell 
+     root@localcomputer:~# [ -d /root ] && echo "yes" || echo "no"
+     yes
+     root@localcomputer:~# [ -f /root ] && echo "yes" || echo "no"
+     no					# 文件存在但不是普通文件（目录）打印 no
+     root@localcomputer:~# 
+     ```
+
+#### 按照文件权限判断
+
+1. 按照文件权限判断
+
+   - 如表格（加粗为常用）
+
+     | 测试选项      | 作用                                                         |
+     | ------------- | ------------------------------------------------------------ |
+     | __`-r file`__ | 判断该文件是否存在，并且判断是否为拥有读权限（有读权限为真） |
+     | __`-w file`__ | 判断该文件是否存在，并且判断是否为拥有写权限（有写权限为真） |
+     | __`-x file`__ | 判断该文件是否存在，并且判断是否为拥有执行权限（有执行权限为真） |
+     | `-u file`     | 判断该文件是否存在，并且判断是否为拥有 SUID 权限（有 SUID 权限为真） |
+     | `-g file`     | 判断该文件是否存在，并且判断是否为拥有 SGID 权限（有 SGID 权限为真） |
+     | `-k file`     | 判断该文件是否存在，并且判断是否为拥有 SBit 权限（有 SBit 权限为真） |
+
+   - __此命令对文件的权限判断不会区分是哪个用户拥有某种权限，而是只要有某种权限就返回真__
+
+2. 实例
+
+   - 命令 `[ -r ./mbox ] && echo "yes" || echo "no"` 
+
+     ```shell
+     ss@localcomputer:~$ ls -ld mbox 
+     -rw------- 1 ss ss 976 12月 28 22:33 mbox
+     ss@localcomputer:~$ [ -r ./mbox ] && echo "yes" || echo "no"
+     yes
+     ```
+
+#### 两文件之间进行比较
+
+1. 两文件之间进行比较
+
+   - 如表格
+
+     | 测试选项                     | 作用                                                         |
+     | ---------------------------- | ------------------------------------------------------------ |
+     | `file1 -nt file2` (new than) | 判断文件 1 的修改时间是否比文件 2 的新（如果新为真）         |
+     | `file1 -ot file2`            | 判断文件 1 的修改时间是否比文件 2 的旧（如果旧为真）         |
+     | `file1 -ef file2`            | 判断文件 1 是否和 文件 2 的 Inode 号一致。可以理解为两个文件是否为同一个文件，这个判断用于判断硬链接是很好的办法。 |
+
+2. 实例
+
+   - 硬链接只能通过 Inode 号来识别（软链接有标志）使用 `-ef` 可以解决此问题
+
+     1. 命令  `[ grade -ef test ] && echo "yes" || echo "no"`
+
+        ```shell
+        ss@localcomputer:~/test$ ln grade test		# 创建软链接
+        ss@localcomputer:~/test$ ls -i 				# 显示 Inode 节点
+        357 grade  357 test
+        ss@localcomputer:~/test$ ls -l				# 显示权限
+        总用量 8
+        -rw-r--r-- 2 ss ss 55 2月  19 20:22 grade
+        -rw-r--r-- 2 ss ss 55 2月  19 20:22 test
+        ss@localcomputer:~/test$ [ grade -ef test ] && echo "yes" || echo "no"	# 测试 Inode 节点
+        yes
+        ```
+
+#### 两个整数之间比较
+
+1. 两个整数之间比较
+
+   - 如图
+
+     | 测试选项          | 作用                                           |
+     | ----------------- | ---------------------------------------------- |
+     | `整数1 -eq 整数2` | 判断整数 1 是否和整数 2 相等（相等为真）       |
+     | `整数1 -ne 整数2` | 判断整数 1 是否和整数 2 不相等（不相等为真）   |
+     | `整数1 -gt 整数2` | 判断整数 1 是否大于整数 2 （大于为真）         |
+     | `整数1 -lt 整数2` | 判断整数 1 是否小于整数 2 （小于为真）         |
+     | `整数1 -ge 整数2` | 判断整数 1 是否大于等于整数 2 （大于等于为真） |
+     | `整数1 -le 整数2` | 判断整数 1 是否小于等于整数 2 （小于等于为真） |
+
+2. 实例
+
+   - 判断大小
+
+     1. 命令 `[ 99 -gt 9 ] && echo "yes" || echo "no"` ，比较两数大小
+
+        ```shell
+        ss@localcomputer:~/test$ [ 99 -gt 9 ] && echo "yes" || echo "no"
+        yes
+        ss@localcomputer:~/test$ [ 99 -gt 100 ] && echo "yes" || echo "no"
+        no
+        ss@localcomputer:~/test$ 
+        ```
+
+#### 字符串的判断（常用）
+
+1. 字符串的判断
+
+   - 如表格
+
+     | 测试字符               | 作用                                  |
+     | ---------------------- | ------------------------------------- |
+     | `-z 字符串`            | 判断字符串是否为空（空为真）          |
+     | `-n 字符串`            | 判断字符串是否为非空（非空为真）      |
+     | `字符串1 == 字符串2`   | 判断字符串 1 与 字符串 2 是否相等     |
+     | `字符串1 ！== 字符串2` | 判断字符串 1 与 字符串 2 是否不等相等 |
+
+2. 实例
+
+   - 测试 `-z` 和 `-n`
+
+     1. 删除变量 name， 测试 `[ -z "$name" ] && echo "yes" || echo "no"` ，测试 变量 name 为空，和非空（注意变量加双引号）
+
+        ```shell
+        ss@localcomputer:~/test$ unset name
+        ss@localcomputer:~/test$ [ -z "$name" ] && echo "yes" || echo "no" 
+        yes						# 空返回 yes
+        ss@localcomputer:~/test$ [ -n "$name" ] && echo "yes" || echo "no"
+        no						# 空返回 no
+        ss@localcomputer:~/test$ 
+        ```
+
+#### 多重条件判断
+
+1. 多重条件判断
+
+   - 如表格
+
+     | 测试选项          | 作用                                                 |
+     | ----------------- | ---------------------------------------------------- |
+     | `判断1 -a 判断2`  | 逻辑与，两个判断都成立，结果为真                     |
+     | `判断1 -o 判断2`  | 逻辑或，有一个判断成立（两个都成立也可以），结果为真 |
+     | `! 判断` （空格） | 逻辑非，与原始判断结果相反                           |
+
+2. 实例
+
+   - 测试（变量 name 为空）
+
+     1. 命令 `[ 22 -gt 10 -a -n "$name" ] && echo "yes" || echo "no"`
+
+     2. 命令 `[ 22 -gt 10 -o -n "$name" ] && echo "yes" || echo "no"`
+
+     3. 命令 `[ ! -n "$name" ] && echo "yes" || echo "no"` ，注意 `! 判断` 空格
+
+        ```shell
+        ss@localcomputer:~/test$ [ 22 -gt 10 -a -n "$name" ] && echo "yes" || echo "no"
+        no
+        ss@localcomputer:~/test$ [ 22 -gt 10 -o -n "$name" ] && echo "yes" || echo "no"
+        yes
+        ss@localcomputer:~/test$ [ ! -n "$name" ] && echo "yes" || echo "no"
+        yes
+        ss@localcomputer:~/test$ 
+        
+        ```
 
 ### 流程控制
 
+ #### if 语句
 
+__说明：判断语句 `[ 条件 ]`  `if` 的用法作为一个程序员应该了解 __
+
+##### if 单分支
+
+1. 单分支 if 条件语句介绍
+
+   - 格式 1
+
+     ```shell
+     if [ 条件判断 ];then
+     	程序
+     fi
+     ```
+
+   - 格式 2
+
+     ```shell
+     if [ 条件判断 ]
+     	then
+     		程序
+     fi
+     ```
+
+   - 单分支条条件语句要注意几点
+
+     1. `if` 语句使用 `fi` （finish）结尾，和一般语言使用大括号结尾不同
+     2. `[ 条件判断式 ]` 就是使用 `test` 命令判断，所以中括号和条件判断式之间 __必须有空格__
+     3. `then` 后面跟符合条件之后执行的程序，可以放在 `[]` 之后，用 `;` 分割，也可以换行写入，就不需要 `;`
+
+2. 实例
+
+   - 判断分区使用率
+
+     1. 脚本如下
+
+        ```shell
+        #!/bin/bash
+        # 统计根分区使用率
+        # author:       email:
+        
+        # 把根分区的使用率作为变量赋予变量 rate
+        rate=$(df -h | grep "dev/sda5" | awk '{print $5}' | cut -d "%" -f 1)
+        
+        # 使用率大于等于 50% 就开始警告！！！
+        if [ "$rate" -ge 50 ]
+            then
+                echo "Warning! /dev/sda5 is full!!!"
+        fi
+        ```
+
+     2. 修改脚本权限
+
+        ```shell
+        ss@localcomputer:~/test$ chmod 755 jiaoben 
+        ```
+
+     3. 执行脚本
+
+        ```shell
+        ss@localcomputer:~/test$ ./jiaoben 
+        Warning! /dev/sda5 is full!!!
+        ```
+
+
+##### if 双分支
+
+1. 双分支 if 条件语句
+
+   - 格式
+
+     ```shell
+     if [ 条件判断式 ]
+     	then
+     		条件成立时，执行程序
+     	else
+     		条件不成立时，执行程序
+     fi
+     ```
+
+2. 实例
+
+   - 判断 apache 是否启动
+
+     1. 脚本
+
+        ```shell
+        #!/bin/bash
+        # author:       email:
+        
+        # 使用 nmap 命令扫描服务器，并截取 apache 服务状态，赋予变量port
+        # 此处就是筛选 nmap 命令的输出结果的，很简单（看一下 nmap 的输出即可）
+        port=$(nmap -sT | grep "tcp" | grep "http" | awk '{print $2}')
+        
+        if [ "$port" == "open" ]
+            then
+            	# 重定向输入文件中
+                echo "$(date) http is ok!" >> /tmp/apa.log
+            else
+                # 启动 apache 服务命令
+                /etc/rc.d/init.d/httpd start &> /dev/null
+                # 重定向输入文件中
+                echo "$(date) restart httpd!!" >> /tmp/apa_err.log
+        fi
+        ```
+
+     2. 命令 `nmap` 远程扫描工具（感觉很厉害的工具包）， [参考地址 1 ](https://www.cnblogs.com/nmap/p/6232207.html) 、[参考地址 2 ](https://www.cnblogs.com/nmap/p/6232969.html)
+
+        - 此处使用 `nmap -sT 主机IP` ，`sT` 扫描指定服务上开启的 tcp 端口，state 为 open 为正常
+
+          ```shell
+          ss@localcomputer:~$ nmap -sT 192.168.43.87 
+          
+          Starting Nmap 7.60 ( https://nmap.org ) at 2020-02-21 21:17 CST
+          Nmap scan report for localcomputer (192.168.43.87)
+          Host is up (0.00012s latency).
+          Not shown: 997 closed ports
+          PORT      STATE SERVICE
+          22/tcp    open  ssh
+          25/tcp    open  smtp
+          10000/tcp open  snet-sensor-mgmt
+          
+          Nmap done: 1 IP address (1 host up) scanned in 0.09 seconds
+          ss@localcomputer:~$ 
+          
+          ```
+     
+     3. 定时运行 apache 服务
+
+##### if 多分支
+
+1. 多分支 if 条件语句
+
+   - 格式
+
+     ```shell
+     if [ 条件判断式1 ]
+     	then
+     		当条件判断式1成立时，执行程序1
+elif [条件判断2]
+     	then
+     		当条件判断式2成立时，执行程序2
+     …………more…………
+     else
+     	当所有条件判断式都不成立时，执行程序
+     fi		
+     ```
+     
+   
+2. 实例
+
+   - 测试系统中文件的类型
+
+     1. 脚本
+
+        ```shell
+        #!/bin/bash
+        # author:       email:  
+        
+        # 接受键盘的输入，赋予变量 file
+        read -p "Please input a filename:" file
+        
+        # 判断 file 变量是否为空
+        if [ -z "$file" ]
+            then
+                echo "Error,please input a filename"
+                exit 1
+        # 判断 file 文件是否存在
+        elif [ ! -e "$file" ]
+            then
+                echo "Input is not a file"
+                exit 2
+        # 判断 file 是否为普通文件
+        elif [ -f "$file" ]
+            then
+                echo "A file of regulare"
+        # 判断 file 是个目录
+        elif [ -d "$file" ]
+            then
+                echo "Input is a directory"
+        # 其他文件类型
+        else
+                echo "An other file"
+        fi
+        ```
+
+#### case 语句
+
+#### for 循环
+
+#### while 循环
 
 
 
