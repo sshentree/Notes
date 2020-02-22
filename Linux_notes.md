@@ -4460,6 +4460,15 @@ __说明：以上讲解的权限都是用户对文件的操作权限，这次的
      UUID=73c2fb14-9e4d-41d4-8245-f2eaf277499b none            swap    sw              0       0	
      ```
 
+## Linux 服务管理
+
+### 服务简介与分类
+
+### RPM 包安装服务的管理
+
+### 源码包安装服务管理
+
+### 服务安装总结
 
 ## Vim 文编编辑器
 
@@ -7334,13 +7343,257 @@ elif [条件判断2]
 
 #### case 语句
 
+1. 多分支 case 条件语句介绍
+
+   - `case` 语句和 `if...elif...else` 一样多是多分支条件语句，不过和 `if` 多分枝语句不同的是，`case` 语句只能判断一种条件关系，而 `if` 语句可以判断多种条件关系。
+
+   - 格式
+
+     ```shell
+     case "$变量名" in
+     	"值1")
+     		如果变量值等于值1，执行程序1
+     		;;
+     	"值2")
+             如果变量值等于值1，执行程序2
+             ;;
+         *)
+     		如果变量值等于值1，执行程序1
+     		;;
+     esac
+     ```
+
+2. 实例
+
+   - 随意的一个脚本
+
+     1. 脚本
+
+        ```shell
+        #!/bin/bash
+        # author:       email:
+        
+        # 输入 yes or no
+        # 选项 -t 30，输入界面等待用户 10 秒，时间过后脚本自动执行（没有输入）
+        read -p "Please yes or no: " -t 10 cho
+        
+        case "$cho" in
+            "yes")
+                echo "choose is yes"
+                ;;
+            "no")
+                echo "choose is no"
+                ;;
+            *)
+                echo "error"
+                ;;
+        esac  
+        ```
+
+     2. `chmod 755 文件名` ，修改文件执行权限
+
+     3. `./文件名` ，执行文件
+
+        ```shell
+        ss@localcomputer:~/test$ ./tesany 
+        Please yes or no: no
+        choose is no
+        ```
+
 #### for 循环
 
-#### while 循环
+##### 语法一
 
+1. for 循环语法一介绍
 
+   - 格式（感觉和 python 好相像）
 
+     ```shell
+     for 变量 in 值1 值2 值3……
+     	do
+     		程序
+     	done
+     ```
 
+2. 实例
+
+   - 打印数字 abcd，`for` 循环 4 次
+
+     1. 脚本
+
+        ```shell
+        #!/bin/bash
+        # author:       email:
+        
+        for x in a b c d
+            do
+                echo -e "$x"
+            done     
+        ```
+
+     2. 执行结果
+
+        ```shell
+        ss@localcomputer:~/test$ ./tesfor 
+        a
+        b
+        c
+        d
+        ```
+
+   - 批量解压缩脚本
+
+     1. 脚本
+
+        ```shell
+        #!/bin/bash
+        # author:       email:
+        
+        # 切换目录
+        cd /home/ss/train
+        
+        # 将压缩包文件名写入文件中
+        ls *.tar.gz > ls.log
+        
+        # 循环解压缩
+        for x in $(cat ls.log)
+            do
+                tar -zxvf $x > /dev/null
+            done
+        
+        rm -rf /test/ls.log                     
+        ```
+
+##### 语法二
+
+1. for 循环语法二介绍
+
+   - 格式
+
+     ```shell
+     for ((初始值;循环控制变量;变量变化))
+     	do
+     		程序
+     	done
+     ```
+
+2. 实例
+
+   - 从 1 加到 100，在 shell 脚本中只有 `(())` 中可以进行数学运算
+
+     1. 脚本
+
+        ```shell
+        #!/bin/bash
+        # author:       email:
+        
+        sum=0
+        
+        for ((i=0;i<=100;i=i+1))
+            do
+                sum=$(("$sum" + "$i"))
+            done
+        
+        echo "This is sum(1+2+3...+100): $sum"
+        
+        ```
+
+     2. 执行结果
+
+        ```shell
+        ss@localcomputer:~/test$ ./tesfor1
+        This is sum(1+2+3...+100): 5050
+        ```
+
+#### while 循环与 until 循环
+
+##### while 循环
+
+1. while 循环介绍
+
+   - `while` 循环是不定循环，也称作条件循环。只要条件判断式成立，循环就会一直继续，直到条件判断式不成立，循环才会停止。就是和 `for` 的固定循环不太一样
+
+   - 格式
+
+     ```shell
+     while [ 条件判断式 ]
+     	do
+     		程序
+     	done
+     ```
+
+2. 实例
+
+   - 从 1 加到 100
+
+     1. 脚本
+
+        ```shell
+        #!/bin/bash
+        # author:       email:
+        
+        i=0
+        sum=0
+        
+        # 如果变量 i 小于 100 继续执行
+        while [ "$i" -le 100 ]
+            do
+                sum=$(("$sum" + "$i"))
+                i=$(("$i" + 1))
+        
+            done
+        
+        echo "sum=$sum"
+        ```
+
+     2. 执行结果
+
+        ```shell
+        ss@localcomputer:~/test$ chmod 755 teswhile 
+        ss@localcomputer:~/test$ ./teswhile 
+        sum=5050
+        ```
+
+##### until 循环
+
+1. until 循环介绍
+
+   - `until` 循环，和 `while` 循环相反，`until` 循环时只要条件判断时不成立进行循环，并执行循环程序。一旦循环条件成立，则终止循环
+
+   - 格式
+
+     ```shell
+     until [ 条件判断式 ]
+     	do
+     		程序
+     	done
+     ```
+
+2. 实例
+
+   - 从 1 加到 100
+
+     1. 脚本
+
+        ```shell
+        #!/bin/bash
+        # author:       email:
+        
+        i=0
+        sum=0
+        
+        # 如果变量 i 大于 100 不成立，继续执行
+        until [ "$i" -gt 100 ]
+            do
+                sum=$(("$sum" + "$i"))
+                i=$(("$i" + 1))
+        
+            done
+        
+        echo "sum=$sum"
+        ```
+
+        
 
 
 
