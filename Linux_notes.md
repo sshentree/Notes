@@ -4464,6 +4464,77 @@ __说明：以上讲解的权限都是用户对文件的操作权限，这次的
 
 ### 服务简介与分类
 
+1. 服务分类介绍
+
+   - 如图
+
+     ![Linux服务分类](git_picture/Linux服务分类.jpg)
+
+   - __服务分类__ 与 __软件包分类__ 相同都是分为 RPM 包（Linux 的发性版本有关）和源码包，所以其中特点也不尽相同。
+
+   - 应用软件与服务是不相同的（具体解释不太清除）
+
+   - RPM 包服务分为两种
+
+     1. RPM 包一般为默认服务，如同系统服务一样。Linux 中的服务大部分都是独立的。
+     2. 独立服务：服务在一直在内存中，当有用户访问，服务直接相应用户。相应快速，但消耗资源
+     3. 基于 xinetd 服务：xinetd 服务本身为独立服务，一直在内存中，但 xinted 本身没有服务功能，它只是管理者其他服务。当访问由 xinetd 管理的服务时，先访问 xinetd，再由 xinetd 访问服务（因为被 xinetd 管理的服务没有在内存中）。响应相对较慢，但不消耗资源。
+
+2. 启动与自启动
+
+   - 服务启动
+
+     1. 在当前系统中让服务运行，并提供服务
+
+   - 服务自启动
+
+     1. 自启动是指让系统开机或重启之后，随着系统的启动而自动启动服务
+
+   - 以 Windows 服务为例
+
+     1. 查看系统上的服务`ctrl+R` 输入 `cmd` 调用窗口 输入 `compmgmt.msc` 调用计算机管理，选择服务。如图
+
+        ![Windows服务](git_picture/Windows服务.png)
+
+     2. 查看服务的各个属性
+
+        ![Windows服务属性](git_picture/Windows服务属性.png)
+
+     3. __状态：启用、停止、暂停、恢复__
+
+     4. __启动类型：手动启动 与 自动启动__
+   
+3. 查询已安装的服务
+
+   - RPM 包安装服务
+
+     1. 查看服务自启动状态，__可以看到所有 RPM 包安装服务__
+
+        `chkconfig --list`
+
+   - 源码包安装的服务
+
+     1. 查看服务安装位置，一般是 `usr/local`
+
+   - > Systemd 初始化进程服务（`systemctl` 命令，可视为 `service` 与 `chkconfig` 命令的组合体）替换了较为 __古老__ 的 System V init 初始化进程服务。__需要注意的是：Systemd 中，服务名大都以 `.service`  结尾，一般在System V init 中的服务名加上 `.service` 就是在Systemd中的服务名。__
+     >
+     > [参考地址 1 ](https://blog.csdn.net/AsWeDo/article/details/90345065)
+     >
+     > > systemctl 是系统服务管理器命令，它实际上将 service 和 chkconfig 这两个命令组合到一起。
+     > >
+     > > | 任务                                                         | 旧指令                          | 新指令                                                       |
+     > > | ------------------------------------------------------------ | ------------------------------- | ------------------------------------------------------------ |
+     > > | 使某服务自动启动                                             | `chkconfig --level 3 httpd on`  | `systemctl enable httpd.service`                             |
+     > > | 使某服务不自动启动                                           | `chkconfig --level 3 httpd off` | `systemctl disable httpd.service`                            |
+     > > | 检查服务状态                                                 | `service httpd status`          | `systemctl status httpd.service` （服务详细信息）<br> `systemctl is-active httpd.service` （仅显示是否 Active) |
+     > > | 显示所有已启动的服务（查看各个启动级别下服务的开机自动启动与禁用情况） | `chkconfig --list`              | `systemctl list-units --type=service`                        |
+     > > | 启动某服务                                                   | `service httpd start`           | `systemctl start httpd.service`                              |
+     > > | 停止某服务                                                   | `service httpd stop`            | `systemctl stop httpd.service`                               |
+     > > | 重启某服务                                                   | `service httpd restart`         | `systemctl restart httpd.service`                            |
+     > > | 查看所有已安装的服务                                         |                                 | `systemctl list-units-files`                                 |
+     > >
+     > > [参考地址 2 ](http://linux.51yip.com/search/systemctl)
+
 ### RPM 包安装服务的管理
 
 ### 源码包安装服务管理
