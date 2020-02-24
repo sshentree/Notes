@@ -4460,86 +4460,7 @@ __说明：以上讲解的权限都是用户对文件的操作权限，这次的
      UUID=73c2fb14-9e4d-41d4-8245-f2eaf277499b none            swap    sw              0       0	
      ```
 
-## Linux 服务管理
 
-### 服务简介与分类
-
-1. 服务分类介绍
-
-   - 如图
-
-     ![Linux服务分类](git_picture/Linux服务分类.jpg)
-
-   - __服务分类__ 与 __软件包分类__ 相同都是分为 RPM 包（Linux 的发性版本有关）和源码包，所以其中特点也不尽相同。
-
-   - 应用软件与服务是不相同的（具体解释不太清除）
-
-   - RPM 包服务分为两种
-
-     1. RPM 包一般为默认服务，如同系统服务一样。Linux 中的服务大部分都是独立的。
-     2. 独立服务：服务在一直在内存中，当有用户访问，服务直接相应用户。相应快速，但消耗资源
-     3. 基于 xinetd 服务：xinetd 服务本身为独立服务，一直在内存中，但 xinted 本身没有服务功能，它只是管理者其他服务。当访问由 xinetd 管理的服务时，先访问 xinetd，再由 xinetd 访问服务（因为被 xinetd 管理的服务没有在内存中）。响应相对较慢，但不消耗资源。
-
-2. 启动与自启动
-
-   - 服务启动
-
-     1. 在当前系统中让服务运行，并提供服务
-
-   - 服务自启动
-
-     1. 自启动是指让系统开机或重启之后，随着系统的启动而自动启动服务
-
-   - 以 Windows 服务为例
-
-     1. 查看系统上的服务`ctrl+R` 输入 `cmd` 调用窗口 输入 `compmgmt.msc` 调用计算机管理，选择服务。如图
-
-        ![Windows服务](git_picture/Windows服务.png)
-
-     2. 查看服务的各个属性
-
-        ![Windows服务属性](git_picture/Windows服务属性.png)
-
-     3. __状态：启用、停止、暂停、恢复__
-
-     4. __启动类型：手动启动 与 自动启动__
-   
-3. 查询已安装的服务
-
-   - RPM 包安装服务
-
-     1. 查看服务自启动状态，__可以看到所有 RPM 包安装服务__
-
-        `chkconfig --list`
-
-   - 源码包安装的服务
-
-     1. 查看服务安装位置，一般是 `usr/local`
-
-   - > Systemd 初始化进程服务（`systemctl` 命令，可视为 `service` 与 `chkconfig` 命令的组合体）替换了较为 __古老__ 的 System V init 初始化进程服务。__需要注意的是：Systemd 中，服务名大都以 `.service`  结尾，一般在System V init 中的服务名加上 `.service` 就是在Systemd中的服务名。__
-     >
-     > [参考地址 1 ](https://blog.csdn.net/AsWeDo/article/details/90345065)
-     >
-     > > systemctl 是系统服务管理器命令，它实际上将 service 和 chkconfig 这两个命令组合到一起。
-     > >
-     > > | 任务                                                         | 旧指令                          | 新指令                                                       |
-     > > | ------------------------------------------------------------ | ------------------------------- | ------------------------------------------------------------ |
-     > > | 使某服务自动启动                                             | `chkconfig --level 3 httpd on`  | `systemctl enable httpd.service`                             |
-     > > | 使某服务不自动启动                                           | `chkconfig --level 3 httpd off` | `systemctl disable httpd.service`                            |
-     > > | 检查服务状态                                                 | `service httpd status`          | `systemctl status httpd.service` （服务详细信息）<br> `systemctl is-active httpd.service` （仅显示是否 Active) |
-     > > | 显示所有已启动的服务（查看各个启动级别下服务的开机自动启动与禁用情况） | `chkconfig --list`              | `systemctl list-units --type=service`                        |
-     > > | 启动某服务                                                   | `service httpd start`           | `systemctl start httpd.service`                              |
-     > > | 停止某服务                                                   | `service httpd stop`            | `systemctl stop httpd.service`                               |
-     > > | 重启某服务                                                   | `service httpd restart`         | `systemctl restart httpd.service`                            |
-     > > | 查看所有已安装的服务                                         |                                 | `systemctl list-units-files`                                 |
-     > >
-     > > [参考地址 2 ](http://linux.51yip.com/search/systemctl)
-
-### RPM 包安装服务的管理
-
-### 源码包安装服务管理
-
-### 服务安装总结
 
 ## Vim 文编编辑器
 
@@ -6080,22 +6001,21 @@ ss@localcomputer:~$ email="ShenDeZ@163.com"
 ##### 5 类环境配置文件及启动过程
 
 1. 5 类配置文件__（在 `/etc/` 下的配置文件对所有用户都生效，在某个用户家目录下的配置文件对这个用户有效）__
-
-   - __`/etc/profile`__
+- __`/etc/profile`__
      1. 第一次系统启动后第一个用户登录时执行 `/etc/profile` 文件，该文件是 Shell 默认主启动文件。
      2. bash 执行该文件时，会读取 `/etc/profile.d/` 下所有 `*.sh` 文件，通过 `.` 或者 `source` 来加载变量
      3. bash 执行该文件时，会调用 `/etc/bashrc`（Ubuntu 下为 `/etc/bash.bashrc`） 文件来执行
      4. `/etc/profile` 、`/etc/bash.bashrc` 和 `/etc/profile.d/*.sh` 都是全局环境变量，对所有用户有效
      5. __`/etc/environment` 保存环境变量 PATH 的值。据说 `/etc/profile` 保存所有用户的环境变量，`/etc/environment` 保存系统的环境变量__
-
-   - `/etc/profile.d/*.sh`（为一组配置文件）
-
-     1. 全局环境变量，对所有用户有效。
+   
+- `/etc/profile.d/*.sh`（为一组配置文件）
+  
+  1. 全局环境变量，对所有用户有效。
      2. 通过 `/etc/profile` 调用
-
-   - __`/etc/bashrc`（Ubuntu `/etc/` 下的文件是 `bash.bashrc`）__
-
-     - 全局环境变量，对所有用户有效
+  
+- __`/etc/bashrc`（Ubuntu `/etc/` 下的文件是 `bash.bashrc`）__
+  
+  - 全局环境变量，对所有用户有效
 - 通过 `/etc/profile` 调用
   
    - __`~/.bash_profile` (Ubuntu 用户家目录下的文件是 `.profile`)__
@@ -7664,7 +7584,249 @@ elif [条件判断2]
         echo "sum=$sum"
         ```
 
-        
+
+## Linux 服务管理
+
+### 服务简介与分类
+
+##### 服务类别介绍
+
+1. 服务分类介绍
+
+   - 如图
+
+     ![Linux服务分类](git_picture/Linux服务分类.jpg)
+
+   - __服务分类__ 与 __软件包分类__ 相同都是分为 RPM 包（Linux 的发性版本有关）和源码包，所以其中特点也不尽相同。
+
+   - 应用软件与服务是不相同的（具体解释不太清除）
+
+   - RPM 包服务分为两种
+
+     1. RPM 包一般为默认服务，如同系统服务一样。Linux 中的服务大部分都是独立的。
+     2. 独立服务：服务在一直在内存中，当有用户访问，服务直接相应用户。相应快速，但消耗资源
+     3. 基于 xinetd 服务：xinetd 服务本身为独立服务，一直在内存中，但 xinted 本身没有服务功能，它只是管理者其他服务。当访问由 xinetd 管理的服务时，先访问 xinetd，再由 xinetd 访问服务（因为被 xinetd 管理的服务没有在内存中）。响应相对较慢，但不消耗资源。
+
+##### 启动与自启动区别
+
+1. 启动与自启动
+
+   - 服务启动
+
+     1. 在当前系统中让服务运行，并提供服务
+
+   - 服务自启动
+
+     1. 自启动是指让系统开机或重启之后，随着系统的启动而自动启动服务
+
+   - 以 Windows 服务为例
+
+     1. 查看系统上的服务`ctrl+R` 输入 `cmd` 调用窗口 输入 `compmgmt.msc` 调用计算机管理，选择服务。如图
+
+        ![Windows服务](git_picture/Windows服务.png)
+
+     2. 查看服务的各个属性
+
+        ![Windows服务属性](git_picture/Windows服务属性.png)
+
+     3. __状态：启用、停止、暂停、恢复__
+
+     4. __启动类型：手动启动 与 自动启动__
+
+##### 命令 systemctl 与老命令的区别
+
+1. 查询已安装的服务
+
+   - RPM 包安装服务
+
+     1. 查看服务自启动状态，__可以看到所有 RPM 包安装服务__
+
+        `chkconfig --list`
+
+   - 源码包安装的服务
+
+     1. 查看服务安装位置，一般是 `usr/local`
+
+   - > Systemd 初始化进程服务（`systemctl` 命令，可视为 `service` 与 `chkconfig` 命令的组合体）替换了较为 __古老__ 的 System V init 初始化进程服务。__需要注意的是：Systemd 中，服务名大都以 `.service`  结尾，一般在System V init 中的服务名加上 `.service` 就是在Systemd中的服务名。__
+     >
+     > [参考地址 1 ](https://blog.csdn.net/AsWeDo/article/details/90345065)
+     >
+     > > systemctl 是系统服务管理器命令，它实际上将 service 和 chkconfig 这两个命令组合到一起。
+     > >
+     > > | 任务                                                         | 旧指令                          | 新指令                                                       |
+     > > | ------------------------------------------------------------ | ------------------------------- | ------------------------------------------------------------ |
+     > > | 使某服务自动启动                                             | `chkconfig --level 3 httpd on`  | `systemctl enable httpd.service`                             |
+     > > | 使某服务不自动启动                                           | `chkconfig --level 3 httpd off` | `systemctl disable httpd.service`                            |
+     > > | 检查服务状态                                                 | `service httpd status`          | `systemctl status httpd.service` （服务详细信息）<br> `systemctl is-active httpd.service` （仅显示是否 Active) |
+     > > | 显示所有已启动的服务（查看各个启动级别下服务的开机自动启动与禁用情况） | `chkconfig --list`              | `systemctl list-units --type=service`                        |
+     > > | 启动某服务                                                   | `service httpd start`           | `systemctl start httpd.service`                              |
+     > > | 停止某服务                                                   | `service httpd stop`            | `systemctl stop httpd.service`                               |
+     > > | 重启某服务                                                   | `service httpd restart`         | `systemctl restart httpd.service`                            |
+     > > | 查看所有已安装的服务                                         |                                 | `systemctl list-units-files`                                 |
+     > >
+     > > [参考地址 2 ](http://linux.51yip.com/search/systemctl)
+
+2. RPM 安装服务与源码包安装服务的区别
+
+   - RPM 安装服务与源码包安装服务的区别就是 __安装位置的不同__
+   - 源码包安装位置在指定位置，一般是 `/usr/local`
+   - RPM 包安装在默认位置（系统的其他命令可以找到）
+     1. RPM 包的配置文件一般在 `/etc/` 目录下
+     2. RPM 包的启动文件一般在 `/etc/init.d/` 目录下（Ubuntu 是 `/etc/init.d` ，当然 Ubuntu 的包管理软件不是 RPM）
+   - 因为安装位置的不同，所以导致管理方式不同
+     - `systemctl` 命令搜索的是固定位置，所以使用 RPM 包安装的位置固定，命令可以搜索到（默认）
+     - 源码包安装位置一般为 `/usr/local` 不是，`systemctl` 命令搜索位置（默认）
+
+### RPM 包安装服务的管理
+
+#### 独立服务管理
+
+##### RPM 包的安装位置
+
+1. RPM 包的安装位置一般有以下位置
+
+   - 如表
+
+     | 位置               | 作用                       |
+     | ------------------ | -------------------------- |
+     | `/etc/init.d/`     | 独立服务启动脚本位置       |
+     | `etc/sysconfig/`   | 初始化环境配置文件内容     |
+     | `/etc/`            | 配置文件                   |
+     | `/etc/xinetd.conf` | xinetd 配置文件            |
+     | `/etc/xinetd.d/`   | 基于 xinetd 服务的启动脚本 |
+     | `/var/lib/`        | 服务产生的数据存放在这     |
+     | `/var/log/`        | 日志                       |
+
+##### 启动
+
+1. 启动服务
+   - 格式 1
+     1. 命令 `/etc/init.d/独立服务名 start|stop|status|restart`
+     2. 这个命令就是 `绝对路径+命令` 
+   - 格式 2
+     1. 命令 `systemctl start|stop|status|restart http.service(独立服务名)`
+     2. 这个命令是 `systemctl` 的，废弃了 `service` 和 `chkconfig` 的合体
+
+##### 自启动
+
+1. 查看所有已安装的服务（也可以查看服务是否为自启动）
+   - 命令
+     1. `systemctl list-units-files`
+2. 设置服务自启动
+   - 格式 1
+     1. 命令 `systemctl enable http.service(独立服务名)`
+     2. 此命令只是设置自启动，当前系统是否启动与此无关
+   - 格式 2（centOS 系统中）
+     1. 修改 `/etc/rc.d/rc.local` 文件
+     2. 当系统重启时，所有服务都启动时，在输入密码之前，执行此文件，所以在此文件中写入命令将会被执行
+     3. 文件中命令还可以 是 `touch /start_time`  ，可以记录每次开机的时间（`touch` 创建文件，当文件存在时会修改文件的最后访问时间）
+   - 格式 3（centOS 系统中）
+     1. 使用 `ntsysv` 命令管理自启动
+     2. 可以管理 RPM 包的两种服务的任何一种
+3. 设置服务不自动
+   - 格式
+     1. 命令 `systemctl disable http.service(独立服务名)`
+
+#### 基于 xinetd 服务的管理
+
+__说明：xinetd 是 超级守护进程，现在基于 xinetd 的服务越来越少了，了解以下即可1__
+
+1. 安装 xinetd 与 telnet
+
+   - 安装 xinetd 格式
+     1. `yum -y install xinetd`
+   - 安装 telnet 格式
+     1. `yum -y istall telnet-server`
+
+2. xinetd 服务本身是独立服务，常驻内存
+
+   - 所管理的服务响应相对独立服务较慢
+
+3. xinetd 服务的启动
+
+   - 修改在 `/etc/xinetd.d/telnet` 文件
+
+   - `/etc/xinetd.d/telent` 格式
+
+     ```shell
+     service telnet		# 服务的名称为 telent
+     {
+     	flags    =REUSE        # 标志为 REUSE，设定 TCP/IP socket 可重用
+     	socket_type    =stream        # 使用 TCP 协议数据包
+     	wait    =no        # 允许多个连接多个同时连接
+     	user    =root        # 启动服务的用户为 root
+     	server    =/usr/sbin/in.telnet        # 服务的启动程序
+     	log_no_failure    +=USERID        # 登录失败后，记录用户的 ID
+     	disable    =no        # 服务不启动 [disable    =yes，服务启动] 
+     }
+     ```
+
+   - 重启 xinetd 服务
+
+     1. 命令 `systemctl restart xinetd`
+     2. 因为 telnet 服务是基于 xinetd 服务的管理服务，所以没有独立的 telnet 服务。重启了 xinetd 服务，就启动了 telnet 服务
+
+4. xinetd 服务的自启动
+
+   - xinetd 得启动与自启动相同，启动就是自启动。
+
+   - 格式
+     1. `chkconfig telnet on` ，这个需要查询，怎么开启自启动这种服务
+
+### 源码包安装服务管理
+
+1. 源码包安装服务的启动
+
+   - 使用绝对路径，调用启动脚本来启动。不同得源码包的启动脚本不同。__可以查看源码包的安装说明，查看脚本的方法。__
+   - 如不同的服务启动脚本不同，例如 apache 服务
+     1. `/usr/local/apache/bin/apachectl start|stop` ，绝对路径 + 开启与关闭
+
+2. 源码包服务的自启动（推荐使用）
+
+   - 修改 `/etc/rc.d/rc.local` 文件，加入 `/usr/local/apache/bin/apachectl start` 命令
+
+3. 让源码包服务被服务管理命令识别（不推荐使用）
+
+   - 让源码包的 apache 服务能被 service 命令管理启动
+   - 使用软链接，将服务启动文件链接到 `/etc/init.d`
+     1. 命令 `ln -s /usr/local/apache/bin/apachectl /etc/init.d/apache` 
+
+4. 让源码包的 apache 服务能被 chkconfig 与 ntsysv 命令管理自启动（centOS 系统版本 7 以下，Ubuntu 没有 ntsysv）
+
+   - 修改 `/etc/init.d/apache` 文件，加两句命令
+
+     1. 指定 httpd 脚本可以被 chkconfig 命令管理。格式是：`chkconfig:运行级别 启动顺序 关闭顺序`
+
+        `# chkconfig:35 86 76`，运行级别为 3 和 5，启动关闭顺序不能系统相同（`/etc/rc0.d` 目录的文件）
+
+     2. 说明，内容随意
+
+        `description:source package apache`
+
+   - `/etc/rc0[1,2,3,4,5,6].d` 为系统启动级别
+
+   - 将 apache 加入 `chkconfig` 命令
+
+     `chkconfig --add apache`
+
+## Linux 系统管理
+
+### 进程管理
+
+1. 进程介绍
+   - 进程是正在执行的一个程序或命令，每一个进程都是一个运行的实体，都有自己的地址空间，并占用一定的系统资源
+
+#### 进程查看
+
+#### 进程管理
+
+### 工作管理
+
+### 系统资源定位
+
+### 系统定时任务
+
+
 
 
 
