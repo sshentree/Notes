@@ -7968,10 +7968,68 @@ __说明：xinetd 是 超级守护进程，现在基于 xinetd 的服务越来�
    
 3. 注意 `top` 命令
 
-   - `top` 命令本身比较消耗资源，所以不要经常使用
+   - __`top` 命令本身比较消耗资源，所以不要经常使用__
    - 使用 `q` 退出
 
+##### 查看进程树
+
+1. 命令 `pstree [选项]`
+
+   - 选项
+     1. `-p` ：显示进程的 PID
+     2. `-u` ：显示进程的所属用户
+
+2. 实例
+
+   - 命令 `pstree`
+
+     ```shell
+     ss@localcomputer:~$ pstree
+     systemd─┬─ManagementAgent───6*[{ManagementAgent}]	# 6* 表示此进程有 6 个子进程
+             ├─ModemManager───2*[{ModemManager}]
+             ├─NetworkManager───2*[{NetworkManager}]
+             ├─VGAuthService
+     ```
+
+   - 命令 `pstree -p` 可以查看进程的 PID，__所有的进程__
+
+     ```shell
+     systemd(1)─┬─ManagementAgent(1259)─┬─{ManagementAgent}(1270)	# 显示所有进程，包括子进程和 PID
+                │                       ├─{ManagementAgent}(1271)
+                │                       ├─{ManagementAgent}(1272)
+                │                       ├─{ManagementAgent}(1273)
+                │                       ├─{ManagementAgent}(1275)
+                │                       └─{ManagementAgent}(1276)
+                ├─ModemManager(803)─┬─{ModemManager}(830)
+                │                   └─{ModemManager}(842)
+     ```
+
+   - 从上述命令输出结果可以看出，进程 systemd 是所有进程的父进程（Ubuntu 系统中）
+
 #### 进程管理
+
+##### 终止进程
+
+1. `kill` 命令
+
+   - 查看可用的进程信号
+
+     1. `kill -l`
+
+   - 信号说明
+
+     | 信号代码 | 信号名称 | 说明                                                         |
+     | -------- | -------- | ------------------------------------------------------------ |
+     | 1        | SIGHUP   | 该信号让进程立即关闭，然后重新读取配置文件之后立即重启       |
+     | 2        | SIGINT   | 程序终止信号，用于终止前台程序。相当于输出 `ctrl+c` 快捷键   |
+     | 8        | SIGFPE   | 在发生致命的算数运算错误时发出，不仅包括浮点运算错误，还包括溢出以及除数为 0 等其他所有算数错误 |
+     | 9        | SIGKILL  | 用于立即结束程序的运行，本信号不能被堵塞、处理和忽略。一般用于强制终止程序 |
+     | 14       | SIGALRM  | 时钟定时信号，计算的是实际的时间或时钟时间，alarm 函数使用该信号 |
+     | 15       | SIGTERM  | 正常结束进程的信号，`kill` 命令的默认信号。有时如果进程已经发生问题，这个信号是无法正常终止程序的，我们才会尝试 `SIGKILL` 信号，也就是信号 9 |
+     | 18       | SIGCONT  | 该信号可以让暂停的进程恢复执行，本信号不能被堵塞             |
+     | 19       | SIGSTOP  | 该信号可以暂停前台进程，相当于输入 `ctrl+z` 快捷键。本信号不能被堵塞 |
+
+     
 
 ### 工作管理
 
