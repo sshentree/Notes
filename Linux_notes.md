@@ -7662,7 +7662,7 @@ elif [条件判断2]
      > > | 启动某服务                                                   | `service httpd start`           | `systemctl start httpd.service`                              |
      > > | 停止某服务                                                   | `service httpd stop`            | `systemctl stop httpd.service`                               |
      > > | 重启某服务                                                   | `service httpd restart`         | `systemctl restart httpd.service`                            |
-     > > | 查看所有已安装的服务                                         |                                 | `systemctl list-units-files`                                 |
+     > > | 查看所有已安装的服务                                         |                                 | `systemctl list-unit-files`                                  |
      > >
      > > [参考地址 2 ](http://linux.51yip.com/search/systemctl)
 
@@ -8234,7 +8234,12 @@ __说明：查看硬件信息__
      4. `-g` ：以 GB 为单位显示
      5. `-h` ：以习惯的方式显示，__一般使用__
 
-2. 实例
+2. 缓冲和缓存的区别
+
+   - 简单来说：缓存（cache）是用来加速数据从硬盘中 __读取__ ；缓冲（buffer）是用来加速数据 __写入__ 硬盘的。
+   - 以上两者（cache、buffer）都是内存，但实际并没有被进程使用，而是由内核使用的
+
+3. 实例
 
    - 以 MB 为单位显示
 
@@ -8255,12 +8260,175 @@ __说明：查看硬件信息__
      
      ```
 
-     
 
+##### 查看 CPU 信息
 
+1. 查看 CPU 信息是从文件 `/proc/cpuinfo` 读取的
+
+   - `/proc` 是内存挂载点。每次断电，文件信息就会消失；每次重启系统就会自动检测，重新写入信息
+
+2. 实例
+
+   - 查看 CPU 信息，主要还是注意 `mode name`
+
+     1. `cat /proc/cpuinfo`
+
+        ```shell
+        model name	: Intel(R) Core(TM) i5-4200H CPU @ 2.80GHz
+        stepping	: 3
+        microcode	: 0x25
+        cpu MHz		: 2793.536
+        cache size	: 3072 KB
+        ```
+
+##### uptime 命令（系统启动时间、负载）
+
+1. `uptime` 命令介绍
+
+   - 命令格式
+     1. `uptime`
+   - 显示系统启动时间和平均负载，也就是 `top` 命令的第一行数据，`w` 命令也可以看到这些数据
+
+2. 实例
+
+   - 显示信息
+
+     1. `uptime` 
+
+        ```shell
+        root@localcomputer:~# uptime
+         14:09:28 up 37 min,  1 user,  load average: 0.01, 0.00, 0.00
+        ```
+
+##### 查看系统与内核相关信息
+
+1. 系统内核相关信息
+
+   - 命令格式
+     1. `uname [选项]`
+   - 选项
+     1. `-a` ：查看系统所有相关信息
+     2. `-r` ：查看内核版本
+     3. `-s` ：查看内核名称
+
+2. 实例
+
+   - 主要注意查看系统内核版本
+
+     1. `uname -r`
+
+        ```shell
+        root@localcomputer:~# uname -r
+        4.15.0-29-generic				# 内核版本
+        root@localcomputer:~# uname -s
+        Linux							# 几乎无用
+        root@localcomputer:~# uname -a		# 显示本机、内核版本、发布时间、适用的硬件
+        Linux localcomputer 4.15.0-29-generic #31-Ubuntu SMP Tue Jul 17 15:39:52 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux
+        
+        ```
+
+##### 判断系统当前位数
+
+1. Linux 没有命令可以直接查看系统当前位数，但是可以使用 `file` 查看 __系统外部命令__ `/bin/ls` ，这样可以顺带显示系统位数
+
+   - 命令格式
+     1. `file /bin/ls`
+     2. `file` 命令，查看文件类型
+
+2. 实例
+
+   - 注意是系统外部命令
+
+     1. `file /bin/ls` ，显示 64-bit
+
+        ```shell
+        root@localcomputer:~# file /bin/ls
+        /bin/ls: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=9567f9a28e66f4d7ec4baf31cfbf68d0410f0ae6, stripped
+        ```
+
+##### 查看当前 Linux 的发行版本
+
+1. 查看 Linux 的发行版本
+
+   - 命令格式
+     1. `lsb_release -a`
+
+2. 实例
+
+   - 主要查看 description
+
+     1. `lsb_release -a`
+
+        ```shell
+        root@localcomputer:~# lsb_release -a
+        No LSB modules are available.
+        Distributor ID:	Ubuntu
+        Description:	Ubuntu 18.04.1 LTS		# 长期支持版本（long term support）
+        Release:	18.04
+        Codename:	bionic		
+        ```
+
+##### 列出进程调用的文件
+
+1. 列出进程打开或使用的文件信息
+   - 命令格式
+     1. `lsof [选项]`
+     2. `list open files` 
+   - 选项
+     1. `-c` ：只列出以字母开头的进程打开的文件
+     2. `-u` ：只列出某个用户的进程打开的文件
+     3. `-p` ：列出某个 PID 进程打开的文件
+2. 实例
+   - 查看 `systemd` 进程（Ubuntu 系统中，有的是 `init` 进程），此进程 PID 为 1，为系统其他进程的父进程
+     1. `lsof -c systemd` ，使用 `init` 报错
+     2. `lsof -p 1` ，推荐使用
 
 ### 系统定时任务
 
+##### crond 服务管理与访问控制
+
+__说明：cron 为 计算机计时程序、d 为 daemon 守护进程。Ubuntu 是 `cron`__
+
+1. `crond` 服务管理与访问控制介绍（Ubuntu 是 `cron`）
+   - `cron` 是一个 Linux 定期执行指定命令的守护程序，可以在无需人工干预的情况下运行作业。`cron` 是被默认安装并自启动（随系统系统而启动）
+   - 通常，`crontab` 储存的指令被守护进程激活。`cron` 常常在后台运行，每一分钟检查是否有预定的作业需要执行。这类作业一般称为 cron jobs。
+   - `cron` 的配置文件称为 crontab，是 cron table 的简写。
+2. `crond` 或 `cron` 的作用
+   - 保证一些程序可以定时执行，不需要人为手动的执行
+   - `cron` 用于设置周期性被执行的指令，它会读取它的所有配置文件（全局性配置文件`/etc/crontab` ，以及每个用户的配置文件 `/var/spool/cron/crontabs` ，以  `/etc/passwd` 中账户名命名的的  crontab  文件），然后 `cron` 会根据命令和执行时间来调度工作任务。 
+
+##### crontab 设置
+
+1. 用户的 `crontab` 设置
+
+   - 命令格式
+     1. `crontab [选项]`
+   - 选项
+     1. `-e` ：编辑 crontab 定时任务
+     2. `-l` ：查询 crontab 任务
+     3. `-r` ：删除当前用户所有的 crontab 任务
+
+2. 编辑 `crontab` 文件
+
+   - 命令 `crontab -e` 编辑设置文件，按照标准格式写入命令（会用 vim 打开文件）
+
+     1. `* * * * * command` ，解释 `*` 号的含义
+
+        | 项目       | 含义                 | 范围                       |
+        | ---------- | -------------------- | -------------------------- |
+        | 第一个 `*` | 一小时当中的第几分钟 | 0-59                       |
+        | 第二个 `*` | 一天当中的第几小时   | 0-23                       |
+        | 第三个 `*` | 一个月当中的第几天   | 1-31                       |
+        | 第四个 `*` | 一年当中的第几个月   | 1-12                       |
+        | 第五个 `*` | 一周当中的星期几     | 0-7（0 和 7 都代表星期日） |
+
+     2. 举例说明用法（`*` 表示任意时间）
+
+        | 时间        | 含义                     |
+        | ----------- | ------------------------ |
+        | 45 22 * * * | 在每天的 22 点 45 分执行 |
+
+        
 
 
 
@@ -8271,11 +8439,6 @@ __说明：查看硬件信息__
 
 
 
-
-
-
-
- 
 
 
 
