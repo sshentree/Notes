@@ -213,7 +213,7 @@ __git-branch理解示意图__
 
      `ssh-keygen -t rsa -C 'ShenDeZ@163.com'`
 
-     ```c
+     ```shell
      Generating public/private rsa key pair.
      Enter file in which to save the key (/home/ss/.ssh/id_rsa): 
      Created directory '/home/ss/.ssh'.
@@ -239,7 +239,7 @@ __git-branch理解示意图__
      ss@ubuntu:~/.ssh$ ls
      id_rsa  id_rsa.pub
      ss@ubuntu:~/.ssh$ cat id_rsa.pub
-     ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJkzO+jEgG3da3R6JylGmV0mULYcy/ElRbY8psSV2sVZtcMsKrW/QRKw5ZLK7/CDqZsK04nl7BmO87ReNP+64mrNIxVaEUUsAvMM6KKO+u0PCRnJP06+cbcZqX+vMfpajo+s5/CmHk/ZS+uIZRzSosCjmSAe0PCSuq3VU4KHwrm+lWN0N0C4uNqAqIi/MBtUKXPolLjnZ5D6b8e4lLk68YbdR6BdvZ4OrAbl3+p7/3X6C7/K1Bmp8dipH5cNRvph+bRyJ7/DAarD3qgTefRTfU0ANFgTAxoqLZYFTUToxGYBTiTpr0kPkfyF322awZ1Q7ubOXXEXmD3dvPL01+b4tJ ShenDeZ@163.com
+     ssh-rsa PCSuq3VU4KHwrm+lWN0N0C4uNqAqIi/MBtUKXPolLjnZ5D6b8e4lLk68YbdR6BdvZ4OrAbl3+p7/3X6C7/K1Bmp8dipH5cNRvph+bRyJ7/DAarD3qgTefRTfU0ANFgTAxoqLZYFTUToxGYBTiTpr0kPkfyF322awZ1Q7ubOXXEXmD3dvPL01+b4tJ ShenDeZ@163.com
      
      ```
 
@@ -257,7 +257,7 @@ __git-branch理解示意图__
      - 查看`.ssh`文件夹
      - 参考Linux操作
 
-- 就将公钥添加到’__人设置中__的__SSH and GPG keys__
+- 就将公钥添加到 __人设置中__的__SSH and GPG keys__
 
 - 克隆项目
 
