@@ -8948,11 +8948,145 @@ __说明：具体 Ubuntu 系统的 `rsyslogd` 的服务说明可以查看 `man 5
 2. `grub` 配置文件
 
    - 此处说明一下：`grub` 有两种开发分支，其中一种已经停止开发了，Ubuntu 应该使用的 `grub 2`（持续支持的） 。但是这里讲解的是，已经停止开发的版本
-   - 
+   - `default=0` ：默认启动第一个系统
+   - `timeout-5` ：等待时间。默认是 5 秒（有 5 秒中的时间选择启动第几个系统）
+   - `splashimage=(hd0,0)` ：这里是指定 `grub` 启动时的背景图像文件的保存位置的
+   - `hiddenmenu` ：隐藏菜单（隐藏的就是对系统选择的界面）
+   - 以下内容：加载内容的位置；加载内核定义；加载 `initramfs` 文件系统
 
 #### Grup 加密与字符界面分辨率调整
 
 ### 系统修复模式
+
+## 备份与恢复
+
+### 备份概念
+
+1. 备份数据
+   - Linux 系统需要备份的数据
+     1. `/root/` 目录
+     2. `/home/` 目录
+     3. `/var/spool/mail/` 目录
+     4. `/etc/` 目录
+     5. 其他目录
+   - 安装服务的数据
+     1. apache 需要备份的数据
+        - 配置文件
+        - 网页主目录
+        - 日志文件
+     2. mysql 需要备份的数据（就是数据库的数据）
+        - 源码包安装的 mysql：`/usr/local/mysql/date/`
+        - RPM 包安装的 mysql：`/var/lib/mysql/`
+2. 备份策略
+   - 完全备份：完全备份就是指把所有需要备份的数据全部备份，当然完全备份可以备份整个硬盘，整个分区或某个具体的目录（备份时消耗资源，但恢复简单）。
+   - 增量备份：每次进行备份时，指备份与上一次备份增加的数据即可，而不是全部备份（因为只备份增量数据，所以备份时简单，但恢复时麻烦，需要一次一次的恢复备份数据）。
+   - 差异备份：时完全备份与增量备份的折中办法
+
+### 常见备份与恢复命令
+
+#### 命令 dump
+
+__说明：默认没有安装，需要手动安装__
+
+1. `dump` 命令
+
+   - 命令格式
+     1. `dump [选项] 备份之后的文件名 源文件或目录`
+   - 选项
+     1. `-level` ：就是 0-9 十个备份级别（0 表示完全备份，1 表示第一次增量备份……）
+     2. `-f 文件名` ：指定备份之后的文件名
+     3. `-u` ：备份成功之后，把备份时间记录在 `/etc/dumpdates`  或者 `/var/lib/dumpdates`文件（常用）
+     4. `-v` ：显示备份过程中更多的信息输出
+     5. `-j` ：调用 `bzlib` 库压缩备份文件，其实就是把备份文件压缩为 `.bz2` 格式（常用）
+     6. `-W` ：显示允许被 `dump` 的分区的备份等级及备份时间
+
+2. 备份分区
+
+   - 备份 `/boot` 分区
+
+     1. 执行一次完全备份，并压缩和更新备份时间 `dump -0uj -f /root/boot.bak.bz2 /boot/`
+
+     2. 查看 `/var/lib/dumpdates` 文件
+
+        ```shell
+        root@localcomputer:~# cat /var/lib/dumpdates 
+        /dev/sda1 0 Sat Mar  7 13:09:26 2020 +0800
+        ```
+
+     3. 执行一次增量备份 `dump -1uj -f /root/boot.bak1.bz2 /boot/` 。该级别只会备份增量的数据
+
+     4. 查看 `/var/lib/dumpdates` 文件
+
+        ```shell
+        root@localcomputer:/boot# cat /var/lib/dumpdates 
+        /dev/sda1 0 Sat Mar  7 13:15:04 2020 +0800
+        /dev/sda1 1 Sat Mar  7 13:15:32 2020 +0800
+        ```
+
+     5. 查询分区的备份时间及备份级别 `dump -W`
+
+        ```shell
+        root@localcomputer:~# dump -W
+        Last dump(s) done (Dump '>' file systems):
+          /dev/sda5	(     /) Last dump: never
+          /dev/sda3	( /home) Last dump: never
+          /dev/sda1	( /boot) Last dump: Level 1, Date Sat Mar  7 13:15:32 2020
+        ```
+
+   - 备份文件或目录
+
+     1. 完全备份 `/etc/` 目录，只能使用 0 级别进行完全备份，__而不再支持增量备份__
+        - `dump -0j -f /root/etc.dump.bz2 /etc/`
+
+#### 命令 restore
+
+1. `restore` 命令
+
+   - 命令格式 `restore [模式选项] [选项]`
+   - 模式选项：`restore` 命令常用的模式有以下四种，这四个模式不能混用。
+     1. `-C` ：比较备份数据和实际数据的变化
+     2. `-i` ：进入交互模式，手工选项需要恢复的文件
+     3. `-t` ：查看模式，用于查看备份文件中拥有哪些数据
+     4. `-r` ：还原模式，用于数据还原
+
+   - 选项
+     1. `-f` ：指定备份文件的文件名
+
+2. 比较备份数据和实际数据的变化
+
+   - 对比 `/boot` 分区备份数据和实际数据（对新增加的数据无法对比，只能比较出已有数据的变化）
+
+     1. `restore -C -f /root/boot.bak.bz2`
+
+        ```shell
+        root@localcomputer:/boot# restore -C -f /root/boot.bak.bz2 
+        Dump tape is compressed.
+        Dump   date: Sat Mar  7 13:34:39 2020
+        Dumped from: the epoch
+        Level 0 dump of /boot on localcomputer:/dev/sda1
+        Label: none
+        filesys = /boot
+        restore: unable to stat ./abi-4.15.0-29-generic: No such file or directory
+        Some files were modified!  1 compare errors
+        ```
+
+3. 查看模式
+
+   - 查看 `/boot` 分区
+     1. `restore -t -f /root/boot.bak.bz2`
+
+4. 还原模式
+
+   - 还原 `/boot` 分区（最好新建目录，在此目录中恢复数据）
+
+     1. 先还原完全备份的数据 `restore -r -f /root/boot.bak.bz2` （解压缩）
+     2. 恢复增量备份数据 `restore -r -f /root/boot.bak1.bz2`
+
+   - 还原 `/etc/` 目录的备份数据
+
+     1. `restore -r -f etc.dump.bz2`
+
+     
 
 
 
