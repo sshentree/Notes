@@ -1,217 +1,222 @@
----
+# Git 使用笔记
 
----
+## Git 基本操作
 
-# git使用笔记
+### Git 分支示意图
 
-### git基本操作
+1. 个人理解
+   
+   - git 中指针运用的十分频繁，每一步都是和指针有关的。HEAD 就是指向当前操作的分支(maste：指向 master 分支当前的版本)的当前版本。每当创建一个新的版本时，master 就会指向最新的版本，而 HEAD 指向 master。每一个版本的创建好比是一个时间线上(时间线是一个直线)的节点。当创建分支时，就好比在当前版本再创建一个指针(dev)，和当前 master 指向同一个版本，切换分支时 HEAD 指向 dev，当在分支 dev 操作时和 maetr 没有关系，master 还是指向创建分时时的版本。合并分支时就是将 maste r以向dev指向的版本（Faster-forward合并）。
+   - [参考地址](https://open-hl.toutiao.com/a6822261424480322061/?utm_campaign=open&utm_medium=webview&utm_source=o_llq_api&req_id=20200503095428010014050012301F73FB&dt=OPPO+A57&label=open_o_channel&a_t=3015963288971654507615122445c644&gy=9a26911494d7e8b8b94f0d2b66a9c78c0b5c984ba8921418dcd9d7afb1cf3db2db6eb1d102c370e351e12fe63d988bcffcc8e902b730ecf02c7a3eca8b376f26ef8c0250215f92664e364fef7038338410ce4f0897387f2cba03838898301084aeed2ed76a50bcb555d8aeeaf07416e970c80eff17b4b15874f380077dd0ed57&crypt=761&item_id=6822261424480322061&__docId__=6822261424480322061&__barStyle__=1_1&__statParams__=sourceMedia&__fromId__=__all__&__source__=toutiao&sourceMedia=toutiao&__cmtCnt__=2&__styleType__=2&__publisher_id__=58546745552&openv=&__pf__=detail)
+2. git 分支示意图
+   
+   - 如图
+   
+     ![git-快速合并](git_picture/git-快速合并.jpg)
+3. git 操作流程图
+   
+   - 如图
+   
+     ![git-操作流程图](git_picture/git-操作流程图.png)
 
-个人理解：这里指针运用的十分频繁，每一步都是和指针有关的。HEAD就是指向当分支(maste：指向当前分支当前的版本)的当前版本。每当创建一个新的版本时，master就会指向最新的版本，而HEAD指向master。每一个版本的创建好比是一个时间线上(时间线是一个直线)的节点。当创建分支时，就好比在当前版本再创建一个指针(dev)，和当前master指向同一个版本，切换分支时HEAD指向dev，挡在分支dev操作时和maetr没有关系，master还是指向创建分时时的版本。合并分支时就是将master以向dev指向的版本（Faster-forward合并）。
+### 初始化一个 Git 库
 
-__git-branch理解示意图__
+1.  创建 `.git` 文件，此文件是管理 git 的文件夹
+   - `git init`
+2. 创建用户名和邮箱，如果没有这两项信息，是无法提交的，所以每个 git 库，都必须有这些基本信息
+   - `git config --global user.name 'username'`
+   - `git config --global user.email 'example@gmail'`
+   - 这两条语句也是可以修改用户名、邮箱
+3.  检查基本信息
+    - `git config --list` ：可以查看用户和邮箱信息
 
-![git-branch](git_picture/git-branch.jpg)
+### 版本创建的过程
 
-- 初始化git库
+#### 总体介绍
 
-  `git init`
+1. git 管理文件分为 3 个状态，已修改（modified）、以暂存（stage）、以提交（commit），以下 3 个区就是对应 git 管理文件的 3  种状态
+   - __工作区__ ：对应文件 __modified__ 的状态
+   
+   - __暂存区__ ：对应文件 __stage__ 的状态
+   
+   - __版本库__ ：对应文件 __commmit__ 的状态
+   
+   - 如图
+   
+     ![git-branch](git_picture/git-branch.jpg)
+2. 检测文件的状态
+   
+   - `git status` ：可以检查文件处于哪种状态
 
-  会生成一个.git文件
+#### 正向顺序
 
-- 创建用户名和邮箱
+1. 文件从 __版本库__ 到 __工作区__ 中
+   - 修改文件
+   - 创建新文件（直接在工作区中）
+   - 删除文件 `rm file_name`
+2. 将修改、创建、删除的文件从 __工作区__ 添加到 __暂存区__
+   - `git add file_name` ：将 file_name 文件添加到暂存区
+     1. `git add -A` ：添加所有改变的文件
+     2. `git add .` ：添加新文件和编辑过的文件，但不包括删除的文件
+     3. `git add -u` ：添加编辑过的和删除的文件，但不包括新添加的文件
+   - `git rm file_name` ：将删除的文件添加到暂存区中
+     1. 使用 `git add file_name` 一样可以添加进暂存区中
+3. 将 __暂存区__ 的文件形成版本，添加到 __版本库__ 中
+   - `git commit -m "版本信息"`
 
-  当你提交修改时有提示
+#### 反向顺序
 
-  `git config --global user.name 'username'`
+1. 将 __版本库__ 中的文件回退到 __暂存区__ 中
+   - `git reset --soft HEAD~1` ：将当前版本回退到前一个版本，当前版本的文件回退到暂存区中 （`HEAD~1` 也可以是版本号）
+   - `git reset --soft HEAD~2` ：回退两个版本，将这两个版本修改的文件回退到暂存区中
+2. 将 __暂存区__ 中的文件回退到 __工作区__ 中
+   - `git reset HEAD file_name` ：将暂存区的 file_name 文件回退到工作区中
+3. 将工作区中已修改文件放弃修改
+   - `git checkout -- file_name` ：放弃文件的修改
+4. 直接回退版本
+   - `git reset --hard HEAD~2` ：直接回退两个版本，__文件的状态不变__
 
-  `git config --global user.email 'example@gmail'`
+### 版本信息查看
 
-  说明：这两条语句也可修改用户名、邮箱（全局修改）
+1. 最为详细的版本信息查看
+   - `git log`
+2. 一行中简要显示版本信息
+   - `git log --pretty=oneline`
+3. 增加查看分支合并记录
+   - `git log --graph --pretty=oneline`
+4. __查看操作记录__
+   - `git reflog`
+   - 显示 git 仓库中的每一步的操作记录
 
-- 版本创建
+### 版本回退
 
-  `git add file_name` ：将 file_name 文件添加到暂存区
+1. HEAD 表示指向当前版本的指针，HEAD^ 表示前一个版本
+   - `git reset --hard HEAD^` ：回退到前一个版本
+   - `git reset --hard HEAD^^` ：回退两个版本
+2. 使用版本 ID，可以回退到任何版本（只需要使用 ID 的前 4-5 个编号就可以）
+   - `git reset --hard 版本号`
 
-  `git add -A` ：添加所有改变的文件
+### 文件对比
 
-  `git add .` ：添加新文件和编辑过的文件，但不包括删除的文件
+1. [工作区、暂存区] 和版本库中的某个文件对比
+   - `git diff HEAD -- file_name`
+2. 对比两个版本库中的文件
+   - `git diff HEAD HEAD~1 -- file_name`
 
-  `git add -u` ：添加编辑过的和删除的文件，但不包括新添加的文件
+### git rebase 使用
 
-  说明：add 添加到暂存区中
+__说明：[参考地址](https://www.jianshu.com/p/4a8f4af4e803)__
 
-  `git commit -m '版本信息'`
+1. 介绍 `git rebase` 使用
 
-- 查看版本记录
+   - 不要随便使用此命令，有可能发生意想不到的问题
+   - 此命令功能
+     1. 版本删除
+     2. 版本压缩
 
-  `git log`
+2. 版本删除
 
-  `git log --pretty=oneline`
+   - `git rebase -i HEAD~3` ：操作最近 3 个历史版本
 
-  说明：每一次提交版本在一行中简要显示
-
-  `git log --graph --pretty=oneline`
-
-  说明：增加查看，合并记录
-
-- 版本退回
-
-  `git reset --hard HEAD^`
-
-  说明：HEAD是指针，指向当前版本，HEAD^是前一个版本
-
-  `git reset --hard 版本序号`
-
-  说明：可以退回任意版本
-
-- 查看操作记录
-
-  `git reflog`
-
-- 工作区、版本库和暂存区
-
-  - git add 是把暂存区的修改放到工作区中
-  - git commit 是把暂存区的修改一次性做以此版本记录
-
-- 管理修改
-
-  - git commit 只会把暂存区的修改提交到版本记录中
-
-- 撤销修改
-
-  1. 直接丢弃工作区改动
-
-     `git checkout -- file_name`
-
-  2. 修改已经添加到工作区，但未commit
-
-     a. `git reset HEAD file_name`
-
-     b.`git checkout -- file_name`
-
-  3. 已经提交(commit)
-
-     版本退回
-  
-- 对比文件不同
-
-  1. 对比工作区和版本库某个文件
-
-     `git diff HEAD -- file_name`
-
-     说明：工作区和暂存区都可以是这条语句查看
-
-  2. 对比两个版本中的文件
-
-     `git diff HEAD HEAD^ -- file_name`
-
-     说明：比较当前版本的file_name和前一个版本的file_name文件
-
-- 删除文件
-
-  1. 删除文件
-
-     a. `rm file_name`
-
-     b. `git rm file_name`
-
-  2. 提交
-
-     `git commit -m '版本说明信息'`
-
+     ```shell
+     pick 8302c86 dev 3
+     pick 9e593b5 dev 4-5
      
+     # 变基 8927e6e..9e593b5 到 8927e6e（2 个提交）
+     #
+     # 命令:
+     # p, pick = 使用提交
+     # r, reword = 使用提交，但修改提交说明
+     # e, edit = 使用提交，但停止以便进行提交修补
+     # s, squash = 使用提交，但和前一个版本融合
+     # f, fixup = 类似于 "squash"，但丢弃提交说明日志
+     # x, exec = 使用 shell 运行命令（此行剩余部分）
+     # d, drop = 删除提交
+     ```
 
-### git创建分支(branch)
+   - 将对应版本的 `pick` 修改为 `drop` 保存即可
 
-- 查看分支
+     1. 注意：这种删除一般会删除中间的版本，会造成版本合并冲突，所以需要手动解决，再次提交版本记录。
 
-  `git branch`
+## Git 分支
 
-- 创建分支
+### Git 创建分支
 
-  `git branch name`
+1. 查看分支
+   - `git branch`
+2. 创建分支
+   - `git branch branch_name`
+3. 切换分支
+   - `git checkout branch_name`
+4. __创建并切换分支__
+   - `git checkout -b branch_name`
+5. 删除分支
+   - `git branch -d branch_name`
 
-- 切换分支
+### 分支合并
 
-  `git checkout name`
+1. 分支合并分为 __快速合并__ 和 __禁用快速合并__ 。一般不使用快速合并，且快速合并条件苛刻
 
-- 创建\+切换分支
+   - 快速合并（Faster-forward），没有版本信息，将使用分支的版本信息
 
-  `git checkout -b name `
+     ![git-快速合并](git_picture/git-快速合并.jpg)
 
-- 合并某分支到当前分支
+   - 禁用快速合并，会有版本信息
 
-  `git merge name`
+     ![git-禁用快速合并](git_picture/git-禁用快速合并.jpg)
 
-  说明：有快速合并，就是用Faster-forward，但是版本没有说明信息，用的是分支的版本号
+2. 快速合并
 
-- 删除分支
+   - 只有一种情况可以使用快速合并：__假如创建 dev 分支时，主分支 master就没有提交过任何版本。当 master 合并 dev 时，可以使用快速合并__
+   - `git merge dev` ：此时位于 master 主分支上
 
-  `git branch -d name`
+3. 禁用快速合并
 
-- 解决合并冲突
+   - 分支多次合并后，使用 `git merge dev` 时，也会提示注释合并信息，这样的合并也是禁用快速合并
+   - `git merge --no-ff -m "禁用快速合并Faster-forward 说明信息(版本信息)" other_branch_name` ：禁用快速合并
 
-  1. 手动合并
+4. __解决合并冲突__
 
-  2. 在进行提交
+   - 产生合并冲突原因，由于创建分支时，master 指向的分支当前版本也进行了修改，所以不能进行 Faster-forward 合并
 
-     `git merge dev`
+   - 使用快速合并、禁用快速合并提交的版本信息，都会以解决重复修改的文件冲突后提交版本信息为准 __（不写版本信息，也会强制你写的！！！）__
 
-     `git log --graph --pretty=oneline`
+     ```she
+     自动合并 b.md
+     冲突（内容）：合并冲突于 b.md
+     自动合并失败，修正冲突然后提交修正的结果。
+     ```
 
-     说明：查看合并记录
+   - 需要手动修改 `b.md` 文件，已解决冲突，并再次 `git add` --> `git commit -m "信息"` ，此次合并的版本记录，以提交 `b.md` 版本信息为准。
 
-  说明：产生合并冲突原因，由于创建分支时，master指向的分支当前版本也进行了修改，所以不能进行Faster-forward合并。
-  
-- 禁用快速合并
+### 工作现场保护
 
-  `git merge --no-ff -m '禁用快速合并Faster-forward 说明信息(版本信息)' 'other_branch_name'`
+1. 保护当前分支正在编辑的文件
+   - 文件的 `modified` 和 `stage` 可以进行现场保护
+   - __文件尚未跟踪__ （新建的文件）不可以进行现场保护
+   - `git stash`
+2. 切换到出现 bug 的分支，再创建临时 bug_001 分支进行修改bug，然后提交
+3. 进行 bug 分支合并时，要禁止快速合并（合并记录）
+   - .`git merge --no-ff -m '修复bug_001' bug_001`
+4. 切换回你之前工作的分支，进行现场恢复
+   - `git stash list` ：查看保存的工作现场
+   - `git stash pop` ：恢复工作现场
 
-  说明：一般我们都禁用快速合并功能，这样可以记录合并的信息
+## Github 使用
 
-- git_bug分支
+### 创建 git 仓库
 
-  1. 保护你当前分支正在编辑的文件
+1. 上面有介绍
 
-     a. `git stash`
+### 生成 ssh 公钥（Ubuntu 版）
 
-  2. 切换到出现bug的分支，再创建临时bug_001分支进行修改bug，然后提交
+1. 切换到用户目录下 `cd ~`
 
-  3. 进行bug分支合并时，要禁止快速合并（查看不了合并记录）
+2. 查找隐藏文件（.gitconfig）编辑文件（实际在设置用户是就已经编辑好了，打开看一下用户名、邮箱）
 
-     a.`git merge --no-ff -m '修复bug_001' bug_001`
+3. 生成 ssh 密钥
 
-  4. 切换回你之前工作的分支，进行现场恢复
-
-     a.查看保存的工作现场：`git stash list`
-
-     b.恢复工作现场：`git stash pop`
-
-  
-
-### git 操作流程图
-
-![git-操作流程图](git_picture/git-操作流程图.png)
-
-### github使用
-
-- 创建创库
-
-- 生成ssh公钥（Linux版Ubuntu）
-
-  1. 切换用户目录下
-
-     `cd ~`
-
-  2. 查找隐藏文件（.gitconfig）编辑文件（实际在设置用户是就已经编辑好了，打开看一下用户名、邮箱）
-
-     `ll -a`
-
-     `vim .gitconfig`
-
-  3. 生成ssh密钥
-
-     `ssh-keygen -t rsa -C 'ShenDeZ@163.com'`
+   - `ssh-keygen -t rsa -C 'ShenDeZ@163.com'` ：输入此命令，出现待输入的（密码，确认值）都__按回车__，__id_ras为私钥__、__id_rsa.pub__为公钥
 
      ```shell
      Generating public/private rsa key pair.
@@ -240,54 +245,46 @@ __git-branch理解示意图__
      id_rsa  id_rsa.pub
      ss@ubuntu:~/.ssh$ cat id_rsa.pub
      ssh-rsa PCSuq3VU4KHwrm+lWN0N0C4uNqAqIi/MBtUKXPolLjnZ5D6b8e4lLk68YbdR6BdvZ4OrAbl3+p7/3X6C7/K1Bmp8dipH5cNRvph+bRyJ7/DAarD3qgTefRTfU0ANFgTAxoqLZYFTUToxGYBTiTpr0kPkfyF322awZ1Q7ubOXXEXmD3dvPL01+b4tJ ShenDeZ@163.com
-     
      ```
 
-     说明：输入上面语句，出现待输入的（密码，确认值）都__按回车__，__id_ras为私钥__、__id_rsa.pub__为公钥
+4. 将 ssh 公钥复制粘贴到 github 上去
 
-  4. 将ssh公钥复制粘贴到github上去
+   - 这样本地可以操作 github 上的项目
+   - 就将公钥添加到 __设置__ 的 __个人设置中__ 的 __SSH and GPG keys__
 
-     说明：这样本地可以操作github上的项目
-     
-  5. window上的操作和Linux相同
-  
-     - 切换到用户目录
-     - 查看 .gitconfig 文件
-     - 使用 `ssh-keygen -t rsa -C '邮箱'` 生成,公钥、私钥在用户目录 .ssh 文件夹中
-     - 查看`.ssh`文件夹
-     - 参考Linux操作
+5. windows 上的操作和 Linux 相同
 
-- 就将公钥添加到 __人设置中__的__SSH and GPG keys__
+   - 切换到用户目录
+   - 查看 .gitconfig 文件
+   - 使用 `ssh-keygen -t rsa -C '邮箱'` 生成,公钥私钥在用户目录 .ssh 文件夹中
+   - 查看`.ssh`文件夹
+   - 参考 Linux 操作
 
-- 克隆项目
+### 克隆项目
 
-  1. 查找克隆地址（https、ssh）选择uoge协议进行克隆
+1. 查找克隆地址（https、ssh）选择uoge协议进行克隆
 
-     `git clone 克隆地址`
+   - `git clone 克隆地址`
 
-  2. 如果克隆出错执行下面两句
+2. 如果克隆出错执行下面两句（不是很理解！！！）
 
-     `eval "$(ssh-agent -s)"`
+   - `eval "$(ssh-agent -s)"`
 
-     `ssh-add`
+   - `ssh-add`
 
-     说明：不是很理解！！！！
+3. 创建分支，再在分支上进行开发
 
-- 进行开发
+   - 上面有创建分支过程
 
-  - 创建分支进行编辑代码
+4. 推送分支
 
-- 推送分支
+   - `git push origin 'branch_name'` ：将本地分支推送到 github 服务器上，服务器会自动创建一个分支
 
-  1. `git push origin 'branch_name'`
+5. 本地分支跟踪远程服务器分支
 
-     说明：将本地分支推送到github服务器上，服务器会自动创建一个分支
+   - `git branch --set-upstream-to=origin/'远程branch_name' '本地branch_name'`
 
-- 本地分支跟踪远程服务器分支
-
-  1. `git branch --set-upstream-to=origin/'远程branch_name' '本地branch_name'`
-
-     ```c
+     ```shell
      Branch 'smart' set up to track remote branch 'smart' from 'origin'.
      
      使用 git status
@@ -297,34 +294,23 @@ __git-branch理解示意图__
          nothing to commit, working tree clean
      ```
 
-  2. 当编辑本地分支并提交一个版本时，使用`git status`查看工作区时提示（本地分支，领先服务器分支一次提交）
+6. 当编辑本地分支并提交一个版本时，使用`git status`查看工作区时提示（本地分支，领先服务器分支一次提交）
 
-     ```c
+   - `git status`
+
+     ```shell
      On branch smart
      Your branch is ahead of 'origin/smart' by 1 commit.
        (use "git push" to publish your local commits)
      
      nothing to commit, working tree clean
-     
      ```
 
-  3. 推送代码（是服务器分支与本地分支，保持一致性）
+7. 推送代码
 
-     `git push`
+   - `git push` ：是将服务器分支与本地分支保持一致
 
-     说明：就是将本地的分支合并到服务器上
+8. 拉取代码
 
-  4. 拉取代码
-
-     `git pull origin 'branch_name'`
-
-     说明：把服务器的分支合并到本地
-
-
-
-
-
-
-
-
+   - `git pull origin 'branch_name'` ：把服务器的分支合并到本地
 
