@@ -41,7 +41,7 @@
 
      4. 数据库的事务管理和运行管理
 
-        数据库在建立、运用和维护时由数据库管理系统统一管理和控制，以确保事物的正确运行，保证数据的安全性、完整性、多用户对数据的并发使用及发生故障的系统恢复
+        数据库控制语言（Data Control Language，DCL），数据库在建立、运用和维护时由数据库管理系统统一管理和控制，以确保事物的正确运行，保证数据的安全性、完整性、多用户对数据的并发使用及发生故障的系统恢复
 
      5. 数据库的建立和维护功能
 
@@ -129,7 +129,7 @@
 1. 安装 MySQL 数据库
 
    - [参考地址: 菜鸟教程](https://www.runoob.com/mysql/mysql-install.html) ，包含 Windows 和 Linux 的安装
-   - [参考地址: 简书参考地址](https://www.jianshu.com/p/fd56e1ce7379) ，自己亲身实践，包含 基于Ubuntu 的安装
+   - [参考地址: 简书参考地址](https://www.jianshu.com/p/fd56e1ce7379) ，自己亲身实践，包含基于Ubuntu 的安装
 
 ### 数据库介绍
 
@@ -201,7 +201,7 @@
 
 ### 数据完整性
 
-说明：数据完整性（integrity）是指数据的正确新（correctness）和相容性（compat-ability）。
+说明：数据完整性（integrity）是指数据的正确性（correctness）和相容性（compat-ability）。
 
 1. 数据的正确性
 
@@ -275,7 +275,7 @@
      4. 对于包含日期部分并带有分隔符的字符串，如果日期小于 10 时，不需要指定 2 位数，如 `2020-5-5` 与 `2020-05-05` 相同。对于包含时间部分并带有分隔符的字符串，如果时间小于 10 时，也不需要使用 2 位，如 `2020-05-05 05:05:05` 与 `2020-5-5 5-5-5` 相同。
      5. 一般时间选用 `timestamp` ，有一个重要特征，如果输入 `null` 自定设置为系统当前时间
 
-5. 约束
+5. __约束__
 
    - 主键：（primary key）
 
@@ -296,6 +296,14 @@
    - 外键：（foreign key）
 
      实体表的属性在关系表中存在，且可以标识实体表的每一个实体对象
+     
+   - 自增约束：（auto_increment）
+   
+     属性值，随录入数据增加（无法修改）
+   
+   - 检查约束：（check）
+   
+     录入数据时，检查属性值，是否在其规定范围之内
 
 ### Navicat 操作
 
@@ -328,9 +336,81 @@
 3. 对于重要的数据，会设置一个 isDelete 的属性（列），类型为 bit ，表示逻辑删除。
 4. 大量增长的非重要数据，可以进行物理删除。
 
-## 命令脚本操作
+## 命令脚本操
 
-### 数据库、表的创建删除等操作
+### SQL 语法规则
+
+1. 单引号、双引号使用
+
+   - 字符串、日期时间类型使用 `''` 单引号，变量别名使用 `""` 双引号
+
+2. 注释
+
+   - 单行注释
+
+      ```sql
+     # 注释
+     -- 注释
+     ```
+
+   - 多行注释
+
+     ```sql
+     /*
+      * 多行注释
+     */
+     ```
+
+3. 命令规则
+
+   - 必须使用 `A-Z, a-z, 0-9` ，共 63 个字符
+
+### 运算符
+
+1. 算数运算符
+
+   - 加 `+` 、减 `-` 、乘 `*`  、除`/` 、取模 `%` (`mod` 也是取模)
+
+   - 除法取整 `div`
+
+     ```sql
+     3 div 2 = 1
+     3 / 2 = 1.5
+     ```
+
+2. 比较运算符
+
+   - 等于 `=` 、大于 `>` 、大于等于 `>=` 、小于 `<` 、小于等于 `<=` 、不等于 `!=` （不等于 `<>` ）
+   - 安全等于 `<=>` ，用于与 `null` 比较
+
+3. 逻辑运算符
+
+   - 逻辑与 `&&` ，也可以是 `and`
+   - 逻辑或 `||` ，也可以是 `or`
+   - 逻辑非 `!` ，也可以是 `not`
+   - 逻辑异或 `^` ，也可以是 `xor`
+
+4. 范围符
+
+   - 在什么范围内 `between...and...`  （`>=...and...<=`）
+   - 不在什么范围内 `not between...and...` （`<...||...>`）
+
+5. 集合
+
+   - 在集合中 `in`
+   - 不在集合中 `not in`
+
+6. 模糊查询
+
+   - `like` 或 `not like` 
+   - 通配符： `%` 表示任意多个任意字符；`_` 表示任意一个字符
+
+7. __null__ 值判断
+
+   - 使用 `is null` 或者 `is not null`
+   - 或 `value<=> null` 或者 `not vaule<=>null`
+
+### 数据库、表的创建删除等操作（DDL）
 
 说明：使用命令窗口对 mysql 进行操作   [mysql 语法文档](https://dev.mysql.com/doc/refman/8.0/en/)
 
@@ -376,7 +456,30 @@
      1 row in set (0.00 sec)
      ```
 
-3. 删除数据库
+3. 查看支持的编码格式
+
+   - `show character set;`
+
+   - 显示删除了一部分数据（一共 41 行）。`Default collation` 为校对规则，以 `ci` 结尾的数据库中存放的数据不区分大小写，以 `cs/bin` 结尾的数据区分大小写。__大小写：数据库中存放的数据，不是指命令行（命令行不区分大小写）__
+
+     ```sql
+     mysql> show character set;
+     +----------+---------------------------------+---------------------+--------+
+     | Charset  | Description                     | Default collation   | Maxlen |
+     +----------+---------------------------------+---------------------+--------+
+     | ascii    | US ASCII                        | ascii_general_ci    |      1 |
+     | ujis     | EUC-JP Japanese                 | ujis_japanese_ci    |      3 |
+     | latin5   | ISO 8859-9 Turkish              | latin5_turkish_ci   |      1 |
+     | armscii8 | ARMSCII-8 Armenian              | armscii8_general_ci |      1 |
+     | utf8     | UTF-8 Unicode                   | utf8_general_ci     |      3 |
+     | ucs2     | UCS-2 Unicode                   | ucs2_general_ci     |      2 |
+     | utf32    | UTF-32 Unicode                  | utf32_general_ci    |      4 |
+     | binary   | Binary pseudo charset           | binary              |      1 |
+     +----------+---------------------------------+---------------------+--------+
+     41 rows in set (0.01 sec)
+     ```
+
+4. 删除数据库
 
    - `drop database python1`
 
@@ -396,7 +499,7 @@
      4 rows in set (0.00 sec)
      ```
 
-4. 创建数据库
+5. 创建数据库
 
    - `create database python3 charset=utf8;` 需要指定编码格式
 
@@ -417,7 +520,7 @@
      5 rows in set (0.00 sec)
      ```
 
-5. 切换使用数据库
+6. 切换使用数据库
 
    - `use python3`
 
@@ -435,16 +538,20 @@
      1 row in set (0.00 sec)
      ```
 
-6. 查看数据库的表
+7. 查看数据库的表
 
-   - `show tables;` 当前数据库没有表
+   - `show tables from 数据库` ，可以数据库中，查看其它数据库中的表。
+
+   - `show tables;` 当前数据库没有表，在该数据库时，默认查询本库的表。
 
      ```sql
      mysql> show tables;
      Empty set (0.01 sec)
      ```
 
-7. 创建表
+8. 创建表
+
+   - `create table 数据库.表名();` ，指定哪个数据库。
 
    - `create table 表名(列类型 [是否自动增长] 约束 默认值\是否为空);` 多列使  ',' 分割
 
@@ -458,8 +565,146 @@
      ```
 
      解释：使用 bit 表明占用几个 bit 为，值为 b'1' 标记为二进制数值
+     
+   - 修改字段位置
 
-8. 查看表的结构
+     1. 修改字段位置
+
+        `alter table 表名 modify 字段名 数据类型 first/after 字段` 
+
+     2. 添加字段，默认添加到最后，也可以指定添加位置 
+
+        `alter table students add column age int not null first/after 字段` 指定第一行或者指定字段的后面。
+
+   - 主键约束设置
+
+     说明：主键不为 `null`
+
+     1. 添加主键约束
+
+        `alter table 表名 add primary key(字段);`
+
+     2. __复合主键约束（多个字段共同组成主键）__
+
+        `primary key(字段1, 字段2)` 创建表示时，或 `alter table 表名 add primary key(字段1, 字段2);`
+
+     3. 取消主键约束
+
+        `alter table 表名 drop primary key;` ，`delete` 删除数据相关；`drop` 删除表结构相关
+
+   - 唯一约束
+
+     1. 注意事项
+
+        - 唯一约束，可以为 `null`
+        - 唯一键约束名称可以自定义，默认：如果是单列，是列名；如果是多列组合唯一，默认是第一列列名
+        - 创建唯一键约束，也会自定创建索引
+        - 删除唯一约束，是通过删除索引来实现的
+
+     2. 设置唯一约束
+
+        `字段 unique key` 或者 `unique key(字段1, 字段2)` 复合唯一约束
+
+     3. 添加唯一约束
+
+        `alter table 表名 add unique key(字段1, 字段2);`
+
+     4. 取消唯一约束（是通过删除索引，删除唯一约束）
+
+        `alter table 表名 drop index 索引名;` ，查看表的索引 `show index from 表名;`
+
+   - 非空约束
+
+     1. 针对某一个字段不能为 `null`
+
+     2. 添加非空约束
+
+         `字段 not null` 创建表时，或者 `alter table 表名 modify 字段 数据类型 not null;`
+
+     3. 取消非空约束
+
+         `alter table 表名 modify 字段 数据类型;`
+
+   - 默认值约束
+
+     1. 针对某一个字段，如果没有录入数据（或使用 `default` 时），使用有默认值
+
+     2. 添加默认值
+
+        `字段 default 默认值` 创建表时，`alter table 表名 modify 字段 数据类型 default 默认值 [not null]`
+
+     3. 取消默认值约束
+
+        `alter table 表名 modify 字段 数据类型 [not null]`
+
+   - 检查约束（check） 
+
+     __说明：mysql 中不起作用__
+     
+   - 自增约束
+
+     1. 一个表只能有一个自增约束，因为一个表只有一个维护自增值的变量
+
+     2. 自增约束的字段，只能是整数类型（+1）
+
+     3. __自增约束的字段必须是主键、唯一键和外键，实际主键自增约束最为常见__
+
+     4. __录入数据时__
+
+        - 没有指定整数 、`0` 和 `null` 表示自增
+        - 录入正整数时，按整数存储；录入负整数，按负整数存储（负数在前）
+        - 当指定整数时，可以进行插入（`1, 2, 4`） 这时可以指定 3 ，插到 2 后面。
+
+     5. 取消自增约束
+
+        `alter table 表名 modify 字段 数据类型 [not null];`
+
+   - 外键约束
+
+     1. 一个表可以有多个外键约束，外键必须是唯一键或者是主键（主键偏多）
+
+     2. 外键在 __从表__ 中建立
+
+        - 学生表、课程表（主表）
+        - 选课表（从表），引用了学生表和课程表的字段
+
+     3. 使用外键时，主表、从表的数据操作受到约束
+
+     4. 约束等级（5 种），默认 Restrict 方式
+
+        - Cascade 方式：
+
+          在主表 `update/delete` 记录时，从表同步 `update/delete` 匹配的记录
+
+        - Set null 方式：
+
+          在主表 `update/delete` 记录时，将表匹配的记录设为 `null` ，注意从表外键不能设置非空约束
+
+        - No action 方式：
+
+          从表有匹配的记录，则不允许主表 `update/delete` 记录
+
+        - Restrict 方式：
+
+          与 No action 一样，Mysql 默认等级
+
+        - Set default 方式（Innodb 引擎不识别 ）：
+
+          Mysql 不支持
+
+     5. 添加外键
+
+        - `foreign key(从表字段) references 主表名(外键引用字段) [on update 等级] [on delete 等级];` 建表时
+        - `alter table 从表名 add foreign key(从表字段) references 主表名(外键引用字段) [on update 等级] [on delete 等级];`
+        - Mysql  默认等级为 Restrict 。更新、删除等级可以分别设置。 
+        - 指定外键约束名 `constraint 外键约束名 foreign key(从表字段) references 主表名(外键引用字段) [on update 等级] [on delete 等级];` __只要添加都可以设置，主键约束也可以__
+
+     6. 取消外键
+
+        - `alter table 从表名 drop foreign key 约束名`
+        - 获取约束名 `select * from information_schema.table_constraints where table_name = 表名`
+
+9. 查看表的结构
 
    - `desc 表名`
 
@@ -484,7 +729,7 @@
      4 rows in set (0.00 sec)
      ```
 
-9. 删除表
+10. 删除表
 
    - `drop table 表名`
 
@@ -510,40 +755,42 @@
      1 row in set (0.00 sec)
      ```
 
-10. 更改表名
+11. 更改表名
 
-   - `rename table name to new_name`
+    - `alter table old_name rename new_name;`
 
-     ```sql
-     mysql> show tables;
-     +-------------------+
-     | Tables_in_python3 |
-     +-------------------+
-     | students          |
-     | test              |
-     +-------------------+
-     2 rows in set (0.00 sec)
-     
-     mysql> rename table test to new_test;
-     Query OK, 0 rows affected (0.97 sec)
-     
-     mysql> show tables;
-     +-------------------+
-     | Tables_in_python3 |
-     +-------------------+
-     | new_test          |
-     | students          |
-     +-------------------+
-     2 rows in set (0.00 sec)
-     ```
+    - `rename table old_name to new_name`
+
+      ```sql
+      mysql> show tables;
+      +-------------------+
+      | Tables_in_python3 |
+      +-------------------+
+      | students          |
+      | test              |
+      +-------------------+
+      2 rows in set (0.00 sec)
+      
+      mysql> rename table test to new_test;
+      Query OK, 0 rows affected (0.97 sec)
+      
+      mysql> show tables;
+      +-------------------+
+      | Tables_in_python3 |
+      +-------------------+
+      | new_test          |
+      | students          |
+      +-------------------+
+      2 rows in set (0.00 sec)
+      ```
 
 11. 修改表中的属性、属性定义
 
     说明：对于表的修改，会有很多麻烦，最好在构建表的时候多一些考虑。表中一旦存在数据，修改表的结构会引来一堆错误，也有可能数据丢失，所以对于表的修改慎重操作   [参考文档](https://dev.mysql.com/doc/refman/5.5/en/alter-table.html#alter-table-add-drop-column) <br> __删除这块应该看一下官方文档__
 
-    - `alter table 表名 add | change | modify | drop 列名 类型 [默认值] 约束`
+    - `alter table 表名 add | change | modify | drop column 列名 类型 [默认值] 约束`
 
-    - 在 students 增加 age 列 <br>`alter table students add column age int not null;`
+    - 在 students 增加 age 列 <br>`alter table students add column age int not null;` 默认添加到最后，也可以指定添加位置 `alter table students add column age int not null first/after 字段` 指定第一行或者指定字段的后面。
 
       ```sql
       mysql> alter table students add column age int not null;
@@ -752,7 +999,7 @@
 
    说明：对现有数据进行修改
 
-   - `update 表名 set 列1=值1, 列2=值2... where 条件`
+   - `update 数据库.表名 set 列1=值1, 列2=值2... where 条件`
 
      说明：__可以一次修改一行，也可以一次修改多行，关键看 where 条件满足什么，如果没有写 where 表中数据就全部被修改__
 
@@ -865,7 +1112,7 @@
 
 1. 备份
 
-   说明：Linux 进入 __超级管理员__ --> __进入 mysql 数据库目录（数据存放目录）__ <br> windows 不用（前提将 mysql 加入环境变量中），都不用进入 Mysql 用户交互界面
+   说明：Linux 启用 __超级管理员__ --> __进入 mysql 数据库目录（数据存放目录，配置文件中  `datadir= /var/lib/mysql`）__ 。 windows 不需要进入数据库存放目录（前提将 mysql 加入环境变量中）。不需要进入 Mysql 用户交互界面执行 `mysqldump` 命令，因为其命令是脚本不是 mysql 的语法命令。
 
    - 运行 `mysqldump -h 主机 -P 端口号 -u root -p 数据库名 > path\xx.sql`
 
@@ -2420,12 +2667,15 @@ mysql> select * from students;
 1. 介绍
 
    - 索引能快速定位到要查找的内容
-
    - 数据库有默认索引，数据库存储是按照主键存储
    - 索引虽然能够加快数据库查询，但需要占用一定的存储空间，当基本更新时，索引要进行相应的维护，这些都增加了数据库的负担。
    - 再没建立索引时，where 是每一行逐条数据进行查找（就算找到了，where 还是会进行逐行查找，知道找完，返回查询信息），当你建立索引时，是根据 where 条件对哪一列进行筛选（频率大），对哪一列，建立索引
    - 索引可以对单列建立索引，也可以对多列建立一个索引，索引对等值有用，对范围来说，索引没用
    - 范围、or 是终断索引的逻辑运算符
+   - __Mysql 会在主键、唯一键和外键自动创建索引，其它字段需要手动创建索引__
+     1. 删除主键，索引也会随之删除
+     2. 删除唯一键的方式是通过删除索引来实现
+     3. 删除外键时，外键索引依然存在，需另删除
 
 2. 索引数据类型
 
