@@ -84,7 +84,7 @@
 
    - 数据的操作：创建、删除
    - 表的操作：创建、修改、删除
-   - 数据的操作：增加、删除、修改、查询，简称 crud（create、read、updata、delect）
+   - 数据的操作：增加、删除、修改、查询，简称 crud（create、read、updata、delete）
 
 ### MySQL 卸载与安装
 
@@ -1487,7 +1487,7 @@ mysql> select * from students;
      8 rows in set (0.01 sec)
      ```
 
-### 查询体条件 where
+### 查询体条件 where （exists 用法）
 
 说明：使用 where 子句对表中数据进行帅选，结果为 True 的行会出现在结果集中
 
@@ -1755,6 +1755,16 @@ mysql> select * from students;
       3. 比较运算符
       4. 逻辑运算符（and 比 or 先运算）
     -  可以使用 () 提高运算优先级
+    
+13. exists 用法
+
+    - 介绍
+      1. 用于判断子查询是否有记录，如果有一条或多条记录存在返回 True，否则返回 False
+      2. `not exists` 于 `exists` 作用想法
+    - 用法
+      1. 一般用法 `select 字段... from 表名1 where exists (select 字段... from 表名2 where 表名1.字段=表名2.字段);`
+      2. 子查询不返回查询记录，只返回 True\False
+      3. 运行规则是，将 __表1__ 的每一条记录带入 __子查询__中，去匹配 __相关联的字段__ ，如果匹配成功返回 True，否则返回 False。__感觉就是个 2 层循环嵌套，外层出一个记录，里层将外层这个记录与自己的记录进行比较相同返回 True，没有相同返回 False__
 
 ### 聚合函数
 
@@ -1880,7 +1890,7 @@ mysql> select * from students;
 
    - 按照某些字段分组，表示这些字段相同的数据会被分在一个组中（可以多个字段一起分组，多个字段都相同会被分到一组）
    - 分组后，结果集只显示用于分组的字段，其他的字段无法显示（会有语法错误）
-   - 可以对分组的数据机型统计，做聚合运算
+   - 可以对分组的数据进行统计，做聚合运算
 
 2. 语法介绍
 
@@ -1890,15 +1900,15 @@ mysql> select * from students;
 
      `select 聚合...from 表名 group by 列1,列2,列3...` 但是此语句查询结果集不直观
 
-   - 错误语法（使用 students 表为列）
+   - 错误语法（使用 students 表为例）
 
      `select name from students group by gender` 分组字段没有出现在 select 后面
 
-     `select genser,name from students group by gender` 没有用与分组得字段出现在 select 后面
+     `select gender,name from students group by gender` 没有用于分组的字段出现在 select 后面
 
 3. 使用方式
 
-   - 查询男女生总人数
+   - 查询男女生总人数 __（使用聚合函数 `count()`）__
 
      ```sql
      mysql> select gender,count(*) from students group by gender;
@@ -2021,7 +2031,7 @@ mysql> select * from students;
 
      1. 已知：每页显示 m 条数据，当前显示第 n 页
      2. 求：第 n 页的数据（用户页数从 1 开始算，数据库中的数据除 __自增__ 是从 1 开始，其余都是 从 0 开始）
-     3. 结果：`select * from 表名 where isDelete=0 limit (n-1)*m,m`
+     3. 结果：`select * from 表名 where isDelete=0 limit (n-1)*m,m` 按用户页算
 
    - 例子
 
@@ -2068,17 +2078,18 @@ mysql> select * from students;
      limit start,count          # 分页
      ```
 
-2. 执行顺序
+2. 执行顺序 __（一个完整得 SQL 语言执行得顺序，这就解释了为什么表的别名，可以在 select 中使用 `select province.id from areas as province where title='辽宁省';` 表名为 areas 别名为 province）__
 
-   - 讲解
-     1. from 表名
-     2. where ...
-     3. group by
-     4. select distinct *
-     5. having...
-     6. order by...
-     7. limit start,count
+   - 讲解（注意表和结果集，查询得时间顺序）
+     1. from 表名 ：从哪些表中筛选
+     2. where ... ：从表中帅选得条件
+     3. group by ：表中数据分组依据
+     4. select distinct * ：选择得字段
+     5. having... ：在统计结果中再次刷选
+     6. order by... ：结果集排序
+     7. limit start,count ：结果集分页
    - 实际中，只会使用部分语句的组合，而不是全部
+   - `select` 之前是对表中数据得筛选，之后是结果集得筛选
 
 ## 高级（多表操作）
 
@@ -2238,7 +2249,7 @@ mysql> select * from students;
      3. 以上这几种做法，都不好，最好使用逻辑删除
    
 
-### 关联查询（3种）
+### 关联查询
 
 说明：查询数据存在多张表时，使用连接查询，表的属性太长，可使用 `as` 简写名称。 <br>__连接查询就是把之前查询一张表，转换为多张表一起查询，[inner, left, right] 实际就是查询字段来自（from） 多张表了，有多个字段了，其他语句执行顺序不变，其中应查询存放关系字段的表，在连接其他表__
 
@@ -2246,12 +2257,13 @@ mysql> select * from students;
 
    - 如表
 
-     | 连接方式                     | 语法           | 查询结果集显示                                            |
-     | ---------------------------- | -------------- | --------------------------------------------------------- |
-     | 内连接（可以多张表查询）     | A inner join B | 表 A 与 表 B 的匹配的行，会出现在结果集中                 |
-     | 左（外）连接（只可以两张表） | A left join B  | A 和 B 相同行，外加 A 表中独有的数据，未对应的数据用 null |
-     | 右（外）连接（只可以两张表） | A right join B | A 和 B 相同行，外加 B 表中独有的数据，未对应的数据用 null |
-| 全（外）连接（只可以两张表） | full join      | __mysql 不支持，可以使用 union 合并__                     |
+     | 连接方式                     | 语法                                                         | 查询结果集显示                                               |
+     | ---------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+     | 内连接（可以多张表查询）     | A inner join B                                               | 表 A 与 表 B 的匹配的行，会出现在结果集中                    |
+     | 左（外）连接（只可以两张表） | A left join B                                                | A 和 B 相同行，外加 A 表中独有的数据，未对应的数据用 null    |
+     | 右（外）连接（只可以两张表） | A right join B                                               | A 和 B 相同行，外加 B 表中独有的数据，未对应的数据用 null    |
+   | 全（外）连接（只可以两张表） | full join                                                    | __mysql 不支持，可以使用 union 合并__                        |
+     | union                        | 将多个 select  结果，合并成一个结果集（去重，union all 不去重），__合并的 select 查询的字段得相同__ | [参考地址：菜鸟](https://www.runoob.com/mysql/mysql-union-operation.html) |
      
 
 2. 内连查询实例（没有关联条件 `on` 会出现笛卡尔积）
@@ -2287,22 +2299,21 @@ mysql> select * from students;
      +--------+--------+--------+
      6 rows in set (2.28 sec)
      
-  /* 另一种写法，使用 where 多表查询
-     mysql> select students.name,subjects.title,scores.score from scores,
-      -> students, subjects where scores.stuid=students.id and
-         -> scores.subid=subjects.id;
-     */
+     /* 另一种写法，使用 where 多表查询
+        mysql> select students.name,subjects.title,scores.score from scores,
+        -> students, subjects where scores.stuid=students.id and
+        -> scores.subid=subjects.id;
+      */
      ```
-   
    - 解释
    
      scores 表储存关系，所以 scores 表的数据没有多余数据，当实体关系为 (1: n) 时，关系存储在 n 对应的表中
-   
+
 3. 外联查询实例
 
    说明：使用右连接实例
 
-   - 先显示两表对应数据，在显示右表独有数据，为对应上的数据使用 null 填充
+   - 先显示两表对应数据，在显示右表独有数据，未对应上的数据使用 null 填充
 
    - 查询 score 表连接 students 表
 
@@ -2413,7 +2424,7 @@ mysql> select * from students;
 
    - 相似结构的多张表
 
-     说明：__(省: 市) 为 (1: n)关系，所以关系存放在市的表中__
+     说明：__(省: 市) 为 (1: n)关系，所以关系存放在市的表中；市、区县表也相同__
 
      ![相似结构的多张表](git_picture/相似结构的多张表.png)
 
@@ -2421,7 +2432,7 @@ mysql> select * from students;
 
      ![合成一张表](git_picture/合成一张表.png)
 
-3. 实现 __省、市、区县 合并一张表的插入_
+3. 实现 __省、市、区县 合并一张表的插入__
 
    - 代码实现
 
@@ -2432,7 +2443,8 @@ mysql> select * from students;
             -> id int auto_increment primary key not null,
             -> title varchar(20),
             -> pid int,
-            -> foreign key(pid) references areas(id));
+            -> foreign key(pid) references areas(id)
+            -> );
         Query OK, 0 rows affected (2.49 sec)
         
         mysql> desc areas;
@@ -2445,9 +2457,11 @@ mysql> select * from students;
         +-------+-------------+------+-----+---------+----------------+
         3 rows in set (2.24 sec)
         ```
-
-     2. 错误
-
+      ```
+     
+      ```
+   2. 错误 __（外键引用上注意）__
+     
         ```sql
         mysql> create table areas(
             -> id int auto_increment primary key not null,
@@ -2455,8 +2469,8 @@ mysql> select * from students;
             -> foreign key(pid) references areas(id)
             -> );
         ERROR 1072 (42000): Key column 'pid' doesn't exist in table
-        ```
-
+      ```
+     
         解释：要先创建 pid 字段，然后再用用外键
 
 4. __插入数据__
@@ -2503,8 +2517,7 @@ mysql> select * from students;
    
    - 合并表介绍
      
-   1. 合并表是 3 张表数据合在一张表，虽然存储再一张表中，但是查询时，分开查询，就是查省时，areas 表变成 province 表，查市时，areas 表变成 city 表，这样在逻辑上会显得清晰
-   
+     1. areas 表是合并表，是 3 张表数据合在一张表，虽然存储再一张表中，但是查询时，分开查询，就是查省时，areas 表变成 province 表；查市时，areas 表变成 city 表，这样在逻辑上会显得清晰。
    - 子查询
    
      查询属于辽宁省的市
@@ -2591,7 +2604,7 @@ mysql> select * from students;
    
      1. 查询语句
    
-        说明：查询存放 __关系字段__ 的表，再连接其他表
+        说明：查询存放 __关系字段__ 的表，再连接其他表 __（查询的主表 city 对应这关系最多，上对应省表、下对应区县表）__
    
         ```sql
         mysql> select province.title as protitle,city.title as cititle,county.title as cotitle from areas as city
@@ -2600,7 +2613,7 @@ mysql> select * from students;
             -> where province.title='辽宁省';
         ```
    
-     2. 查询结果
+     2. 查询结果（显示一小部分）
    
         ```sql
         +----------+----------+------------------------+
@@ -2696,40 +2709,117 @@ mysql> select * from students;
 
 ### 事物
 
-说明：当一个业务逻辑需要多条 sql 语句完成时，如果其中一条 sql 语句出现错误，则希望整个操作都退回，宝座逻辑的正确性。__表的类型必须是 InnoDB 、 BDB 类型，才可以使用事务__。<br>修改表的类型 `alter table '表名' engine=InnoDB;`
+说明：当一个业务逻辑需要多条 sql 语句完成时，如果其中一条 sql 语句出现错误，则希望整个操作都退回，保证逻辑的正确性。__表的引擎（engine）必须是 InnoDB 、 BDB 类型，才可以使用事务__。<br>修改表的类型 `alter table '表名' engine=InnoDB;`
 
 1. 介绍
 
    - 事务
 
-     所谓事务使用户定义的一个数据库操作序列，这些操作要么全做，要么全都不做，是一个不可分割的工作单位
+     1. 所谓事务是用户定义的一个数据库操作序列，这些操作要么全做，要么全都不做，是一个不可分割的工作单位
 
    - 定义事务 3 条语句
 
      1. `begin`
      2. `commit`
      3. `rollback`
-     4. 事务通常是以 `begin` 开始，以 `commit` 或 `roolback` 结束。<br>`commit` 表时提交，即提交事务所有操作，具体地说加将事务中所有对数据库的更新写回到磁盘上的物理数据中去，事务正常结束。<br> `rollback` 表时回滚，即在事务运行过程中发生某种故障，事务不能正常执行，系统将事务中对数据库的所有已完成操作全部撤回，回滚到是恶u开始执行的状态
+     
+   - 事务通常是以 `begin` 开始，以 `commit` 或 `roolback` 结束
+
+     1. `commit` 表示提交，即提交事务所有操作，具体地说：是将事务中所有对数据库的更新写回到磁盘上的物理数据中去，事务正常结束。
+     2. `rollback` 表示回滚，即在事务运行过程中发生某种故障，事务不能正常执行，系统将事务中对数据库的所有已完成操作全部撤回，回滚到数据库开始执行的状态
 
    - 事务的 4 大特性（简称 ACID）
 
      1. 原子性（Atomicity）
 
-        事务是数据库的逻辑工作单位，事务中包含诸多操作，要么都做，要么全部做，即事务的群不操作在数据库中是不可分的，
+        - 事务是数据库的逻辑工作单位，事务中包含诸多操作，要么都做，要么全部做，即事务的全部操作在数据库中是不可分的，
 
      2. 一致性（Consistency）
 
-        多个并行执行的事务，其执行结果必须与按某一顺序串行执行的结果相一致 <br> 某公司在银行有 A，B 两个账号，现在想从 A 账号中取出 1 万，存入 B 中，那么就定义一个事务，该事务包括 2 个操作，第一个操作是从 A 账号取出 1 万，第二个操作向 B 存入 1 万。这两个操作要么全做，要么全不做。全做、全不做，数据库都处于一致性状态。如果只做一个操作，则逻辑上就发生错误，减少或增加 1 万，这是数据库处于不一致状态。__可见一致性核原子性是密切相关的__
-
-     3. 隔离性（Isolation）
-
-        一个事务执行不能被其他事务干扰。即一个事务的内被操作及使用的数据对其他并发事务时隔离的，并发执行的事务之间不能相互干扰
-
+        - 多个并行执行的事务，其执行结果必须与按某一顺序串行执行的结果相一致 
+      -  某公司在银行有 A，B 两个账号，现在想从 A 账号中取出 1 万，存入 B 中，那么就定义一个事务，该事务包括 2 个操作，第一个操作是从 A 账号取出 1 万，第二个操作向 B 存入 1 万。这两个操作要么全做，要么全不做。全做、全不做，数据库都处于一致性状态。如果只做一个操作，则逻辑上就发生错误，减少或增加 1 万，这是数据库处于不一致状态。__可见一致性核原子性是密切相关的__
+     
+   3. 隔离性（Isolation）
+     
+      - 数据库允许多个并发事务同时对其数据进行读写和修改的能力，隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。并发执行的事务之间不能相互干扰 [菜鸟教程](https://www.runoob.com/mysql/mysql-transaction.html)
+     
+      - __事务隔离分为不同级别__
+     
+          1. 读未提交（Read uncommitted）：允许事务读取违背其他事务提交的变更。脏读、不可重复、幻读问题都会出现
+             - 事务1，可以读取到事务2 已经修改，但是还没有提交的数据
+          2. 读提交（read committed）：只允许事务读取已被其他事务提交的变更。可以避免脏读，但不可重复和幻读问题依然会出现
+             - 事务1，只可以读取事务2 已提交的数据
+          3. 可重复读（repeatable read）：确保事务可以多次从一个字段读取相同的值，这个事务在持续期间，禁止其他事务对该字段进行更新。可以避免脏读和不可重复读，但幻读问题仍然存在（随着 mysql 的优化，次级别也可以避免幻读）。
+          4. 串行化（Serializable）：确保事务可以从一个表中读取相同行。这个事务在持续期间，禁止其他事务对该表进行更新、插入、删除。可以避免脏读、不可重复读和幻读问题，但性能超低。
+     
+        - 脏读、不可重复读、幻读现象
+     
+          1. 脏读现象（针对未提交的记录）：事务1 对表的某个记录进行修改，但还未提交，事务2 就可以查看事务1 未提交的数据。这样造成的问题是，如果事务1 回滚，那么事务2 在此之前所查看的数据就是脏数据。
+          2. 不可重复的现象（针对表中行的数据）：是指同一个事务在整个事务过程中对表中同一记录进行读取，每次读取结果都不同。事务1 对表的某个记录进行修改，并已提交。在事务1 提交之前，事务2 查询了该条记录；在提交之后，事务2 又查询该条记录。
+          3. 幻读现象（针对记录的条数）：是指同一个事务在整个事务过程中对表中的记录进行读取，查询所得的结果集是不一样的（行数不同）。在事务1 提交之前，事务2 查询了表中记录；在提交之后，事务2 又查询表中记录。__两次读取的表中记录数不同__
+          4. 不可重复与幻读的区别：不可重复针对的是表中的记录的数据不同；幻读是针对查询的结果集数量不同（记录条数不同）
+     
+        - 事务隔离级别的作用
+     
+          | 事务级别                     | 脏读 | 不可重复读 | 幻读                        |
+          | ---------------------------- | ---- | ---------- | --------------------------- |
+          | read uncommitted（读未提交） | 1    | 1          | 1                           |
+          | read committed（读提交）     | 0    | 1          | 1                           |
+          | repeatable read（可重复读）  | 0    | 0          | 1（mysql 优化后也可以避免） |
+          | serializable（串行化）       | 0    | 0          | 0                           |
+     
+        - 对事物级别和问题的理解
+     
+          1. __读未提交、读提交__ 是针对提交而言
+          2. __可重复读__ 是针对记录（行）而言，事务持续期间将操作的表中记录（行）锁住禁止更新（优化后幻读也可以解决）。
+          3. __幻读__ 是将操作的表锁住，禁止更新、插入、删除。
+     
+        - 查看 mysql 默认隔离级别
+     
+          1. 查看当前的个级别 `select @@tx_isolation;`
+     
+          2. 查看全卷隔离级别 `select @@global.tx_isolation;`
+     
+             ```sql
+             mysql> select @@tx_isolation;
+             +-----------------+
+             | @@tx_isolation  |
+             +-----------------+
+             | REPEATABLE-READ |
+             +-----------------+
+             1 row in set, 1 warning (0.00 sec)
+             ```
+     
+        - 修改事务隔离级别
+     
+          1. 修改全局 (永久有效)`set global tx_isolation = 'read-committed';`
+          2. 只对本次连接有效 `set tx_isolation = 'read-uncommitted';`
+     
      4. 持续性（Durability）
+     
+        - 持续性也称持久性，指一个事务一旦提交，他对数据库中数据的改变应该是永久性的。接下来的其他操作或者发生故障不应对其执行结果产生任何影响
 
-        持续性也称持久性，指一个事务一旦提交，他对数据库中数据的改变应该是永久性的。接下来的其他操作或者发生故障不应对其执行结果产生任何影响
+2. 开始事务与结束事务
 
-2. 使用事务的情况
+   - > MySQL 命令行的默认设置下，事务都是自动提交的，即执行 SQL 语句后就会马上执行 `commit`
+     > 操作。因此要显式地开启一个事务务须使用命令 `begin` 或 `start transaction`，或者执行命令 `set autocommit=0`，用来禁止使用当前会话的自动提交。
+
+   - 手动提交事务方法一
+
+     1. 关闭自动提交 `set autocommit=0[false];`
+     2. 接下来执行的 SQL 语句都需要手动提交
+     3. 手动提交 `set autocommit=0[true];` 或者回滚 `rollback;`
+     4. __此次设置只在本次连接有效__ 。缺点事务提交不灵活
+     5. JDBC 支持这种方式
+
+   - 手动提交事务方法二
+
+     1. 开启事务 `begin;` 或者 `set transaction;`
+     2. 事务描述的 SQL 语句
+     3. 手动提交 `commit;` 或者回滚 `rollback;`
+     4. 使用灵活、方便
+
+3. 使用事务的情况
 
    说明：当数据库更改时，包括：insert \ update \ delete
 
