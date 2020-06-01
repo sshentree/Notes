@@ -372,6 +372,89 @@
    - 表的别名不要使用双引号 `""` ，
    - 别名，`as` 也可以省略
 
+###  用户权限及忘记密码问题
+
+__说明：[官方参考地址](https://dev.mysql.com/doc/refman/5.7/en/access-control.html)__
+
+1. 用户权限
+
+   - 身份认证 __（用户名+IP认证）__
+
+     1. `root@localhost` ：只允许本机使用 root 用户登录，`127.0.0.1` 和 `localhost` 等价 `root@127.0.0.1` 
+     2. `root@%` ：任何主机都可以使用 root 用户登录
+     3. `root@192.168.43.118` ：只允许在 `192.168.43.118` 主机使用 root 登录。__注意：即使本地主机的 IP 是 `192.168.43.118` 没有此用户也不可登录，只能使用 `root@localhost` 用户登录__。
+     4. `sshen@%` ：任何主机都可以使用 sshen 用户登录
+
+   - 设置用户 [官方参考地址](https://dev.mysql.com/doc/refman/5.7/en/creating-accounts.html)
+
+     1. 创建用户
+        - `create user 'finley'@'localhost' identified by '';` 只可本地主机登录，无需密码
+        - `create user 'finley'@'%' identified by '123456';` 任何主机都可以登录
+        - `create user 'finley'@'192.169.10.110' identified by '123456';` 只可主机 `192.168.10.110` 可登录
+     2. 删除用户
+        - `drop user 'user'@"host";`
+     3. 修改密码
+        - 修改当前用户密码  `set passeord = password('passwd');`
+        - 修改密码 `set password for 'user'@'host' = password('passwd');`
+
+   - 用户的 4 个权限级别
+
+     1. 全局
+     2. 特定数据库
+     3. 特定表
+     4. 特定字段
+     5. 依次校验权限，前面权限通过，后面权限不需再校验
+
+   - 设置用户级别 [官方参考地址](https://dev.mysql.com/doc/refman/5.7/en/privileges-provided.html)
+
+     1.   查看用户默认级别 `show grants for user@host;`
+
+        - 查看 root 用户级别
+
+          ```sql
+          mysql> show grants for root@localhost; -- 查看 root 用户默认级别
+          +---------------------------------------------------------------------+
+          | Grants for root@localhost                                           |
+          +---------------------------------------------------------------------+
+          | GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION |
+          | GRANT PROXY ON ''@'' TO 'root'@'localhost' WITH GRANT OPTION        |
+          +---------------------------------------------------------------------+
+          2 rows in set (0.00 sec)
+          ```
+
+        - 其中 `with grant option` 表示其拥有的权限可以授予其他用户
+
+     2. 授权用户级别 `grant privileges on databasename.tablename to 'user'@'host' [with grant option];`
+
+        - 参数说明
+          1. privileges：表示操作动作 `select/ insert/ update/ delete` ，全部允许为 `all/all privileges` 
+          2. databasename.tablename：表示数据库名.表名，所有数据库表为 `*.*`
+          3. user@host：表示，被授予的用户
+          4. [with grant option] ：表示被授予权限，是否可以在授予其他用户
+        - root 用户的权限，是对所有数据库，所有表拥有所有权限，并且可以授予其他用户
+          1. `GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION`
+        - root  用户授予 sshen 用户权限（mysql 数据库的 user 表的查询权限），并且可以再次授予
+          1. `grant select on mysql.user 'sshen'@'localhost' with grant option;`
+
+     3. 撤销用户权限 `revoke privilege on databasename.tablename from 'user'@'host';`
+
+        - 参数（同上）
+
+2. ~~忘记密码（修改 root 用户密码）~~
+
+   __说明：不好用__
+
+   - 关闭 mysql 服务
+   - 使用 `mysqld --skip-grant-tables;` 开启 mysqld 服务，只是跳过了认证。
+   - 登录 mysql `mysql -u root` ，无密码登录
+   - 修改权限表
+     1. `use mysql;` 进入名 mysql 数据库
+     2. 更新 user 表的 Password 字段 `update user set Password = password('12') where User = 'root';`
+     3. 刷新系统权限表 `flush privileges;`
+   - 关闭 mysqld 服务
+   - 再次开启 mysql 服务
+   - 使用新密码登录
+
 ### 运算符
 
 1. 算数运算符
@@ -2742,44 +2825,44 @@ mysql> select * from students;
    3. 隔离性（Isolation）
      
       - 数据库允许多个并发事务同时对其数据进行读写和修改的能力，隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。并发执行的事务之间不能相互干扰 [菜鸟教程](https://www.runoob.com/mysql/mysql-transaction.html)
-     
+       
       - __事务隔离分为不同级别__
-     
+       
           1. 读未提交（Read uncommitted）：允许事务读取违背其他事务提交的变更。脏读、不可重复、幻读问题都会出现
              - 事务1，可以读取到事务2 已经修改，但是还没有提交的数据
           2. 读提交（read committed）：只允许事务读取已被其他事务提交的变更。可以避免脏读，但不可重复和幻读问题依然会出现
              - 事务1，只可以读取事务2 已提交的数据
           3. 可重复读（repeatable read）：确保事务可以多次从一个字段读取相同的值，这个事务在持续期间，禁止其他事务对该字段进行更新。可以避免脏读和不可重复读，但幻读问题仍然存在（随着 mysql 的优化，次级别也可以避免幻读）。
           4. 串行化（Serializable）：确保事务可以从一个表中读取相同行。这个事务在持续期间，禁止其他事务对该表进行更新、插入、删除。可以避免脏读、不可重复读和幻读问题，但性能超低。
-     
+       
         - 脏读、不可重复读、幻读现象
-     
+       
           1. 脏读现象（针对未提交的记录）：事务1 对表的某个记录进行修改，但还未提交，事务2 就可以查看事务1 未提交的数据。这样造成的问题是，如果事务1 回滚，那么事务2 在此之前所查看的数据就是脏数据。
           2. 不可重复的现象（针对表中行的数据）：是指同一个事务在整个事务过程中对表中同一记录进行读取，每次读取结果都不同。事务1 对表的某个记录进行修改，并已提交。在事务1 提交之前，事务2 查询了该条记录；在提交之后，事务2 又查询该条记录。
           3. 幻读现象（针对记录的条数）：是指同一个事务在整个事务过程中对表中的记录进行读取，查询所得的结果集是不一样的（行数不同）。在事务1 提交之前，事务2 查询了表中记录；在提交之后，事务2 又查询表中记录。__两次读取的表中记录数不同__
           4. 不可重复与幻读的区别：不可重复针对的是表中的记录的数据不同；幻读是针对查询的结果集数量不同（记录条数不同）
-     
+       
         - 事务隔离级别的作用
-     
+       
           | 事务级别                     | 脏读 | 不可重复读 | 幻读                        |
           | ---------------------------- | ---- | ---------- | --------------------------- |
           | read uncommitted（读未提交） | 1    | 1          | 1                           |
           | read committed（读提交）     | 0    | 1          | 1                           |
           | repeatable read（可重复读）  | 0    | 0          | 1（mysql 优化后也可以避免） |
           | serializable（串行化）       | 0    | 0          | 0                           |
-     
+       
         - 对事物级别和问题的理解
-     
+       
           1. __读未提交、读提交__ 是针对提交而言
           2. __可重复读__ 是针对记录（行）而言，事务持续期间将操作的表中记录（行）锁住禁止更新（优化后幻读也可以解决）。
           3. __幻读__ 是将操作的表锁住，禁止更新、插入、删除。
-     
+       
         - 查看 mysql 默认隔离级别
-     
+       
           1. 查看当前的个级别 `select @@tx_isolation;`
-     
+       
           2. 查看全卷隔离级别 `select @@global.tx_isolation;`
-     
+       
              ```sql
              mysql> select @@tx_isolation;
              +-----------------+
@@ -2789,9 +2872,9 @@ mysql> select * from students;
              +-----------------+
              1 row in set, 1 warning (0.00 sec)
              ```
-     
+       
         - 修改事务隔离级别
-     
+       
           1. 修改全局 (永久有效)`set global tx_isolation = 'read-committed';`
           2. 只对本次连接有效 `set tx_isolation = 'read-uncommitted';`
      
@@ -2821,7 +2904,7 @@ mysql> select * from students;
 
 3. 使用事务的情况
 
-   说明：当数据库更改时，包括：insert \ update \ delete
+   __说明：数据库回滚时只对，包括：insert \ update \ delete 的语句有效。`truncate 表名` 删除整张表数据，回滚对其无效，但删除数据快（底层实现是使用 `drop` 表，再创建一张相同结构的表）。__
 
    - 事务操作流程图
 
@@ -2863,7 +2946,7 @@ mysql> select * from students;
           +----+--------+
           | id | title  |
           +----+--------+
-          |  2 | c/c++  |
+          |  2 | c/c++  |	-- 此条记录被修改
           |  3 | java   |
           |  4 | python |
           +----+--------+
@@ -2881,7 +2964,7 @@ mysql> select * from students;
           +----+--------+
           | id | title  |
           +----+--------+
-          |  2 | c      |
+          |  2 | c      |	-- 此条记录没有被修改
           |  3 | java   |
           |  4 | python |
           +----+--------+
