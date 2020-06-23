@@ -271,10 +271,49 @@
    - __日期输入注意__
 
      1. `year` 类型，可以输入 4 位数 ，如 `2020` ，也可以输入 2 位数，如 `20` 。如 `19-20` 则表示 `2019-2020` 。
+     
      2. `YYYY-MM-DD HH:MM:SS` `YY-MM-DD HH:MM:SS` 或 `YYYY-MM-DD` `YY-MM-DD` ，允许不严格输入：__任何标点符都可以作为日期部分和时间部分的分隔符__ 。例如 `10-12-01 01:01:00` 、`10.12.01 01+20+09` 、`20@01@01 01^01^01` 等等
+     
      3. `YYYYMMDD` 和 `YYMMDD` 没有间隔符的字符串：如果该字符串对于时间有意义，如 `20200820` 和 `200505` 可以被解释为 `2020-08-20` 和 `20-0505` ；如果该字符串对于时间没有意义，如 `20201490` (月份不合法) ，将解释为 `0000-00-00`
+     
      4. 对于包含日期部分并带有分隔符的字符串，如果日期小于 10 时，不需要指定 2 位数，如 `2020-5-5` 与 `2020-05-05` 相同。对于包含时间部分并带有分隔符的字符串，如果时间小于 10 时，也不需要使用 2 位，如 `2020-05-05 05:05:05` 与 `2020-5-5 5-5-5` 相同。
+     
      5. 一般时间选用 `timestamp` ，有一个重要特征，如果输入 `null` 自定设置为系统当前时间
+     
+     6. Java 与 Mysql 数据类型的对应关系。[JDBC-8 官方参考地址](https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-type-conversions.html)。__表 `ResultSetMetaData.GetColumnTypeName()`和 `ResultSetMetaData.GetColumnClassName()`的 MySQL 类型和返回值__
+     
+        | MySQL类型名称                 | 返回值 `GetColumnTypeName` | 返回值 `GetColumnClassName`                                  |
+        | ----------------------------- | -------------------------- | ------------------------------------------------------------ |
+        | `BIT(1)`                      | `BIT`                      | `java.lang.Boolean`                                          |
+        | `BIT( > 1)`                   | `BIT`                      | `byte[]`                                                     |
+        | `TINYINT`                     | `TINYINT`                  | `java.lang.Boolean`如果配置属性 `tinyInt1isBit`设置为 `true`（默认值）并且存储大小为1，`java.lang.Integer` 则为否。 |
+        | `BOOL`， `BOOLEAN`            | `TINYINT`                  | 请参阅`TINYINT`上方的，因为这些是`TINYINT(1)`当前的别名 。   |
+        | `SMALLINT[(M)] [UNSIGNED]`    | `SMALLINT [UNSIGNED]`      | `java.lang.Integer`（无论是否 `UNSIGNED`存在）               |
+        | `MEDIUMINT[(M)] [UNSIGNED]`   | `MEDIUMINT [UNSIGNED]`     | `java.lang.Integer`（无论是否 `UNSIGNED`存在）               |
+        | `INT,INTEGER[(M)] [UNSIGNED]` | `INTEGER [UNSIGNED]`       | `java.lang.Integer`如果 `UNSIGNED` `java.lang.Long`          |
+        | `BIGINT[(M)] [UNSIGNED]`      | `BIGINT [UNSIGNED]`        | `java.lang.Long`（如果未签名） `java.math.BigInteger`        |
+        | `FLOAT[(M,D)]`                | `FLOAT`                    | `java.lang.Float`                                            |
+        | `DOUBLE[(M,B)]`               | `DOUBLE`                   | `java.lang.Double`                                           |
+        | `DECIMAL[(M[,D])]`            | `DECIMAL`                  | `java.math.BigDecimal`                                       |
+        | `DATE`                        | `DATE`                     | `java.sql.Date`                                              |
+        | `DATETIME`                    | `DATETIME`                 | `java.sql.Timestamp`                                         |
+        | `TIMESTAMP[(M)]`              | `TIMESTAMP`                | `java.sql.Timestamp`                                         |
+        | `TIME`                        | `TIME`                     | `java.sql.Time`                                              |
+        | `YEAR[(2|4)]`                 | `YEAR`                     | 如果`yearIsDateType`配置属性设置为 `false`，则返回的对象类型为`java.sql.Short`。如果设置为 `true`（默认值），则返回的对象的类型`java.sql.Date` 为日期设置为1月1日午夜。 |
+        | `CHAR(M)`                     | `CHAR`                     | `java.lang.String`（除非该列的字符集为`BINARY`，然后 `byte[]`返回。 |
+        | `VARCHAR(M) [BINARY]`         | `VARCHAR`                  | `java.lang.String`（除非该列的字符集为`BINARY`，然后 `byte[]`返回。 |
+        | `BINARY(M)`                   | `BINARY`                   | `byte[]`                                                     |
+        | `VARBINARY(M)`                | `VARBINARY`                | `byte[]`                                                     |
+        | `TINYBLOB`                    | `TINYBLOB`                 | `byte[]`                                                     |
+        | `TINYTEXT`                    | `VARCHAR`                  | `java.lang.String`                                           |
+        | `BLOB`                        | `BLOB`                     | `byte[]`                                                     |
+        | `TEXT`                        | `VARCHAR`                  | `java.lang.String`                                           |
+        | `MEDIUMBLOB`                  | `MEDIUMBLOB`               | `byte[]`                                                     |
+        | `MEDIUMTEXT`                  | `VARCHAR`                  | `java.lang.String`                                           |
+        | `LONGBLOB`                    | `LONGBLOB`                 | `byte[]`                                                     |
+        | `LONGTEXT`                    | `VARCHAR`                  | `java.lang.String`                                           |
+        | `ENUM('value1','value2',...)` | `CHAR`                     | `java.lang.String`                                           |
+        | `SET('value1','value2',...)`  | `CHAR`                     | `java.lang.String`                                           |
 
 5. __约束__
 
@@ -2820,49 +2859,49 @@ mysql> select * from students;
      2. 一致性（Consistency）
 
         - 多个并行执行的事务，其执行结果必须与按某一顺序串行执行的结果相一致 
-      -  某公司在银行有 A，B 两个账号，现在想从 A 账号中取出 1 万，存入 B 中，那么就定义一个事务，该事务包括 2 个操作，第一个操作是从 A 账号取出 1 万，第二个操作向 B 存入 1 万。这两个操作要么全做，要么全不做。全做、全不做，数据库都处于一致性状态。如果只做一个操作，则逻辑上就发生错误，减少或增加 1 万，这是数据库处于不一致状态。__可见一致性核原子性是密切相关的__
+        - 某公司在银行有 A，B 两个账号，现在想从 A 账号中取出 1 万，存入 B 中，那么就定义一个事务，该事务包括 2 个操作，第一个操作是从 A 账号取出 1 万，第二个操作向 B 存入 1 万。这两个操作要么全做，要么全不做。全做、全不做，数据库都处于一致性状态。如果只做一个操作，则逻辑上就发生错误，减少或增加 1 万，这是数据库处于不一致状态。__可见一致性核原子性是密切相关的__
+        
+     3. 隔离性（Isolation）
      
-   3. 隔离性（Isolation）
+        - 数据库允许多个并发事务同时对其数据进行读写和修改的能力，隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。并发执行的事务之间不能相互干扰 [菜鸟教程](https://www.runoob.com/mysql/mysql-transaction.html)
      
-      - 数据库允许多个并发事务同时对其数据进行读写和修改的能力，隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。并发执行的事务之间不能相互干扰 [菜鸟教程](https://www.runoob.com/mysql/mysql-transaction.html)
-       
-      - __事务隔离分为不同级别__
-       
+        - __事务隔离分为不同级别__
+     
           1. 读未提交（Read uncommitted）：允许事务读取违背其他事务提交的变更。脏读、不可重复、幻读问题都会出现
              - 事务1，可以读取到事务2 已经修改，但是还没有提交的数据
           2. 读提交（read committed）：只允许事务读取已被其他事务提交的变更。可以避免脏读，但不可重复和幻读问题依然会出现
              - 事务1，只可以读取事务2 已提交的数据
           3. 可重复读（repeatable read）：确保事务可以多次从一个字段读取相同的值，这个事务在持续期间，禁止其他事务对该字段进行更新。可以避免脏读和不可重复读，但幻读问题仍然存在（随着 mysql 的优化，次级别也可以避免幻读）。
           4. 串行化（Serializable）：确保事务可以从一个表中读取相同行。这个事务在持续期间，禁止其他事务对该表进行更新、插入、删除。可以避免脏读、不可重复读和幻读问题，但性能超低。
-       
+     
         - 脏读、不可重复读、幻读现象
-       
+     
           1. 脏读现象（针对未提交的记录）：事务1 对表的某个记录进行修改，但还未提交，事务2 就可以查看事务1 未提交的数据。这样造成的问题是，如果事务1 回滚，那么事务2 在此之前所查看的数据就是脏数据。
           2. 不可重复的现象（针对表中行的数据）：是指同一个事务在整个事务过程中对表中同一记录进行读取，每次读取结果都不同。事务1 对表的某个记录进行修改，并已提交。在事务1 提交之前，事务2 查询了该条记录；在提交之后，事务2 又查询该条记录。
           3. 幻读现象（针对记录的条数）：是指同一个事务在整个事务过程中对表中的记录进行读取，查询所得的结果集是不一样的（行数不同）。在事务1 提交之前，事务2 查询了表中记录；在提交之后，事务2 又查询表中记录。__两次读取的表中记录数不同__
           4. 不可重复与幻读的区别：不可重复针对的是表中的记录的数据不同；幻读是针对查询的结果集数量不同（记录条数不同）
-       
+     
         - 事务隔离级别的作用
-       
+     
           | 事务级别                     | 脏读 | 不可重复读 | 幻读                        |
           | ---------------------------- | ---- | ---------- | --------------------------- |
           | read uncommitted（读未提交） | 1    | 1          | 1                           |
           | read committed（读提交）     | 0    | 1          | 1                           |
           | repeatable read（可重复读）  | 0    | 0          | 1（mysql 优化后也可以避免） |
           | serializable（串行化）       | 0    | 0          | 0                           |
-       
+     
         - 对事物级别和问题的理解
-       
+     
           1. __读未提交、读提交__ 是针对提交而言
           2. __可重复读__ 是针对记录（行）而言，事务持续期间将操作的表中记录（行）锁住禁止更新（优化后幻读也可以解决）。
           3. __幻读__ 是将操作的表锁住，禁止更新、插入、删除。
-       
+     
         - 查看 mysql 默认隔离级别
-       
+     
           1. 查看当前的个级别 `select @@tx_isolation;`
-       
+     
           2. 查看全卷隔离级别 `select @@global.tx_isolation;`
-       
+     
              ```sql
              mysql> select @@tx_isolation;
              +-----------------+
@@ -2872,9 +2911,9 @@ mysql> select * from students;
              +-----------------+
              1 row in set, 1 warning (0.00 sec)
              ```
-       
+     
         - 修改事务隔离级别
-       
+     
           1. 修改全局 (永久有效)`set global tx_isolation = 'read-committed';`
           2. 只对本次连接有效 `set tx_isolation = 'read-uncommitted';`
      
@@ -2891,7 +2930,7 @@ mysql> select * from students;
 
      1. 关闭自动提交 `set autocommit=0[false];`
      2. 接下来执行的 SQL 语句都需要手动提交
-     3. 手动提交 `set autocommit=0[true];` 或者回滚 `rollback;`
+     3. 手动提交 `set autocommit=1[true];` 或者回滚 `rollback;`
      4. __此次设置只在本次连接有效__ 。缺点事务提交不灵活
      5. JDBC 支持这种方式
 
