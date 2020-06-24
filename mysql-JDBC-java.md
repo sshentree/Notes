@@ -16,7 +16,7 @@ __说明：基于 MySQL 5.7 数据库、JDBC/j8.x 和 JDK1.8__
 
    - 如图
 
-     ![JDBC作用](JDBC作用.jpg)
+     ![JDBC作用](git_picture/JDBC作用.jpg)
 
 ### JDBC 增删改查过程
 
@@ -30,7 +30,7 @@ __说明：基于 MySQL 5.7 数据库、JDBC/j8.x 和 JDK1.8__
 
      1. 如图
 
-        ![JDBC-API](JDBC-API.jpg)
+        ![JDBC-API](git_picture/JDBC-API.jpg)
 
 2. 常用接口、类介绍
 
@@ -627,7 +627,7 @@ __说明：基于 MySQL 5.7 数据库、JDBC/j8.x 和 JDK1.8__
 
      1. 如图
 
-        ![Java项目结构图](Java项目结构图.jpg)
+        ![Java项目结构图](git_picture/Java项目结构图.jpg)
 
    - 各层模块介绍
 
