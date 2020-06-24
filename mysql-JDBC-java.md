@@ -796,7 +796,7 @@ __说明：基于 MySQL 5.7 数据库、JDBC/j8.x 和 JDK1.8__
         - __`BeanListHandler` ：将结果集中每一行数据封装到对应的 JavaBean 实例中，存入 List 中__
         - __`ScalarHandler` ：查询单个值对象__
         - __`MapHandler<String, Object>` ：将结果集中第一行数据封装到 `Map` 中，`key` 是列名，`value` 是对应值__
-        - __`MapListHandler` ：将结果集中第一行数据封装到 `Map` 中，`key` 是列名，`value` 是对应值，存入 List__
+        - __`MapListHandler` ：将结果集中第一行数据封装到 `Map` 中，`key` 是列名，`value` 是对应值，存入 List 中__
         - `ColumnListHandler` ：将结果集中某一行数据存入 List
         - `KeyedHandler(name)` ：将结果集中第一行数据封装到 `Map` 中，`key` 是列名，`value` 是对应值，再将这些 `Map` 存入一个 `Map` 中，`key` 为指定 `key`
         - `ArrayHandler` ：将结果集中第一行数据转成对象数组（`Object[]`）
