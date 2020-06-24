@@ -77,7 +77,7 @@ __说明：基于 MySQL 5.7 数据库、JDBC/j8.x 和 JDK1.8__
 
 1. 介绍
 
-   - > __`conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);` 当如果 SQL 语句不是一条 INSERT 语句，或者 SQL 语句能够返回自动生成的键（这类语句的列表是特定于供应的），则忽略此参数。 __
+   - > __`conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);` 当如果 SQL 语句不是一条 INSERT 语句，或者 SQL 语句能够返回自动生成的键（这类语句的列表是特定于供应的），则忽略此参数。__
 
    - 获取自增长键的使用情况
 
@@ -392,7 +392,7 @@ __说明：基于 MySQL 5.7 数据库、JDBC/j8.x 和 JDK1.8__
      
      4. __对比__
      
-        - 不管是哪一种创建数据库连接池对象，__实际运行时类都是 `DruidDataSource` __ ，而接口 + 配置文件最为常用。
+        - 不管是哪一种创建数据库连接池对象， __实际运行时类都是 `DruidDataSource` __ ，而接口 + 配置文件最为常用。
         - 可以通过 `DataSource` 对象方式 `setXXX()` 或者 `getXXX()` 设置或者获取参数值。
         
      5. 通过连接池获取数据库连接对象
@@ -796,7 +796,7 @@ __说明：基于 MySQL 5.7 数据库、JDBC/j8.x 和 JDK1.8__
         - __`BeanListHandler` ：将结果集中每一行数据封装到对应的 JavaBean 实例中，存入 List 中__
         - __`ScalarHandler` ：查询单个值对象__
         - __`MapHandler<String, Object>` ：将结果集中第一行数据封装到 `Map` 中，`key` 是列名，`value` 是对应值__
-        - __`MapListHandler` ：将结果集中第一行数据封装到 `Map` 中，`key` 是列名，`value` 是对应值，存入 List __
+        - __`MapListHandler` ：将结果集中第一行数据封装到 `Map` 中，`key` 是列名，`value` 是对应值，存入 List__
         - `ColumnListHandler` ：将结果集中某一行数据存入 List
         - `KeyedHandler(name)` ：将结果集中第一行数据封装到 `Map` 中，`key` 是列名，`value` 是对应值，再将这些 `Map` 存入一个 `Map` 中，`key` 为指定 `key`
         - `ArrayHandler` ：将结果集中第一行数据转成对象数组（`Object[]`）
