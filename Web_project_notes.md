@@ -224,7 +224,7 @@ __说明：[参考地址](https://blog.csdn.net/asty9000/article/details/9020532
           ```xml
             <!-- 注册类,标明 url 地址 -->
             <servlet>
-     	<servlet-name>demo</servlet-name>
+              <servlet-name>demo</servlet-name>
             	<servlet-class>ServletDemo.Demo</servlet-class>
             </servlet>
             <servlet-mapping>
