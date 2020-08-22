@@ -5718,15 +5718,81 @@ mysql> select * from students;
         stu
         ```
 
-## Redis
+## Redis 介绍
 
-### Redis 安装及配置文件
+### 技术分类
+
+1. 解决共功能性问题
+   - Java，Jsp，RDBMS，Tomcat，HTML，Linux，Jdbc，SVN（git）
+2. 扩展性的问题
+   - Struts，Spring，SpringMVC，Hibernate，Mybatis
+3. 解决性能问题
+   - NoSQL，Java 线程，Hadoop，Nginx（数据库负载均衡），MQ（消息队列），ElasticSearch
+
+### 介绍
+
+1. 行式数据库
+
+   - 按行查询数据库
+
+2. 列式数据库
+
+   - 按列查询数据
+
+3. 由于其拥有持久化能力，利用其多样的数据结构存储特定的数据
+
+   - 如表
+
+     | 作用                       | 数据格式                           |
+     | -------------------------- | ---------------------------------- |
+     | 最新 N 个数据              | 通过 list 实现按自然时间排序的数据 |
+     | 排行榜，Top N              | 利用 zset （有序集合）             |
+     | 时效性数据，比如手机验证码 | Expire 过期                        |
+     | 计数器，秒杀               | 原子性，自增方法incr，decr         |
+     | 去除大量重复数据           | 利用 set 集合                      |
+     | 构建队列                   | 利用 list 集合                     |
+     | 发布订阅消息系统           | pub/sub 模式                       |
+
+4. __Redis 是单线程 + IO 复用技术__
+
+   - 多路复用是指使用一个线程来检查多个文件描述符（Socket）的就绪状态，比如调用 select 和 poll 函数，传入多个文件描述符，如果有一个文件描述符就绪，则返回，否则阻塞直接超时。得到就绪状态后进行真正的操作可以在同一个线程里执行，也可以启动线程执行（比如线程池）
+
+### Ubuntu 安装
+
+1. 下载 redis，解压
+2. 编译
+   - 需要 `gcc/g++`
+3. 安装 `make install` 
+   - 默认安装位置 `/usr/local/bin`
+   - 自定义安装位置 `make PREFIX=/opt/databases/redis`
+   - 安装目录 `/opt/datavases/redis/bin`
+4. 安装目录介绍
+   - `Redis-benchmark` ：性能测试工具，可以在自己本上运行，看服务启动后的性能
+   - `Redis-check-aof` ：修复有问题的 `AOF` 文件
+   - `Redis-check-dump` ：修复有问题的 `dump.rdb`
+   - `Redis-sentinel` ：Redis 集群使用
+   - `Redis-server` ：服务器启动命令
+   - `Redis-cli` ：客户端，操作入口
+5. 指定自定义配置文件启动
+   - `redis-server redis.conf` (配置文件在解压目录中)
+   - 修改 `daemonize` 的 no 改为 yes，让服务后台启动
+6. 连接服务器
+   - `redis-cli -h 127.0.0.1 -p 6379`
+   - redis 没有用户之分，输入密码正确即可连上
+7. 关闭服务端
+   - 在客户端输入 `shutdwon`
+   - 系统终端 `redis-cli shutdwon` 
+8. 默认又 16 个数据（0-15）
+   - 默认使用 0 号库
+   - 选择库 `select num`
+
+### Redis 安装及配置文件（windows）
 
 说明：本人为 win10 操作系统
 
 1. Redis 安装
 
-   说明：Redis 官方网址 [网址]([https://redis.io](https://redis.io/))
+   说明：Redis 官方网址 [网址](https://redis.io)
 
    - 安装过程参考地址 [菜鸟](https://www.runoob.com/redis/redis-install.html)
    - 指出：下载压缩文件，解压即安装完成，可以将其添加环境变量中，启动方便
@@ -5783,77 +5849,191 @@ mysql> select * from students;
       # bind 127.0.0.1
       ```
 
-      解释：此配置文件，没有绑定 IP，所以任何 IP 都不限制
+      解释：此配置文件，没有绑定 IP，所以接受任何 IP 都不限制的访问，还需要将保护模式关闭（不关闭还是直接收本地访问） `protected-mode no`
 
-   3. 日志文件存放地址（修改）
+   3. 请求到达至接受处理前的队列（队列总和 = 未完成 3 次握手队列 + 已完成 3 次握手队列）
 
-      ```tex
-      # Specify the log file name. Also 'stdout' can be used to force
-      # Redis to log on the standard output. 
-      # 将日志存入文档中
-      # logfile "E:/Redis_data/Logs/redis_log.txt"
-      # 标准输出，在命令窗口
-      logfile stdout
+      ```shell
+      94 # TCP listen() backlog.
+      95 #
+      96 # In high requests-per-second environments you need an high backlog in order
+      97 # to avoid slow clients connections issues. Note that the Linux kernel
+      98 # will silently truncate it to the value of /proc/sys/net/core/somaxconn so
+      99 # make sure to raise both the value of somaxconn and tcp_max_syn_backlog
+      100 # in order to get the desired effect.
+   101 tcp-backlog 511
       ```
 
+   4. 一个空闲的客户端维持多少秒会关闭，0 永不关闭
+
+      ```shell
+       103 # Unix socket.
+       104 #
+       105 # Specify the path for the Unix socket that will be used to listen for
+       106 # incoming connections. There is no default, so Redis will not listen
+       107 # on a unix socket when not specified.
+    108 #
+       109 # unixsocket /tmp/redis.sock
+    110 # unixsocketperm 700
+       111 
+       112 # Close the connection after a client is idle for N seconds (0 to disable)
+       113 timeout 0
+      ```
+   
+   5. 对方问的客户端进行心跳检测（官方推荐 60 秒检测一次）
+   
+      ```shell
+       114 
+       115 # TCP keepalive.
+       116 #
+       117 # If non-zero, use SO_KEEPALIVE to send TCP ACKs to clients in absence
+       118 # of communication. This is useful for two reasons:
+       119 #
+       120 # 1) Detect dead peers.
+       121 # 2) Take the connection alive from the point of view of network
+       122 #    equipment in the middle.
+       123 #
+    124 # On Linux, the specified value (in seconds) is the period used to send ACKs.
+       125 # Note that to close the connection the double of the time is needed.
+    126 # On other kernels the period depends on the kernel configuration.
+       127 #
+    128 # A reasonable value for this option is 300 seconds, which is the new
+       129 # Redis default starting with Redis 3.2.1.
+    130 tcp-keepalive 300
+      ```
+   
+   6. 日志文件存放地址（修改）
+   
+   ```tex
+      # Specify the log file name. Also 'stdout' can be used to force
+   # Redis to log on the standard output. 
+      # 将日志存入文档中
+   # logfile "E:/Redis_data/Logs/redis_log.txt"
+      # 标准输出，在命令窗口
+      logfile stdout
+   ```
+   
       解释：日志文件存放位置
-
-   4. Redis 数据库的数量（默认没有名字从 0 到 15）
-
+   
+   7. Redis 数据库的数量（默认没有名字从 0 到 15）
+   
       ```tex
       # Set the number of databases. The default database is DB 0, you can select
       # a different one on a per-connection basis using SELECT <dbid> where
       # dbid is a number between 0 and 'databases'-1
       databases 16
       ```
-
-   5. Redis 是基于内存的读写，但是也会向硬盘存储
-
-      ```tex
-      #   In the example below the behaviour will be to save:
-      #   after 900 sec (15 min) if at least 1 key changed
-      #   after 300 sec (5 min) if at least 10 keys changed
-      #   after 60 sec if at least 10000 keys changed
-      #
-      #   Note: you can disable saving completely by commenting out all "save" lines.
-      #
-      #   It is also possible to remove all the previously configured save
-      #   points by adding a save directive with a single empty string argument
-      #   like in the following example:
-      #
-      #   save ""
-      
-      save 900 1
-      save 300 10
-      save 60 10000
-      ```
-
-      解释：保存形式，900 秒内，更新超过 1 次、300 秒内，更新超过 10 次、60 秒内，更新超过 10000 次，会向硬盘写入。如果不想向硬盘写入，可以将 `save 900 1` 这样的 3 个语句注释，将 `save ""` 打开。查询不算更新。
-
-   6. __物理存储数据库的名字及地址__（修改）
-
-      - 物理存储数据库名
-
-        ```tex
-        # The filename where to dump the DB
-        dbfilename dump.rdb
+   
+   8. 密码设置
+   
+      - 临时设置（客户端设置，已经开启服务）
+   
+        ```shell
+        shen@shen-Ubuntu:/opt/databases/redis/bin$ sudo ./redis-cli 
+        127.0.0.1:6379> config get requirepass
+        1) "requirepass"
+        2) ""
+        127.0.0.1:6379> config set requirepass "123"
+        OK
+        127.0.0.1:6379> auth 123
+        OK
+        127.0.0.1:6379> keys *
+        (empty array)
+        127.0.0.1:6379> 
         ```
-
-        解释：可以修改嘛
-
-      - 数据库存放位置（文件夹）
-
-        ```sql
-        # The working directory.
-        #
-        # The DB will be written inside this directory, with the filename specified
-        # above using the 'dbfilename' configuration directive.
-        #
-        # The Append Only File will also be created inside this directory.
-        #
-        # Note that you must specify a directory here, not a file name.
-        dir E:/Redis_data/db
+   
+      - 永久设置
+   
+        ```shell
+         780 # IMPORTANT NOTE: starting with Redis 6 "requirepass" is just a compatiblity
+         781 # layer on top of the new ACL system. The option effect will be just setting
+         782 # the password for the default user. Clients will still authenticate using
+         783 # AUTH <password> as usually, or more explicitly with AUTH default <password>
+         784 # if they follow the new protocol: both will work.
+         785 #
+         786 requirepass 123
         ```
+   
+   9. 最大客户端连接数
+   
+      - `maxclient 10000` 默认连接数
+   
+   10. 可以使用的内存量
+   
+       - `maxmemory` 
+       - 如果内存使用达到上线，Redis 将试图移除内部数据，移除规则可以通过 `maxmemery-policy` 来指定。
+       - 如果 Redis 无法根据移除规则来移除内存中的数据，或者设置了 `不允许移除`
+       - 那么，Redis 则会针对哪些需要申请内存的指令返回错误信息。申请内存命令 `set/lpush`
+   
+   11. 移除规则
+   
+       - `maxmemery-policy`
+   
+       - 如表
+   
+         | 参数            | 作用                                                         |
+         | --------------- | ------------------------------------------------------------ |
+         | volatile-lru    | 使用 LRU（最近最少使用原则）算法移除 key，只对设置过期时间的键 |
+         | allkeys-lru     | 使用 LRU（最近最少使用原则）算法移除 key                     |
+         | volatile-random | 在过期集合中移除随机 key，只对设置过期时间的键               |
+         | allkeys-random  | 移除随机的 key                                               |
+         | volatile-ttl    | 即将过期，移除哪些 TTL 值最小的 key，即哪些要过期的 key      |
+         | noeviction      | 不进行移除，针对写操作，返回错误信息                         |
+   
+   12. 设置样本数
+   
+       - `maxmemory-sample`
+       - 设置样本数，LRU算法和最小 TTL 算法，都不是精确的算法，而是估计算值，所以可以设置样本大小
+       - 一般设置 3到7数字，数字越小约不准确，但性能消耗也越小
+       - 样本，就是最先获取要删除的数据，然后从样本中再次比较，删除最该删除的
+   
+   13. Redis 是基于内存的读写，但是也会向硬盘存储
+   
+       ```tex
+       #   In the example below the behaviour will be to save:
+       #   after 900 sec (15 min) if at least 1 key changed
+       #   after 300 sec (5 min) if at least 10 keys changed
+       #   after 60 sec if at least 10000 keys changed
+       #
+       #   Note: you can disable saving completely by commenting out all "save" lines.
+       #
+       #   It is also possible to remove all the previously configured save
+       #   points by adding a save directive with a single empty string argument
+       #   like in the following example:
+       #
+       #   save ""
+       
+       save 900 1
+       save 300 10
+       save 60 10000
+       ```
+   
+       解释：保存形式，900 秒内，更新超过 1 次、300 秒内，更新超过 10 次、60 秒内，更新超过 10000 次，会向硬盘写入。如果不想向硬盘写入，可以将 `save 900 1` 这样的 3 个语句注释，将 `save ""` 打开。查询不算更新。
+   
+   14. __物理存储数据库的名字及地址__（修改）
+   
+       - 物理存储数据库名
+   
+         ```tex
+         # The filename where to dump the DB
+         dbfilename dump.rdb
+         ```
+   
+         解释：可以修改嘛
+   
+       - 数据库存放位置（文件夹）
+   
+         ```sql
+         # The working directory.
+         #
+         # The DB will be written inside this directory, with the filename specified
+         # above using the 'dbfilename' configuration directive.
+         #
+         # The Append Only File will also be created inside this directory.
+         #
+         # Note that you must specify a directory here, not a file name.
+         dir E:/Redis_data/db
+         ```
 
 ### Redis 启动
 
@@ -5895,6 +6075,8 @@ mysql> select * from students;
      127.0.0.1:6379>
      ```
 
+## 数据操作
+
 ###              数据格式、数据操作
 
 说明：[Redis 中文命令大全](http://www.redis.cn/commands.html)
@@ -5904,8 +6086,8 @@ mysql> select * from students;
    - __键__（key）的类型
      1. 字符串
    - __值__（value）的类型分为 5 种
-     1. string：（字符串）
-     2. hash：（哈希）
+     1. string：（字符串，最大为 512M）
+     2. hash：（哈希Map）
      3. list：（列表）
      4. set：（集合）
      5. zset：（有序集合）
@@ -5936,7 +6118,10 @@ mysql> select * from students;
      127.0.0.1:6379[1]>
      ```
 
-3. __string__
+
+### String 类型
+
+1. __string__
 
    - 介绍
 
@@ -6117,7 +6302,7 @@ mysql> select * from students;
           8
           ```
 
-4. __键的命令__
+2. __键的命令__
 
    - 查找键，参数支持正则
 
@@ -6209,7 +6394,10 @@ mysql> select * from students;
      name
      ```
 
-5. __hash__
+
+### hash 类型
+
+1. __hash__
 
    说明：hash 用于存储对象，对象的格式为键值对（json ）
 
@@ -6254,7 +6442,7 @@ mysql> select * from students;
 
      2. 获取多个属性
 
-        `hmset key filed field1..`
+        `hmget key filed field1..`
 
         ```shell
         127.0.0.1:6379> hmget stu_1 name gender
@@ -6262,7 +6450,7 @@ mysql> select * from students;
         0
         ```
 
-     3. 获取所有属性值
+     3. 获取所有属性和值
 
         `hgetall key`
 
@@ -6325,13 +6513,29 @@ mysql> select * from students;
           gender
           ```
 
+        - 增加数值（加负数实现减法）
+
+          `hincrby key field 10` ，field 字段加 10
+
+        - 有值不赋值，没有赋值
+        
+          `hsetnx key field value`
+        
         - 返回值的字符串长度
-
+        
           `hstrlen key field`
-
+        
           出错！！！
+   
+2. 存储 Java 对象的几种方式
 
-6. __list__ 
+   - 先将对象序列化，以 id 作为值，序列化的字符流（文本）作为 value（用不上 hash ，用 string 就可以）
+     1. 每次修改，需要反序列化，在序列化，开销较大
+
+
+### list  类型
+
+1. __list__ 
 
    - 介绍
 
@@ -6340,6 +6544,7 @@ mysql> select * from students;
      3. 在列表的头部或尾部添加元素
      4. 左右都可以进入数据
      5. 值没有键也会被删除
+     6. 底层是双向链表，两端操作性能高，操作中间性能较低
 
    - 设置
 
@@ -6452,42 +6657,46 @@ mysql> select * from students;
         -100
         ```
 
-     3. 获取部分 list 元素值
+     3. 从左边删除 n 个 value（list 有相同的，所以可以删除多个 value）
 
+        `lrem key n value` ，n 为整数表示从左往右删除几个；负整数从右向左删除几个；0 表示删除所有
+
+     4. 获取部分 list 元素值
+   
         `lrange key start stop`
-
+   
         ```shell
         # 获取全部元素
         127.0.0.1:6379> lrange i 0 -1
-        100
+     100
         0
-        -100
+     -100
         ```
 
    - 其他
 
      1. 返回 list 长度
-
+   
         `llen key`
-
-        ```shell
+   
+     ```shell
         127.0.0.1:6379> llen i
-        3
-        ```
+     3
+     ```
 
      2. 返回 list 索引对应的元素
-
+   
         `lindex key index`
-
-        ```shell
+   
+     ```shell
         127.0.0.1:6379> lindex i 0
-        100
-        ```
+     100
+     ```
 
      3. 裁剪列表
-
+   
         `ltrim key start stop`
-
+   
         ```shell
         # 原始 list
         127.0.0.1:6379> lrange i 0 -1
@@ -6508,13 +6717,18 @@ mysql> select * from students;
         2
         ```
 
-7. __set__（集合）
+
+### set 类型
+
+1. __set__（集合）
 
    - 介绍
 
      1. 无序集合
      2. 元素为 string 类型
-     3. 元素具有唯一性，不重复
+     3. 元素具有唯一性，不重复（没有索引值）
+     4. set 提供了判断某个成员是否是一个 set 集合内的重要接口。
+     5. 底层是一个 value 为 null 的 Hash 表（HashMap），所以添加，删除，查找的复杂度都是 O(1)
 
    - 设置
 
@@ -6553,7 +6767,7 @@ mysql> select * from students;
 
    - 其他
 
-     1. 求多个集合交集
+     1. 求多个集合交集（返回相同的元素）
 
         `sinter key1 key2 [key3...]`
 
@@ -6565,10 +6779,22 @@ mysql> select * from students;
 
         `sunion key1 key2 [key3...]`
 
-     4. 判断元素是否在集合中
+     4. 删除集合中的一些元素
 
+        `srem key value1 [value2...]`
+
+     5. 从集合中随机弹出一个元素（删除作用）
+     
+        `spop key` 
+     
+     6. 随机从该集合中去除 n 个元素（不会删除元素）
+     
+        `srandmember key n`
+     
+     7. 判断元素是否在集合中
+     
         `sismember key member`
-
+     
         ```shell
         # 集合元素
         127.0.0.1:6379> smembers set_list
@@ -6584,14 +6810,24 @@ mysql> select * from students;
         1
         ```
 
-8. __zset__
+
+### zset 类型
+
+1. zset 介绍
 
    - 介绍
 
-     1. sort set ，有序集合
+     1. sort set ，有序集合（有索引与 list 相似）
      2. 元素为 string 类型
      3. 元素具有唯一性，不重复
      4. 每个元素都会关联一个 double 类型的 score，表示权重，通过权大小将元素从小到大排序
+
+   - 特点
+
+     1. 添加元素：不同分数，相同元素，元素添加不上，但是分数可以添加上（修改分数，即修改顺序）
+     2. 相同的分数，不同的元素，正常排序
+
+   - __像一个 Map 集合，以元素为 key ，分数为 value__
 
    - 设置
 
@@ -6620,7 +6856,15 @@ mysql> select * from students;
         (2.21s)
         ```
 
-     3. 返回元素个数
+     3. 通过分数获取
+
+        `zrangebyscore key min max` ，`zrangbyscore key 100 100`
+
+     4. 通过分数将查询结果反转（默认从小到大）
+
+        `zrevrangebyscore key max min`
+
+     5. 返回元素个数
 
         `zcard key`
 
@@ -6661,6 +6905,590 @@ mysql> select * from students;
         127.0.0.1:6379> zscore zset_list 3
         2
         ```
+
+2. 使用 zset 实现文章访问量排行榜的实现
+
+   - 创建 ` zadd test 1000 java 800 python 500 c 300 c++`
+
+   - 排序
+
+     ```shell
+     127.0.0.1:6379> zrevrange test 0 -1
+     1) "java"
+     2) "python"
+     3) "c"
+     4) "c++"
+     127.0.0.1:6379> zrevrangebyscore test 1000 500
+     1) "java"
+     2) "python"
+     3) "c"
+     
+     ```
+
+### 操作总结
+
+1. 如表
+
+   | 命令                 | 作用                                  |
+   | -------------------- | ------------------------------------- |
+   | dbsize               | 查看当前数据的 key 的数量             |
+   | flushdb              | 清空当前数据库                        |
+   | flushall             | 清空全部数据库（16个库）              |
+   | incr key             | value 为数字，如果为空新增值为 1      |
+   | getrange/setrange    | 截取，包前也包后                      |
+   | setex key time value | 设置值时，设置时间                    |
+   | getset key value     | 给key复制，同时得到原来的信息（修改） |
+
+2. 原子性
+
+   - 原子操作是指不会被线程调度所打断，这种操作一旦开始，就一直执行到结束
+
+## Java 连接 Redis
+
+### 准备工作
+
+1. [菜鸟参考地址](https://www.runoob.com/redis/redis-java.html)
+2. JAR 包
+   - `jedis.jar` （与Jdbc 功能相同）
+   - 连接池 `commons-pool2-2.4.2.jar` 
+
+### 测试是否连接成功
+
+1. 连接本地主机
+
+   - 代码
+
+     ```java
+     // 连接本地主机
+     Jedis jedis = new Jedis("localhost");
+     // 非本地主机连接，在配置文件中的 bind 和 protect-model 设置
+     // Jedis jedis = new Jedis("ip", port)
+     
+     // 如果 Redis 服务设置来密码，需要下面这行，没有就不需要
+     // jedis.auth("123456"); 
+     
+     // 使用 ping() 测试连接是否成功
+     if (jedis.ping().equals("PONG")) {
+         System.out.println("success");
+     }
+     
+     // 关闭连接
+     jedis.close();
+     ```
+
+2. __Java 实际方法操作，和 redis 数据库指令名，完全相同__
+
+### 短息验证码
+
+1. 思路
+   - 前端获取 电话号
+   - 随机产生验证码
+   - 将 电话号，作为 key 的基础，验证码为 value
+     1. 拼接 key ：`verify_code:138298182:code`
+   - 存入 Redis 中，设置过期时间
+   - 前端获取，验证码，从 Redis 取出验证码，比对
+
+### 数据库连接池
+
+1. `JedisPool`
+
+## Reis 事务
+
+### 介绍
+
+1. Redis 事务定义
+
+   - Redis 事务是一个单独的隔离操作，事务中所有命令都序列化、按顺序执行。
+   - 事务在执行过程中，不会被其他客户端发来的命令请求所打断
+   - __Redis 事务的主要作用就是串联多个命令防止别的命令来打断__
+   - __Redis 更像是指令批量处理的过程__
+   - 没有隔离级别
+   - 没有原子性
+
+2. 事务命令
+
+   - `multi` ：从输入此命令开始，输入的命令都会一次进入命令队列中，但不会执行
+   - `exec` ：直到输入此命令，Redis 会将命令队列中的命令一次执行
+   - `discard` ：组队过程中可以通过此命令来放弃组队（取消事务）
+
+3. 事务的错误处理
+
+   - 组队中某个命令出现了报告错误（单词错误，输入阶段，编译异常，语法错误），执行时整个队列都会被取消
+   - 如果执行命令阶段出现错误（执行阶段），则只有报错的命令不会被执行，而其他命令队徽被执行，不会回滚
+
+4. 演示
+
+   - 正常执行代码
+
+     ```shell
+     127.0.0.1:6379> multi  # 开启事务
+     OK
+     127.0.0.1:6379> set a a
+     QUEUED
+     127.0.0.1:6379> get a
+     QUEUED
+     127.0.0.1:6379> exec # 执行队列中事务
+     1) OK
+     2) "a"
+     ```
+
+   - 编译时错误
+
+     ```shell
+     127.0.0.1:6379> multi
+     OK
+     127.0.0.1:6379> get a
+     QUEUED
+     127.0.0.1:6379> sets c b
+     (error) ERR unknown command `sets`, with args beginning with: `c`, `b`,  # 编译时错误
+     127.0.0.1:6379> exec
+     (error) EXECABORT Transaction discarded because of previous errors.  # 事务直接被取消
+     ```
+
+   - 执行是错误
+
+     ```shell
+     127.0.0.1:6379> multi	# 开启事务
+     OK
+     127.0.0.1:6379> get a
+     QUEUED
+     127.0.0.1:6379> incr a  # 非数字不可以加
+     QUEUED
+     127.0.0.1:6379> get a
+     QUEUED
+     127.0.0.1:6379> exec     # 执行事务
+     1) "a"
+     2) (error) ERR value is not an integer or out of range  # 错误没有执行
+     3) "a"
+     ```
+
+### 事务的作用
+
+1. 问题描述
+   - 网络抢购
+   - 事务冲突问题（账户金额共 1000）
+     1. 3 个请求
+     2. 一个请求想给金额减去 800
+     3. 一个请求想给金额减去 500
+     4. 一个请求想给金额减去 1000
+   - 如果三个请求并发操作，金额会成为负值
+2. 悲观锁、乐观锁
+   - 关系型数据库一般为悲观锁
+   - 非关系型数据库一般为乐观锁
+   - 悲观锁：
+     - 加锁之后，读写都不可以，只有释放锁后，才可以继续操作
+   - 乐观锁
+     - 引入版本号，每一次数据变化后版本相对应升级
+     - 乐观锁加锁后，允许读写错做，但是比较版本号不同（中间有操作，版本号升级），操作失败
+3. 监视
+   - `watch key [key1...]`
+   - 在执行 `multi` 之前，先执行 `watch key` 可以监视一个或者多个 key，如果在事务执行之前这些 key 被其他的命令所改动，那么事务将被打断
+   - 取消监视 `unwatch`
+   - 取消 watch 命令监视的所有 key，需要在 `exec/discard` 之前执行
+
+### 秒杀案例
+
+1. 思路
+
+### ab 工具并发模拟
+
+1. 安装 ab 工具
+
+2. 命令 
+
+   - 测试请求 `ab -n 请求数 -c 并发数 -p 指定请求数据文件 -T "application/x-www-form-urlencoded" 测试请求`
+
+   - 测试请求为 `form` 表单的 `action` 属性相同
+
+   - 指定请求数据文件（测试请求传输的数据）
+
+     ```tex
+     prodid=10101&prodid=10102&
+     ```
+
+### 超卖问题
+
+1. 秒杀时，可能出现超卖问题
+2. 使用事务和 `watch` 解决超卖问题
+   - 将并发的操作添加进事务中，使用 `watch` 监视商品数量，保证添加进事务的操作只有一个可以成功
+
+### 库存遗留问题
+
+1. 当使用事务和 watch （监视库存变化），可以解决超卖问题，但是当库存量大时，请求数一定（1000），并发数（200），200 个并发只有一个可以秒杀成功（因为 watch 监视的key 变化，则取消其他事务），一共1000 个请求，理想情况下，只会有 5 个秒杀成功，导致库存有剩余。
+2. 使用 `Lua` 脚本解决上述问题
+
+### Lua 脚本
+
+1. 将负责的或者是多步的 Redis 操作，写成几个脚本，一次提交给 Redis 执行，减少反复连接 Redis 的次数，提升性能
+2. Lua 脚本类似于 Redis 的事务，有一定的原子性，不会被其他命令插队，可以完成一些 Redis 事务的操作
+
+## 持久化
+
+### 介绍
+
+1. Redis 提供了两种不同形式的持久化方式（持久化，将数据存入磁盘中）
+2. RDB（Redis DataBase）
+3. AOP（append Of File）
+
+### RDB
+
+1. 在指定的时间间隔将内存的数据集快照写入磁盘中，也就是 snapshot 快照，恢复时将快照直接读入内存中
+2. 如何备份
+   - Redis 会单独创建一个 （fork）子进程进行持久化，会先将数据写入一个临时文件，带持久化过程结束，再用临时文件替换上次持久化的文件，整个过程主进程不进行任何 IO 操作。
+   - 这就确保了极高的性能，如果需要进行大规模的数据恢复，且对数据恢复完整性不是非常敏感（丢失数据），那么 RDB 比 AOP 高效
+   - RDB 的缺点是，最后一次持久化后数据可能丢失
+3. 保存（配置文件中有说明）
+   - 数据保存位置
+   - 保存策略
+4. 保存方式
+   - 满足保存策略，自动进行保存
+   - 正常关闭（`shutdown`） ，自动保存
+   - 手动保存策略（`save`），只管保存，其他不管，请求全部阻塞
+5. __注意__
+   - `stop-writes-on-bgsave-error yes`
+     1. 当 Redis 无法写入磁盘时，直接关掉 Redis 的写操作
+   - `rdbcompression yes`
+     1. 进行 rdb 保存时，将文件压缩
+   - `rdbchecksum yes`
+     1. 在存储快照时，还可以让 Redis 使用 CRC64 算法进行数据比较，但这样会增加大约 10% 的性能消耗，如果想获得最大性能可以关闭此功能
+6. rdb 备份
+   - `config get dir` 查询 rdb 目录
+   - 恢复
+     1. 将数据拷到工作目录下，启动 Redis 即可
+7. 优缺点
+   - 节省空间、恢复速度块
+   - rdb 保存的是数据、aop 保存的是操作的指令
+   - rdb 使用写时拷贝技术（执行时，才会占用父进程资源），但数据庞大还是消耗性能，以外宕机会丢失最后修改的数据
+
+### AOP
+
+1. 以日志的形式记录每一个 __写操作__ ，将 Redis 执行过的所有写命令记录下来（读操作不记录），只需追加文件，但不可以改写文件。Redis 启动时，会读取文件重构数据，换而言之，Redis 会根据日志，将指令重新执行一遍，完成数的恢复
+
+2. AOP 默认不开启，需要手动配置
+
+   - `appendonly no` 默认不开启
+   - 保存的文件名 `appendfilename "appendonly.aop"`
+   - 路径于 RDB 路径一致
+
+3. RDB 和 AOP 同时开启，则使用 AOP
+
+4. AOP 文件故障备份
+
+   - AOP 备份性能和机制虽然于 RDB 不同，但是备份和恢复的操作同 RDB 一样，都是拷贝备份文件，需要时再靠背到工作目录中
+
+5. AOP 文件故障恢复
+
+   - AOP 与 RDB 保存的路径相同
+   - 如果 AOP 文件损坏，可以恢复
+     1. `redis-check-aof --fix appendonly.aof` 恢复
+
+6. 同步频率设置
+
+   - 始终同步，每一次 Redis 的写都会立即记录日志
+
+   - 每秒同步，每秒记录日志一次，如果宕机，本秒的数据丢失
+
+   - 不主动进行同步，把同步时机交给主机
+
+   - 配置文件
+
+     ```tex
+     086 # If unsure, use "everysec".
+     1087 
+     1088 # appendfsync always
+     1089 appendfsync everysec
+     1090 # appendfsync no
+     ```
+
+7. Rewrite
+
+   - AOP 采用文件追加方式，所以文件会越来越大，避免此种情况发生。
+   - 新增重写机制，当文件大小超过阈值时，Redis 就会启动 AOP 文件内容压缩，只保留可以恢复的数据最小指令集，可以使用命令 `bgrewriteaof`
+   - 最小指令集实例
+     1. 多个 `set key` 时（同一个 key），只保留最后的修改，保证数据可以恢复。
+
+8. Redis 如何实现重写
+
+   - AOF 文件持续增长而过大时，会 fork 出一条新的进程来讲这些文件重写（也是先临时后覆盖），遍历新进程的内存数据，每条记录有 Set 语句的。
+   - 重写 aof 文件操作，并没有读取旧的 aof 文件，而是将整个内存中的数据库内容用命令的方式从写写了 aof 文件，这点和快照差不多
+
+9. 何时重写
+
+   - 重写可以节省大量磁盘空间，减少恢复时间，但每次重写都有负担，因此设定 Redis 满足条件测绘进行重写
+
+   - 实例
+
+     ```tex
+     1130 auto-aof-rewrite-percentage 100
+     1131 auto-aof-rewrite-min-size 64mb                                         
+     ```
+
+   - 系统载入时或上次重写完毕时，Redis 会记录此时的 AOF 大小，设为 base_size，如果 Redis 的 AOF 当前大小 >= base_size + base_size * 100%（默认）且当前大小 >= 64mb（默认情况），Redis会对 AOF 进行重写
+
+10. 优缺点
+
+    - 备份机制稳健，丢失数据概率低
+    - 刻度的日志文件，通过 AOF 稳健，可以处理误操作
+    - 缺点
+    - 相对于 RDB，占用磁盘空间大
+    - 备份速度慢
+    - 每一读写读同步，有性能压力
+    - 存在 bug，造成不能恢复
+
+## Redis主从复制
+
+### 主从复制介绍
+
+1. 什么时主从复制
+   - 主从复制，就是主机数据更新后，根据配置和策略，自动同步到备机的 `master/slaver` 机制
+   - Master 以写为主，Slave 以都为主
+2. 用处
+   - 读写分离，性能扩展
+   - 容灾快速回复
+
+### 如何配置
+
+1. 配置从服务器不配置主服务器
+
+   - 拷贝多个 `redis.conf` 文件，使用 `incude`
+     1. 将服务器的相同配置放入一个文件中，使用 `include` 引入即可
+   - 开启 `daemonize yes` ，后台运行
+   - Pid 文件名 `pidfile`
+   - 指定端口号 `port`
+   - Log 文件名称
+   - Dump.rdb 名字 dbfilename
+     1. 在一台机器下，相同的文件会替换
+   - Appendonly 关掉或者换名称（同理）
+
+2. 创建公共配置文件
+
+   - 其他的配置文件引入
+
+     ```tex
+     # 引入配置文件
+     include /opt/database/redis/bin/redis.conf
+     # 需要重新设定的配置
+     pidfile /var/run/redis_6379.conf
+     port 6379
+     dbfilename dump6379.rdb
+     ```
+
+   - 根据配置文件，启动不同的服务，启动 3 个服务器（依据 3 个配置文件）
+
+3. __开启服务后，如何配置主从关系__
+
+   - 打印主从复制关系
+     1. `info replication`
+   - 成为某个实例的从服务器
+     1. `slaveof ip port` 再从服务器中写 ip 为主服务的
+
+4. 主从机说明
+
+   - 功能说明
+     1. 主服务器：可以读写（一般只写） 
+     2. 从服务器：只可以读
+   - 从服务器掉线后，在上线就不是从服务器了，需要再次设置
+     1. 但是不管何时给主服务器设置从服务器，从服务器必须与主服务器保持一致
+   - 主机掉线：从机原地待命，等到主服务器上线
+   
+5. 永久配置主从服务器
+
+   - 以上的配置都是临时性的，如果服务全部重启，服务器就没有任何关系
+
+   - 修改配置文件（在公共的配置文件中）
+
+     ```tex
+     # 主服务器的 IP 和 端口号
+     slaveof masterip masterport
+     ```
+
+6. 复制原理
+
+   - 每一从机联通后，都会给主机发送 `sync` 指令
+   - 主机会立刻进行存盘操作，发送 RDB 文件，给从机
+   - 从机收到后，进行全盘加载
+   - 之后主机的每次写操作，都立刻发送给从机，从机执行相同的命令
+
+### 薪火相传
+
+1. 上一个 slave 可以是下一个 slave 的 master，slave 同样可以接受其他 slave 的连接和同步请求，那么该 slave 作为链条中的下一个 master，可以有效减少 master 的写压力，去中心化降低风险
+2. 主从关系
+   - A -> B -> C
+   - C 可以从 B 复制数据，B 是主，C 是从
+   - B 可以从 A 复制数据
+3. 反客为主
+   - 从上得知从服务器不能写操作，如果 A 宕机，B 是从服务器（主服务器宕机，从服务器原地待命），还是不能写
+   - 将 B 的主服务器去掉，不做任何服务器的从
+     1. `slave on one` 不做任何服务器的从服务器，既可以与 C 形成主从关系，从而有写全限
+
+### 哨兵模式
+
+1. 反客为主的自动版（当主机宕机，随机抽取一台从服务器，作为主机）
+
+2. 留言协议
+
+   - 确定主服务器是否可用
+
+3. 投票协议
+
+   - 确定哪个从服务器作为主服务器
+
+4. 哨兵模式是在主从复制的基础上（一主二仆模式）
+
+   - 自定义的配置文件目录，新建 `sentinel.conf`
+
+   - 在配置文件中填写
+
+     ```tex
+     # 主服务器的 IP 和端口号
+     sentinel monitor mymaster 127.0.0.1 6379 1
+     ```
+
+   - 说明
+
+     1. mymaster 为主服务器名称（自定义）
+     2. `1` 为至少有多少个哨兵同意迁移的数量（多少个哨兵认为宕机才算宕机）
+     3. 一主二从，3 个哨兵的设置，这时应为 `2`
+
+5. 启动哨兵
+
+   - 执行 `redis-sentinel sentinel.conf` 
+
+6. 故障恢复
+
+   - 当主服务器宕机，哨兵会选择新的主服务器，当主服务器再次上线，哨兵会通知其，你已经从主变为从了
+   - 选择主服务器的原则（依次选择）
+     1. 选择优先级靠前的（配置文件 redis.conf 中 `slave-priority 100`）
+     2. 选择偏移量较大的（获得源主数据最多的）
+     3. 选择 runid 最小的从服务器（每一个 redis 实例启动后都会产生随机的 40 位的 runid）
+
+## Redis 集群
+
+### 介绍
+
+1. __主从复制可以解决其读写的压力，集群则可以解决内存的压力__
+2. 问题
+   - 容量不够，redis 如何进行扩容
+   - 并发写操作，redis 如何分摊
+3. 什么是集群
+   - Redis 集群实现对 Redis 的水平扩容，即启动 N 个 Redis 节点上，将整个数据库，分布存储在 N 个节点上，每个节点存储总数据的 1/N 
+   - Redis 集群通过分区（partition）来提供一定程度的可用性（availability）：即使集群中国一部分节点无法通讯，集群也可以继续处理命令
+
+### 安装环境
+
+1. 安装`ruby` 环境
+   - `sudo apt install ruby`
+   - `sudo apt install rubygems`
+2. 前期操作
+   - 拷贝 `redis-3.2.0.gem` 到 `/opt` 目录下
+   - 执行 `gem install --local redis-3.2.0.gem`
+3. 制作实例
+   - 拷贝多个 `redis.conf` 文件，使用 `incude`
+     1. 将服务器的相同配置放入一个文件中，使用 `include` 引入即可
+   - 开启 `daemonize yes` ，后台运行
+   - Pid 文件名 `pidfile`
+   - 指定端口号 `port`
+   - Log 文件名称
+   - Dump.rdb 名字 dbfilename
+     1. 在一台机器下，相同的文件会替换
+   - Appendonly 关掉或者换名称（同理）
+4. 安装  redis cluster (与主从复制的配置文件相同，追加，在定义的配置文件中)
+   - 打开集群模式
+     1. `cluster-enabled yes`
+   - 设定节点配置文件名
+     1. `cluster-config-file nodes-6379.conf`
+   - 设定节点失联时间（毫秒），超过该时间，集群自动进行主从切换
+     1. `cluster-node-timeout 15000`
+
+### 启动
+
+1. 启动 Redis 实例（集群的多少，取决取 Redis 的实例）
+
+   - 确保 `nodes-xxx.conf` 文件生成正常
+
+2. 合体
+
+   - 将多个节点（Redis 实例）放入一个集群中
+
+   - 进入 `redis/src` 目录中（解压目录）
+
+     1. 执行 
+
+        ```shell
+        ./redis-trib.rb create --replicas 1 ip:port ip:port ip:port...
+        ```
+
+3. 以集群的方式进入客户端
+
+   - `redis-cli -c -p port` （进入一个客户端即可）
+   - 在客户端输入 `cluster nodes` 查看集群信息
+
+4. Redis cluster 如何分配这 6 个节点
+
+   - __一个集群至少有 3 个主节点__
+   - 选项 `--replicas 1` 表示我们希望为集群的每一个主节点创建一个从节点
+   - 分配原则尽量保证每一个主数据库运行在不同的 IP 地址，每一个主库和从库不在一个 IP 地址上
+
+5. 什么是 `slots` （插槽）
+
+   - 一个 Redis 集群包含 16384 个插槽（hash slot），数据库中的每一个键都属于这 16384 个插槽的其中一个
+   - 集群使用 `CRC16(key) % 16384` 来计算 key 属于哪个槽。
+   - 集群中每一个节点负责一部分插槽（主节点分配，从节点跟随）
+     1. 主节点 A 负责 0-5500
+     2. 主节点 B 负责  5501-11000
+     3. 主节点 C 分则 11001-16384
+   - 插入数据，查询数据时，会计算每一个 key 属于哪一个插槽，将其重定向到这个主节点上（客户端也随即切换），查询也一样
+
+6. 在集群中录入值
+
+   - 使用 `redis-cli` 开启客户端，插入、查询时，Redis 都会计算出 key 所属的槽，如果不是本客户端对应的槽，Redis 会报错，并告知应前往 Redis 的哪个实例
+
+   - 使用 `redis-cli -c -p port` 开启客户端，插入、查询时，会自动从定向的指定的服务器客户端
+
+   - 不在一个槽（slot）下的键，不能使用 `mget` `mset` 等多值操作
+
+   - 可以使用 `{}` 来定义组的概念，从而使 key 中的 `{}` 内相同内容的键值对放入到一个 `slot` 中去
+
+     ```shell
+     set a{user} 1
+     set b{user} 2
+     # 这样可以保证 a b 在一个组，即以在同一个服务器上
+     ```
+
+7. 查询集群中的值
+
+   - `cluster keyslot key` 计算 key 的 slot
+   - `cluster countkeysinslot 槽` 返回槽目前包含的键的数量
+   - `cluster getkeysinslot slot count` 返回槽中的 count 个键
+
+### 故障恢复
+
+1. 主节点下线，从节点是否自动成为主节点
+   - 从节点会自动成为主节点，主节点再上线，即为从节点
+2. 如果某一段的主从节点都下线，redis 服务是否继续
+   - 其他的主从节点正常，下线的主从节点负责的插槽不能继续工作（没有从新分配）
+   - redis.conf 中的参数 
+     1. `clustre-require-full-coverage yes` 16384 个 slot 都正常才对外提供服务
+     2. 改成 `no` ，部分不正常也可以提供服务
+
+### 集群的 Jedis 开发
+
+1. 配置
+
+   - 集群
+   - `commons-pool2.-2.4.2.jar`
+
+2. 实例
+
+   ```java
+   Set<HostAndPort> nodes = new HashSet<>();
+   node.add(new HostAndPort("ip", port)); // 使用集群的一个 ip port 即可（自动重定向）
+   // 通过 ip 和 port 创建集群连接，可以自动重定向
+   JedisCluster cluster = new JedisCluster(nodes);
+   
+   cluster.set("username", "tom");
+   cluster.close(); // 关闭
+   ```
 
 ## Redis 高级操作
 
@@ -6773,7 +7601,6 @@ mysql> select * from students;
 ### 待续......
 
    
-
 
 
 
