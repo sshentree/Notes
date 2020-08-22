@@ -1,4 +1,4 @@
-数据库技术
+# 数据库技术
 
 ## 数据库概述
 
@@ -10,7 +10,7 @@
 
    - 数据是数据库存储的基本对象
 
-   - 广义的理解认为数据有很多种，例如：文本（text）、图像（graph）、图像（image）、音频（audio）、视频（video）、学生的档案记录等，这些都是数据
+   - 广义的理解认为数据有很多种，例如：文本（text）、图像（graph）、图像（image）、音频（audio）、视频（video）、学生的档案记录等，这些都是数据。
 
    - 数据可做如下定义：描述事物的符号记录称之为数据
    - 数据的表型形式还不能完全表达其内容，需要经过解释，数据和关于数据解释是不可分的，例如：93 是一个数据，但可以表示某个学生某门课的成绩，也可以表示某个人的体重。__数据的解释是指对数据的含义说明，数据的含义称之为数据的语义，数据和语义是分不开的__
@@ -18,7 +18,7 @@
 2. 数据库（DataBase，DB）
 
    - 数据库，顾名思义，是存放数据的仓库。只不过这个仓库是在计算机存储设备上，而且数据是按照一定格式存放的
-   - 严格来将，数据库是长期存储在计算机内、有组织、可共享的大量数据集合。数据库中的数据按一定数据模型组织、描述存储，具有较小的冗余度（redundancy），较高的数据独立性（data independency）和一扩展性（scalability），并可为各种用户共享。
+   - 严格来将，数据库是长期存储在计算机内、有组织、可共享的大量数据集合。数据库中的数据按一定数据模型组织、描述存储，具有较小的冗余度（redundancy），较高的数据独立性（data independency）和一定扩展性（scalability），并可为各种用户共享。
    - __概括来讲，数据库数据具有永久存储、有组织和可共享三个基本特点__
 
 3. 数据库管理系统（DataBase Management System）
@@ -41,7 +41,7 @@
 
      4. 数据库的事务管理和运行管理
 
-        数据库在建立、运用和维护时由数据库管理系系统统一管理和控制，以确保事物的正确运行，保证数据的安全性、完整性、多用户对数据的并发使用及发生故障的系统恢复
+        数据库控制语言（Data Control Language，DCL），数据库在建立、运用和维护时由数据库管理系统统一管理和控制，以确保事物的正确运行，保证数据的安全性、完整性、多用户对数据的并发使用及发生故障的系统恢复
 
      5. 数据库的建立和维护功能
 
@@ -84,11 +84,56 @@
 
    - 数据的操作：创建、删除
    - 表的操作：创建、修改、删除
-   - 数据的操作：增加、删除、修改、查询，简称 crud（create、read、updata、delect）
+   - 数据的操作：增加、删除、修改、查询，简称 crud（create、read、updata、delete）
+
+### MySQL 卸载与安装
+
+#### 卸载
+
+1. Windows 的卸载（Windows 安装好像会有两种方式，但是卸载大同小异）
+
+   - 第一步：
+
+     1. 停掉 MySQL 服务（管理器 --> 服务）
+
+        ![MySQL服务](git_picture/MySQL服务.jpg)
+
+   - 第二步：
+
+     1. 使用 __控制面板__ 删除 MySQL 安装包，或者直接到 MySQL 安装目录中删除软件包（此种做法是 Mysql 的另一种安装方式，因为在控制面板中找不到 MySQL 的安装包）
+
+   - 第三步：
+
+     1. 删除 MySQL 残留的文件，及 MySQL 存储的数据
+     2. 如果 MySQL 安装时指定了安装目录和数据的存储位置，直接到相应目录去删除
+     3. 如果 MySQL 安装时没有指定位置，或数据存储没有指定位置，__数据存放一般在 `C:\ProgramData` 目录下__，此目录是隐藏目录
+
+   - 第四步：
+
+     1. 删除注册信息
+
+     2. `win+R` 输入 `regedit` 打开注册表，删除以下注册信息
+
+        __说明：`ControlSet001` 有可能是 `002/003` 等等 __
+
+        ```tex
+        计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\EventLog\Application\MySQL
+        计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MySQL
+        计算机\HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\EventLog\Application\MySQL
+        计算机\HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\MySQL
+        ```
+
+
+#### 安装
+
+1. 安装 MySQL 数据库
+
+   - [参考地址: 菜鸟教程](https://www.runoob.com/mysql/mysql-install.html) ，包含 Windows 和 Linux 的安装
+   - [参考地址: 简书参考地址](https://www.jianshu.com/p/fd56e1ce7379) ，自己亲身实践，包含基于Ubuntu 的安装
 
 ### 数据库介绍
 
-说明：数据库分为 __服务端__ 和 __客户端__
+说明：数据库分为 __服务端__ 和 __客户端__ ，使用 TCP/IP 协议
 
 1. 服务端（server）：存储数据（一个服务端，可以连接多个客户端）
 2. 客户端（client）：读写存储数据
@@ -107,9 +152,10 @@
 
    - 学生表
 
-     | 学号   | 姓名 | 性别 | 出生年份 | 专业   | 入学年份  |
-     | ------ | ---- | ---- | -------- | ------ | --------- |
-     | 123456 | 小明 | 男   | 2000.1.1 | 计算机 | 2019..9.1 |
+     | 学号   | 姓名 | 性别 | 出生年份 | 专业     | 入学年份 |
+     | ------ | ---- | ---- | -------- | -------- | -------- |
+     | 123456 | 小明 | 男   | 2000.1.1 | 计算机   | 2019.9.1 |
+     | 678901 | 小红 | 女   | 2000.1.4 | 软件科学 | 2020.9.1 |
 
    - 学生表中，学生的属性（学号、姓名等）为表的列，行为实体的对象
 
@@ -129,9 +175,9 @@
 
      例如：一门课程同时有若干个学生选修，而一个学生可以同时选修多门课程，则课程与学生之间具有多对多联系
 
-4. 实体的联系（关系）表
+4. 实体的联系（又称：关系表）
 
-   说明：待续
+   说明：使用外键，唯一标识实体表中的实体对象
 
 ### 范式
 
@@ -139,13 +185,13 @@
 
 1. 第一范式（1NF）
 
-   - 列不可拆分
+   - 列不可拆分，实体的属性（实体对象：对应表中的列）
 
 2. 第二范式（2NF）
 
    - 唯一标识
 
-     在一个实体表中，有一个属性可以唯一标识一个实体对象（表的一行）
+     在一个实体表中，有一个属性可以唯一标识一个实体对象（实体对象：对应表的一行数据）
 
 3. 第三范式（3NF）
 
@@ -155,11 +201,11 @@
 
 ### 数据完整性
 
-说明：数据完整性（integrity）是指数据的正确新（correctness）和相容性（compat-ability）。
+说明：数据完整性（integrity）是指数据的正确性（correctness）和相容性（compat-ability）。
 
 1. 数据的正确性
 
-   - 数据的正确性是指数据是符合现实世界语音，反应当前实际状况
+   - 数据的正确性是指数据是符合现实世界语义，反应当前实际状况
 
 2. 数据相容性
 
@@ -167,42 +213,109 @@
 
 3. 数据完整性例子
 
-   - 例如：学生的学号必须是为一的，性别只能是男或女，本科学生年龄的取值范围为 [14, 50] 学生所选的可必须是学校开设的课程，学生所在院系必须是学校已成立的院系等
+   - 例如：学生的学号必须是唯一的、性别只能是男或女、~~本科学生年龄的取值范围为 [14, 50]~~ 、学生所选的可必须是学校开设的课程、学生所在院系必须是学校已成立的院系等
 
 4. 数据类型
 
    说明：mysql 常见的几种数据类型
 
-   - __数值类型__
+   - __整数类型__ （常用类型标粗）
 
-     | 类型          | 大小                                    | 范围（有符号）          | 范围（无符号） | 用途     |
-     | ------------- | --------------------------------------- | ----------------------- | -------------- | -------- |
-     | tinyint       | 1 个字节                                | (-128, 127)             | (0, 255)       | 小整数型 |
-     | int / integer | 4 个字节                                | (-8 388 608, 8 388 607) | (0, 65 535)    | 大整数型 |
-     | decimal       | 对 decimal(M,D) 为最多 M位，小数占 D 位 | 依赖于 M，D             | 依赖于 M，D    | 小数值   |
-     | bit           | bit(2),占 2 个位                        |                         |                | 布尔值   |
-
+     | 类型              | 大小     | 范围（有符号）          | 范围（无符号） | 用途     |
+     | ----------------- | -------- | ----------------------- | -------------- | -------- |
+     | __tinyint__       | 1 个字节 | (-128, 127)             | (0, 255)       | 小整数型 |
+     | smallint          | 2 个字节 | (-2^15, 2^15-1)         | (0, 2^16-1)    |          |
+     | mediumint         | 3 个字节 | (-2^23, 2^23-1)         | (0, 2^23-1)    |          |
+     | __int / integer__ | 4 个字节 | (-8 388 608, 8 388 607) | (0, 65 535)    | 大整数型 |
+     | bigint            | 8 个字节 | (-2^63, 2^63-1)         | (0, 2^63-1)    |          |
+     
      解释：bit 一般用于状态的标记,因为 2 进制，所以一位二进制可以表示两种状态
+     
+   - 浮点数类型
+
+     | 类型        | 大小                                                         | 范围（有符号） | 范围（无符号） | 用途   |
+     | ----------- | ------------------------------------------------------------ | -------------- | -------------- | ------ |
+     | **decimal** | 可以单独使用，也可以精度先设置对 decimal(M,D) 为最多 M位，小数占 D 位 <br> 底层使用字符串存储，以提高精度 | 依赖于 M，D    | 依赖于 M，D    | 小数值 |
+     | float       | 4 个字节，可以单独使用，也可以精度设置 float(M,D)            |                |                |        |
+     | double      | 8 个字节，可以单独使用，也可以精度设置 double(M,D)           |                |                |        |
+     | **bit**     | bit(M)，占 M 个位，M 的取值范围 [1, 64] ，默认是 1           |                |                | 位类型 |
 
    - __字符串类型__
 
-     | 类型    | 大小          | 用途         |
-     | ------- | ------------- | ------------ |
-     | char    | 0-255 字节    | 定长字符串   |
-     | varchar | 0-65 535 字节 | 变长字符串   |
-     | text    | 0-65 535 字节 | 长文本字符串 |
+     | 类型       | 大小          | 用途         |
+     | ---------- | ------------- | ------------ |
+     | char       | 0-255 字节    | 定长字符串   |
+     | varchar(M) | 0-65 535 字节 | 变长字符串   |
+     | text       | 0-65 535 字节 | 长文本字符串 |
 
-     解释：char(4)，长度位 4 个字符，不足右边补空格，超出截取。varchar(4)，最长 4 个字符，可以不足，但超出截取
+     解释：char(4)，长度位 4 个字符，不足右边补空格，超出截取（效率高，浪费空间）。varchar(4)，最长 4 个字符（实际长度 = 实际字符 + 2 个字节，用来记录个数的），可以不足，但超出截取（效率低，节省空间，Mysql 对其进一步优化，效率也不错，使用率高）。
 
    - __日期和时间类型__
 
-     | 类型     | 大小     | 范围                                      | 格式                | 用途             |
-     | -------- | -------- | ----------------------------------------- | ------------------- | ---------------- |
-     | date     | 3 个字节 | 1000-01-01 / 9999-12-31                   | YYYY-MM-DD          | 日期值           |
-     | time     | 3 个字节 | -838:59:59 / 838:59:59                    | HH:MM:SS            | 时间值           |
-     | datetime | 8 个字节 | 1000-01-10 00:00:00 / 9999-12-31 23:59:59 | YYYY-MM-DD HH:MM:SS | 混合时间和日期值 |
+     | 类型      | 大小     | 范围                                      | 格式                   | 用途                                             |
+     | --------- | -------- | ----------------------------------------- | ---------------------- | ------------------------------------------------ |
+     | date      | 3 个字节 | 1000-01-01 / 9999-12-31                   | YYYY-MM-DD             | 日期值                                           |
+     | time      | 3 个字节 | -838:59:59 / 838:59:59                    | HH:MM:SS               | 时间值                                           |
+     | datetime  | 8 个字节 | 1000-01-10 00:00:00 / 9999-12-31 23:59:59 | YYYY-MM-DD HH:MM:SS    | 混合时间和日期值                                 |
+     | year      | 1 个字节 | 1901 / 2155                               | YYYY 或者 YY（不推荐） | 年份类型                                         |
+     | timestamp | 4 个字节 | 1970-01-01 00:00:00 / 2038-01-19 03:14:07 | YYYY-MM-DD HH:MM:SS    | __时间戳__（实际存储的是毫秒值，取出时进行计算） |
+     
+   - __int 类型使用注意__
 
-5. 约束
+     1. `int(M)` ，M 表示宽度，需要结合 ~~`unsigned`~~ 和 `zerofill` 使用。设置了 `zerofill` 填充后，就意味着无符号
+     2. `unsigned` ，表示无符号数（没有负数）
+     3. `zerofill` ，表示使用 0 填充
+     4. 例如 `int(3) zerofill`  ，整数位数不足 3 位的，左边使用 0 补齐，位数超出 3 位的，正常显示（默认情况 M 为 int 的存储能力大小，以空格填充） 。`1` 使用 `001` 表示 。
+     5. __`unsigned` 和 `zerofill` 只有整数类型数据拥有__
+
+   - __日期输入注意__
+
+     1. `year` 类型，可以输入 4 位数 ，如 `2020` ，也可以输入 2 位数，如 `20` 。如 `19-20` 则表示 `2019-2020` 。
+     
+     2. `YYYY-MM-DD HH:MM:SS` `YY-MM-DD HH:MM:SS` 或 `YYYY-MM-DD` `YY-MM-DD` ，允许不严格输入：__任何标点符都可以作为日期部分和时间部分的分隔符__ 。例如 `10-12-01 01:01:00` 、`10.12.01 01+20+09` 、`20@01@01 01^01^01` 等等
+     
+     3. `YYYYMMDD` 和 `YYMMDD` 没有间隔符的字符串：如果该字符串对于时间有意义，如 `20200820` 和 `200505` 可以被解释为 `2020-08-20` 和 `20-0505` ；如果该字符串对于时间没有意义，如 `20201490` (月份不合法) ，将解释为 `0000-00-00`
+     
+     4. 对于包含日期部分并带有分隔符的字符串，如果日期小于 10 时，不需要指定 2 位数，如 `2020-5-5` 与 `2020-05-05` 相同。对于包含时间部分并带有分隔符的字符串，如果时间小于 10 时，也不需要使用 2 位，如 `2020-05-05 05:05:05` 与 `2020-5-5 5-5-5` 相同。
+     
+     5. 一般时间选用 `timestamp` ，有一个重要特征，如果输入 `null` 自定设置为系统当前时间
+     
+     6. Java 与 Mysql 数据类型的对应关系。[JDBC-8 官方参考地址](https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-type-conversions.html)。__表 `ResultSetMetaData.GetColumnTypeName()`和 `ResultSetMetaData.GetColumnClassName()`的 MySQL 类型和返回值__
+     
+        | MySQL类型名称                 | 返回值 `GetColumnTypeName` | 返回值 `GetColumnClassName`                                  |
+        | ----------------------------- | -------------------------- | ------------------------------------------------------------ |
+        | `BIT(1)`                      | `BIT`                      | `java.lang.Boolean`                                          |
+        | `BIT( > 1)`                   | `BIT`                      | `byte[]`                                                     |
+        | `TINYINT`                     | `TINYINT`                  | `java.lang.Boolean`如果配置属性 `tinyInt1isBit`设置为 `true`（默认值）并且存储大小为1，`java.lang.Integer` 则为否。 |
+        | `BOOL`， `BOOLEAN`            | `TINYINT`                  | 请参阅`TINYINT`上方的，因为这些是`TINYINT(1)`当前的别名 。   |
+        | `SMALLINT[(M)] [UNSIGNED]`    | `SMALLINT [UNSIGNED]`      | `java.lang.Integer`（无论是否 `UNSIGNED`存在）               |
+        | `MEDIUMINT[(M)] [UNSIGNED]`   | `MEDIUMINT [UNSIGNED]`     | `java.lang.Integer`（无论是否 `UNSIGNED`存在）               |
+        | `INT,INTEGER[(M)] [UNSIGNED]` | `INTEGER [UNSIGNED]`       | `java.lang.Integer`如果 `UNSIGNED` `java.lang.Long`          |
+        | `BIGINT[(M)] [UNSIGNED]`      | `BIGINT [UNSIGNED]`        | `java.lang.Long`（如果未签名） `java.math.BigInteger`        |
+        | `FLOAT[(M,D)]`                | `FLOAT`                    | `java.lang.Float`                                            |
+        | `DOUBLE[(M,B)]`               | `DOUBLE`                   | `java.lang.Double`                                           |
+        | `DECIMAL[(M[,D])]`            | `DECIMAL`                  | `java.math.BigDecimal`                                       |
+        | `DATE`                        | `DATE`                     | `java.sql.Date`                                              |
+        | `DATETIME`                    | `DATETIME`                 | `java.sql.Timestamp`                                         |
+        | `TIMESTAMP[(M)]`              | `TIMESTAMP`                | `java.sql.Timestamp`                                         |
+        | `TIME`                        | `TIME`                     | `java.sql.Time`                                              |
+        | `YEAR[(2|4)]`                 | `YEAR`                     | 如果`yearIsDateType`配置属性设置为 `false`，则返回的对象类型为`java.sql.Short`。如果设置为 `true`（默认值），则返回的对象的类型`java.sql.Date` 为日期设置为1月1日午夜。 |
+        | `CHAR(M)`                     | `CHAR`                     | `java.lang.String`（除非该列的字符集为`BINARY`，然后 `byte[]`返回。 |
+        | `VARCHAR(M) [BINARY]`         | `VARCHAR`                  | `java.lang.String`（除非该列的字符集为`BINARY`，然后 `byte[]`返回。 |
+        | `BINARY(M)`                   | `BINARY`                   | `byte[]`                                                     |
+        | `VARBINARY(M)`                | `VARBINARY`                | `byte[]`                                                     |
+        | `TINYBLOB`                    | `TINYBLOB`                 | `byte[]`                                                     |
+        | `TINYTEXT`                    | `VARCHAR`                  | `java.lang.String`                                           |
+        | `BLOB`                        | `BLOB`                     | `byte[]`                                                     |
+        | `TEXT`                        | `VARCHAR`                  | `java.lang.String`                                           |
+        | `MEDIUMBLOB`                  | `MEDIUMBLOB`               | `byte[]`                                                     |
+        | `MEDIUMTEXT`                  | `VARCHAR`                  | `java.lang.String`                                           |
+        | `LONGBLOB`                    | `LONGBLOB`                 | `byte[]`                                                     |
+        | `LONGTEXT`                    | `VARCHAR`                  | `java.lang.String`                                           |
+        | `ENUM('value1','value2',...)` | `CHAR`                     | `java.lang.String`                                           |
+        | `SET('value1','value2',...)`  | `CHAR`                     | `java.lang.String`                                           |
+
+5. __约束__
 
    - 主键：（primary key）
 
@@ -223,10 +336,18 @@
    - 外键：（foreign key）
 
      实体表的属性在关系表中存在，且可以标识实体表的每一个实体对象
+     
+   - 自增约束：（auto_increment）
+   
+     属性值，随录入数据增加（无法修改）
+   
+   - 检查约束：（check）
+   
+     录入数据时，检查属性值，是否在其规定范围之内
 
 ### Navicat 操作
 
-说明：[参考文档](https://www.navicat.com.cn/support/online-manual)    启动数据库 `mysql -h hostname -P port -u username -p password` 。一般直接使用 `mysql -u root -p` ，因为是连接自己的主机，使用默认的端口号，密码为空，所以简单。可以输入 `mysql --help` ，查看帮助
+说明：[参考文档](https://www.navicat.com.cn/support/online-manual)    启动数据库 `mysql -h hostname -P port -u username -ppassword` ，`-p` 与密码中间没有空格。一般直接使用 `mysql -u root -p` ，因为是连接自己的主机，使用默认的端口号，密码为空，所以简单。可以输入 `mysql --help` ，查看帮助
 
 1. 用户连接
 
@@ -255,9 +376,170 @@
 3. 对于重要的数据，会设置一个 isDelete 的属性（列），类型为 bit ，表示逻辑删除。
 4. 大量增长的非重要数据，可以进行物理删除。
 
-## 命令脚本操作
+## 命令脚本操
 
-### 数据库、表的创建删除等操作
+### SQL 语法规则
+
+1. 单引号、双引号使用
+
+   - 字符串、日期时间类型使用 `''` 单引号，变量别名使用 `""` 双引号
+
+2. 注释
+
+   - 单行注释
+
+      ```sql
+     # 注释
+     -- 注释
+     ```
+
+   - 多行注释
+
+     ```sql
+     /*
+      * 多行注释
+     */
+     ```
+
+3. 命令规则
+
+   - 必须使用 `A-Z, a-z, 0-9` ，共 63 个字符
+   
+4. 别名
+
+   - 列的别名可以是用双引号 `""` ，没有空格可以省略
+   - 表的别名不要使用双引号 `""` ，
+   - 别名，`as` 也可以省略
+
+###  用户权限及忘记密码问题
+
+__说明：[官方参考地址](https://dev.mysql.com/doc/refman/5.7/en/access-control.html)__
+
+1. 用户权限
+
+   - 身份认证 __（用户名+IP认证）__
+
+     1. `root@localhost` ：只允许本机使用 root 用户登录，`127.0.0.1` 和 `localhost` 等价 `root@127.0.0.1` 
+     2. `root@%` ：任何主机都可以使用 root 用户登录
+     3. `root@192.168.43.118` ：只允许在 `192.168.43.118` 主机使用 root 登录。__注意：即使本地主机的 IP 是 `192.168.43.118` 没有此用户也不可登录，只能使用 `root@localhost` 用户登录__。
+     4. `sshen@%` ：任何主机都可以使用 sshen 用户登录
+
+   - 设置用户 [官方参考地址](https://dev.mysql.com/doc/refman/5.7/en/creating-accounts.html)
+
+     1. 创建用户
+        - `create user 'finley'@'localhost' identified by '';` 只可本地主机登录，无需密码
+        - `create user 'finley'@'%' identified by '123456';` 任何主机都可以登录
+        - `create user 'finley'@'192.169.10.110' identified by '123456';` 只可主机 `192.168.10.110` 可登录
+     2. 删除用户
+        - `drop user 'user'@"host";`
+     3. 修改密码
+        - 修改当前用户密码  `set passeord = password('passwd');`
+        - 修改密码 `set password for 'user'@'host' = password('passwd');`
+
+   - 用户的 4 个权限级别
+
+     1. 全局
+     2. 特定数据库
+     3. 特定表
+     4. 特定字段
+     5. 依次校验权限，前面权限通过，后面权限不需再校验
+
+   - 设置用户级别 [官方参考地址](https://dev.mysql.com/doc/refman/5.7/en/privileges-provided.html)
+
+     1.   查看用户默认级别 `show grants for user@host;`
+
+        - 查看 root 用户级别
+
+          ```sql
+          mysql> show grants for root@localhost; -- 查看 root 用户默认级别
+          +---------------------------------------------------------------------+
+          | Grants for root@localhost                                           |
+          +---------------------------------------------------------------------+
+          | GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION |
+          | GRANT PROXY ON ''@'' TO 'root'@'localhost' WITH GRANT OPTION        |
+          +---------------------------------------------------------------------+
+          2 rows in set (0.00 sec)
+          ```
+
+        - 其中 `with grant option` 表示其拥有的权限可以授予其他用户
+
+     2. 授权用户级别 `grant privileges on databasename.tablename to 'user'@'host' [with grant option];`
+
+        - 参数说明
+          1. privileges：表示操作动作 `select/ insert/ update/ delete` ，全部允许为 `all/all privileges` 
+          2. databasename.tablename：表示数据库名.表名，所有数据库表为 `*.*`
+          3. user@host：表示，被授予的用户
+          4. [with grant option] ：表示被授予权限，是否可以在授予其他用户
+        - root 用户的权限，是对所有数据库，所有表拥有所有权限，并且可以授予其他用户
+          1. `GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION`
+        - root  用户授予 sshen 用户权限（mysql 数据库的 user 表的查询权限），并且可以再次授予
+          1. `grant select on mysql.user 'sshen'@'localhost' with grant option;`
+
+     3. 撤销用户权限 `revoke privilege on databasename.tablename from 'user'@'host';`
+
+        - 参数（同上）
+
+2. ~~忘记密码（修改 root 用户密码）~~
+
+   __说明：不好用__
+
+   - 关闭 mysql 服务
+   - 使用 `mysqld --skip-grant-tables;` 开启 mysqld 服务，只是跳过了认证。
+   - 登录 mysql `mysql -u root` ，无密码登录
+   - 修改权限表
+     1. `use mysql;` 进入名 mysql 数据库
+     2. 更新 user 表的 Password 字段 `update user set Password = password('12') where User = 'root';`
+     3. 刷新系统权限表 `flush privileges;`
+   - 关闭 mysqld 服务
+   - 再次开启 mysql 服务
+   - 使用新密码登录
+
+### 运算符
+
+1. 算数运算符
+
+   - 加 `+` 、减 `-` 、乘 `*`  、除`/` 、取模 `%` (`mod` 也是取模)
+
+   - 除法取整 `div`
+
+     ```sql
+     3 div 2 = 1
+     3 / 2 = 1.5
+     ```
+
+2. 比较运算符
+
+   - 等于 `=` 、大于 `>` 、大于等于 `>=` 、小于 `<` 、小于等于 `<=` 、不等于 `!=` （不等于 `<>` ）
+   - 安全等于 `<=>` ，用于与 `null` 比较
+
+3. 逻辑运算符
+
+   - 逻辑与 `&&` ，也可以是 `and`
+   - 逻辑或 `||` ，也可以是 `or`
+   - 逻辑非 `!` ，也可以是 `not`
+   - 逻辑异或 `^` ，也可以是 `xor`
+
+4. 范围符
+
+   - 在什么范围内 `between...and...`  （`>=...and...<=`）
+   - 不在什么范围内 `not between...and...` （`<...||...>`）
+
+5. 集合
+
+   - 在集合中 `in`
+   - 不在集合中 `not in`
+
+6. 模糊查询
+
+   - `like` 或 `not like` 
+   - 通配符： `%` 表示任意多个任意字符；`_` 表示任意一个字符
+
+7. __null__ 值判断
+
+   - 使用 `is null` 或者 `is not null`
+   - 或 `value<=> null` 或者 `not vaule<=>null`
+
+### 数据库、表的创建删除等操作（DDL）
 
 说明：使用命令窗口对 mysql 进行操作   [mysql 语法文档](https://dev.mysql.com/doc/refman/8.0/en/)
 
@@ -303,7 +585,30 @@
      1 row in set (0.00 sec)
      ```
 
-3. 删除数据库
+3. 查看支持的编码格式
+
+   - `show character set;`
+
+   - 显示删除了一部分数据（一共 41 行）。`Default collation` 为校对规则，以 `ci` 结尾的数据库中存放的数据不区分大小写，以 `cs/bin` 结尾的数据区分大小写。__大小写：数据库中存放的数据，不是指命令行（命令行不区分大小写）__
+
+     ```sql
+     mysql> show character set;
+     +----------+---------------------------------+---------------------+--------+
+     | Charset  | Description                     | Default collation   | Maxlen |
+     +----------+---------------------------------+---------------------+--------+
+     | ascii    | US ASCII                        | ascii_general_ci    |      1 |
+     | ujis     | EUC-JP Japanese                 | ujis_japanese_ci    |      3 |
+     | latin5   | ISO 8859-9 Turkish              | latin5_turkish_ci   |      1 |
+     | armscii8 | ARMSCII-8 Armenian              | armscii8_general_ci |      1 |
+     | utf8     | UTF-8 Unicode                   | utf8_general_ci     |      3 |
+     | ucs2     | UCS-2 Unicode                   | ucs2_general_ci     |      2 |
+     | utf32    | UTF-32 Unicode                  | utf32_general_ci    |      4 |
+     | binary   | Binary pseudo charset           | binary              |      1 |
+     +----------+---------------------------------+---------------------+--------+
+     41 rows in set (0.01 sec)
+     ```
+
+4. 删除数据库
 
    - `drop database python1`
 
@@ -323,7 +628,7 @@
      4 rows in set (0.00 sec)
      ```
 
-4. 创建数据库
+5. 创建数据库
 
    - `create database python3 charset=utf8;` 需要指定编码格式
 
@@ -344,7 +649,7 @@
      5 rows in set (0.00 sec)
      ```
 
-5. 切换使用数据库
+6. 切换使用数据库
 
    - `use python3`
 
@@ -362,16 +667,20 @@
      1 row in set (0.00 sec)
      ```
 
-6. 查看数据库的表
+7. 查看数据库的表
 
-   - `show tables;` 当前数据库没有表
+   - `show tables from 数据库` ，可以数据库中，查看其它数据库中的表。
+
+   - `show tables;` 当前数据库没有表，在该数据库时，默认查询本库的表。
 
      ```sql
      mysql> show tables;
      Empty set (0.01 sec)
      ```
 
-7. 创建表
+8. 创建表
+
+   - `create table 数据库.表名();` ，指定哪个数据库。
 
    - `create table 表名(列类型 [是否自动增长] 约束 默认值\是否为空);` 多列使  ',' 分割
 
@@ -385,8 +694,146 @@
      ```
 
      解释：使用 bit 表明占用几个 bit 为，值为 b'1' 标记为二进制数值
+     
+   - 修改字段位置
 
-8. 查看表的结构
+     1. 修改字段位置
+
+        `alter table 表名 modify 字段名 数据类型 first/after 字段` 
+
+     2. 添加字段，默认添加到最后，也可以指定添加位置 
+
+        `alter table students add column age int not null first/after 字段` 指定第一行或者指定字段的后面。
+
+   - 主键约束设置
+
+     说明：主键不为 `null`
+
+     1. 添加主键约束
+
+        `alter table 表名 add primary key(字段);`
+
+     2. __复合主键约束（多个字段共同组成主键）__
+
+        `primary key(字段1, 字段2)` 创建表示时，或 `alter table 表名 add primary key(字段1, 字段2);`
+
+     3. 取消主键约束
+
+        `alter table 表名 drop primary key;` ，`delete` 删除数据相关；`drop` 删除表结构相关
+
+   - 唯一约束
+
+     1. 注意事项
+
+        - 唯一约束，可以为 `null`
+        - 唯一键约束名称可以自定义，默认：如果是单列，是列名；如果是多列组合唯一，默认是第一列列名
+        - 创建唯一键约束，也会自定创建索引
+        - 删除唯一约束，是通过删除索引来实现的
+
+     2. 设置唯一约束
+
+        `字段 unique key` 或者 `unique key(字段1, 字段2)` 复合唯一约束
+
+     3. 添加唯一约束
+
+        `alter table 表名 add unique key(字段1, 字段2);`
+
+     4. 取消唯一约束（是通过删除索引，删除唯一约束）
+
+        `alter table 表名 drop index 索引名;` ，查看表的索引 `show index from 表名;`
+
+   - 非空约束
+
+     1. 针对某一个字段不能为 `null`
+
+     2. 添加非空约束
+
+         `字段 not null` 创建表时，或者 `alter table 表名 modify 字段 数据类型 not null;`
+
+     3. 取消非空约束
+
+         `alter table 表名 modify 字段 数据类型;`
+
+   - 默认值约束
+
+     1. 针对某一个字段，如果没有录入数据（或使用 `default` 时），使用有默认值
+
+     2. 添加默认值
+
+        `字段 default 默认值` 创建表时，`alter table 表名 modify 字段 数据类型 default 默认值 [not null]`
+
+     3. 取消默认值约束
+
+        `alter table 表名 modify 字段 数据类型 [not null]`
+
+   - 检查约束（check） 
+
+     __说明：mysql 中不起作用__
+     
+   - 自增约束
+
+     1. 一个表只能有一个自增约束，因为一个表只有一个维护自增值的变量
+
+     2. 自增约束的字段，只能是整数类型（+1）
+
+     3. __自增约束的字段必须是主键、唯一键和外键，实际主键自增约束最为常见__
+
+     4. __录入数据时__
+
+        - 没有指定整数 、`0` 和 `null` 表示自增
+        - 录入正整数时，按整数存储；录入负整数，按负整数存储（负数在前）
+        - 当指定整数时，可以进行插入（`1, 2, 4`） 这时可以指定 3 ，插到 2 后面。
+
+     5. 取消自增约束
+
+        `alter table 表名 modify 字段 数据类型 [not null];`
+
+   - 外键约束
+
+     1. 一个表可以有多个外键约束，外键必须是唯一键或者是主键（主键偏多）
+
+     2. 外键在 __从表__ 中建立
+
+        - 学生表、课程表（主表）
+        - 选课表（从表），引用了学生表和课程表的字段
+
+     3. 使用外键时，主表、从表的数据操作受到约束
+
+     4. 约束等级（5 种），默认 Restrict 方式
+
+        - Cascade 方式：
+
+          在主表 `update/delete` 记录时，从表同步 `update/delete` 匹配的记录
+
+        - Set null 方式：
+
+          在主表 `update/delete` 记录时，将表匹配的记录设为 `null` ，注意从表外键不能设置非空约束
+
+        - No action 方式：
+
+          从表有匹配的记录，则不允许主表 `update/delete` 记录
+
+        - Restrict 方式：
+
+          与 No action 一样，Mysql 默认等级
+
+        - Set default 方式（Innodb 引擎不识别 ）：
+
+          Mysql 不支持
+
+     5. 添加外键
+
+        - `foreign key(从表字段) references 主表名(外键引用字段) [on update 等级] [on delete 等级];` 建表时
+        - `alter table 从表名 add foreign key(从表字段) references 主表名(外键引用字段) [on update 等级] [on delete 等级];`
+        - Mysql  默认等级为 Restrict 。更新、删除等级可以分别设置。 
+        - 指定外键约束名 `constraint 外键约束名 foreign key(从表字段) references 主表名(外键引用字段) [on update 等级] [on delete 等级];` __只要添加都可以设置，主键约束也可以__
+
+     6. 取消外键
+
+        - `alter table 从表名 drop foreign key 约束名`
+        - 获取约束名 `select * from information_schema.table_constraints where table_name = 表名`
+
+9. 查看表的结构
 
    - `desc 表名`
 
@@ -411,7 +858,7 @@
      4 rows in set (0.00 sec)
      ```
 
-9. 删除表
+10. 删除表
 
    - `drop table 表名`
 
@@ -437,40 +884,42 @@
      1 row in set (0.00 sec)
      ```
 
-10. 更改表名
+11. 更改表名
 
-   - `rename table name to new_name`
+    - `alter table old_name rename new_name;`
 
-     ```sql
-     mysql> show tables;
-     +-------------------+
-     | Tables_in_python3 |
-     +-------------------+
-     | students          |
-     | test              |
-     +-------------------+
-     2 rows in set (0.00 sec)
-     
-     mysql> rename table test to new_test;
-     Query OK, 0 rows affected (0.97 sec)
-     
-     mysql> show tables;
-     +-------------------+
-     | Tables_in_python3 |
-     +-------------------+
-     | new_test          |
-     | students          |
-     +-------------------+
-     2 rows in set (0.00 sec)
-     ```
+    - `rename table old_name to new_name`
+
+      ```sql
+      mysql> show tables;
+      +-------------------+
+      | Tables_in_python3 |
+      +-------------------+
+      | students          |
+      | test              |
+      +-------------------+
+      2 rows in set (0.00 sec)
+      
+      mysql> rename table test to new_test;
+      Query OK, 0 rows affected (0.97 sec)
+      
+      mysql> show tables;
+      +-------------------+
+      | Tables_in_python3 |
+      +-------------------+
+      | new_test          |
+      | students          |
+      +-------------------+
+      2 rows in set (0.00 sec)
+      ```
 
 11. 修改表中的属性、属性定义
 
     说明：对于表的修改，会有很多麻烦，最好在构建表的时候多一些考虑。表中一旦存在数据，修改表的结构会引来一堆错误，也有可能数据丢失，所以对于表的修改慎重操作   [参考文档](https://dev.mysql.com/doc/refman/5.5/en/alter-table.html#alter-table-add-drop-column) <br> __删除这块应该看一下官方文档__
 
-    - `alter table 表名 add | change | modify | drop 列名 类型 [默认值] 约束`
+    - `alter table 表名 add | change | modify | drop column 列名 类型 [默认值] 约束`
 
-    - 在 students 增加 age 列 <br>`alter table students add column age int not null;`
+    - 在 students 增加 age 列 <br>`alter table students add column age int not null;` 默认添加到最后，也可以指定添加位置 `alter table students add column age int not null first/after 字段` 指定第一行或者指定字段的后面。
 
       ```sql
       mysql> alter table students add column age int not null;
@@ -679,7 +1128,7 @@
 
    说明：对现有数据进行修改
 
-   - `update 表名 set 列1=值1, 列2=值2... where 条件`
+   - `update 数据库.表名 set 列1=值1, 列2=值2... where 条件`
 
      说明：__可以一次修改一行，也可以一次修改多行，关键看 where 条件满足什么，如果没有写 where 表中数据就全部被修改__
 
@@ -792,7 +1241,7 @@
 
 1. 备份
 
-   说明：Linux 进入 __超级管理员__ --> __进入 mysql 数据库目录（数据存放目录）__ <br> windows 不用（前提将 mysql 加入环境变量中），都不用进入 Mysql 用户交互界面
+   说明：Linux 启用 __超级管理员__ --> __进入 mysql 数据库目录（数据存放目录，配置文件中  `datadir= /var/lib/mysql`）__ 。 windows 不需要进入数据库存放目录（前提将 mysql 加入环境变量中）。不需要进入 Mysql 用户交互界面执行 `mysqldump` 命令，因为其命令是脚本不是 mysql 的语法命令。
 
    - 运行 `mysqldump -h 主机 -P 端口号 -u root -p 数据库名 > path\xx.sql`
 
@@ -852,6 +1301,207 @@
      +----+----------+--------+------------+----------+
      8 rows in set (0.00 sec)
      ```
+
+## 函数
+
+### 单行函数
+
+1. 介绍
+
+   - 只对一行进行变换，每行返回一个结果
+   - 可以嵌套
+   - 参数可以是一个字段、一个表达式或一个值
+   - 包含几种数据类型函数
+     1. 字符串函数
+     2. 数学函数
+     3. 日期时间函数
+     4. 加密函数
+
+2. 字符串函数
+
+   - 如表
+
+     | 函数                           | 用法                                                         |
+     | ------------------------------ | ------------------------------------------------------------ |
+     | concat(S1, S2, ... Sn)         | 连接 S1, S2, ... Sn 为一个字符串                             |
+     | concat_ws(s, S1, S2, ... Sn)   | 同函数 concat 一样，注释字符串之间有个 s                     |
+     | char_length(s)                 | 返回字符串 s 的字符数                                        |
+     | length(s)                      | 返回字符串的字节数（utf-8 一个中文占 3 个字节）              |
+     | insert(str, index, len, instr) | 将字符串 str 从第 index 开始，len 个长度的子字符串替换为 instr |
+     | upper(s)/ucase(s)              | 将字符串转换为大写字母                                       |
+     | lower(s)/lcase(s)              | 将字符串转换为小写字母                                       |
+     | left(s, n)                     | 返回字符串最左边的 n 个字符                                  |
+     | righ(s, n)                     | 返回字符串最右边的 n 个字符                                  |
+     | lpad(str, len, pad)            | 用字符串 pad 对 str 字符串最左边进行填充，知道 str 长度为 len |
+     | rpad(str, len, pad)            | 用字符串 pad 对 str 字符串最右边进行填充，知道 str 长度为 len |
+     | ltrim(s)                       | 去掉字符串 s 左侧空格                                        |
+     | rtrim(s)                       | 去掉字符串 s 右侧空格                                        |
+     | trim(s)                        | 去掉 s 开始和结尾处的空格                                    |
+     | trim([both], s1 form s)        | 去掉字符串 s，开始和结尾处的 s1                              |
+     | trim([leading], s1 form s)     | 去掉字符串 s，开始处的 s1                                    |
+     | trim([trailing], s1 form s)    | 去掉字符串 s，结尾处的 s1                                    |
+     | repeat(str, n)                 | 返回 str 重复 n 次结果                                       |
+     | replace(str, a, b)             | 用字符串 b 替换在 str 中出现的 a字符串                       |
+     | strcmp(s1, s2)                 | 比较字符串 s1 和 s2                                          |
+     | substring(s, index, len)       | 返回 s 字符串从 index 位置的 len 长度子字符串                |
+
+   - 使用实例
+
+     1. `concat_ws(s, S1, S2,... Sn)` 字符串拼接
+
+        ```sql
+        mysql> select concat_ws('-', bid, bname, price) as '拼接演示' from books;
+        +----------------+
+        | 拼接演示       |
+        +----------------+
+        | 1-java书-100   |
+        | 2-mysql书-102  |
+        | 3-css-90       |
+        +----------------+
+        3 rows in set (0.00 sec)
+        ```
+
+3. 数值函数
+
+   - 如表
+
+     | 函数           | 用法                                         |
+     | -------------- | -------------------------------------------- |
+     | abs(x)         | 返回 x 的绝对值                              |
+     | ceil(x)        | 返回大于 x 的最小整数                        |
+     | floor(x)       | 返回小于 x 的最小整数                        |
+     | mod(x, y)      | 返回 x / y 的模                              |
+     | rand()         | 返回 0-1 随机数                              |
+     | round(x, y)    | 返回参数 x 保留 y 位小数的值（采用四舍五入） |
+     | truncate(x, y) | 返回参数 x 保留 y 位小数的值（采用阶段）     |
+     | squt(x)        | 返回 x 的平方                                |
+     | pow(x, y)      | 返回 x 的 y 次方                             |
+
+4. 日期函数
+
+   - 如图（参数为时间数据类型）
+
+     | 函数                                                         | 用法                                               |
+     | ------------------------------------------------------------ | -------------------------------------------------- |
+     | curdate()/current_date()                                     | 返回当前日期                                       |
+     | curtime()/current_time()                                     | 返回当前时间                                       |
+     | now()/sysdate()/current_timestamp()/localtime()/localtimestamp() | 返回当前系统日期时间                               |
+     | year(date)/month(date)/day(date)/hour(time)/minute(time)/second(time) | 返回具体时间值                                     |
+     | week(date)/weekofyear(date)                                  | 返回一年中的第几周                                 |
+     | dayofweek(date)                                              | 返回周几（周日为 1，周六为 7）                     |
+     | weekday(date)                                                | 返回周几（周一为 0，周六为 6）                     |
+     | dayname(date)                                                | 返回星期（monday，tuesday...）                     |
+     | monthname(date)                                              | 返回月份（january）                                |
+     | datediff(date1, date2)/timediff(time1, time2)                | 返回 date1 - date2 日期间隔/time1 - time2 时间间隔 |
+     | date_add(datetime, interval expr type)                       | 返回与给定日期时间相差 interval 时间段的日期时间   |
+     | date_format(datetime, fmt)                                   | 按照字符串格式 fmt，格式化 datetime 值             |
+     | str_to_date(str, fmt)                                        | 按照字符串 fmt 格式解析 str为一个日期              |
+
+   - `date_add(datetime, interval expr type)`
+
+     1. 表达式类型
+
+        | 参数类型 | 参数类型      |
+        | -------- | ------------- |
+        | year     | year_month    |
+        | month    | day_hour      |
+        | day      | day_minute    |
+        | hour     | day_second    |
+        | minute   | hour_minute   |
+        | second   | hour_second   |
+        |          | minute_second |
+
+     2. 实例演示
+
+        - `select date_add(now(), interval 1 year);` 在当前时间添加 1 年，返回时间
+
+          ```sql
+          mysql> select date_add(now(), interval 1 year);
+          +----------------------------------+
+          | date_add(now(), interval 1 year) |
+          +----------------------------------+
+          | 2021-05-28 16:13:23              |
+          +----------------------------------+
+          1 row in set (0.00 sec)
+          ```
+
+        - `select date_add(now(), interval -1 year);` 在当前时间减去 1 年
+
+        - `select date_add(now(), interval '1_2' year_month);`  当前时间添加 1年 1 个月
+
+   - `date_format(datetime, fmt)` 和 `str_to_date(str, fmt)` 中格式说明
+
+     1. 如表
+
+        | 格式符（1） | 说明（1）                                   | 格式符（2） | 说明（2）                                   |
+        | ----------- | ------------------------------------------- | ----------- | ------------------------------------------- |
+        | %Y          | 以 4 位数表示年份                           | %y          | 以 2 位数表示年份                           |
+        | %M          | 以英文（January）表示月份                   | %m          | 以 2 位数表示月份（01, 02）                 |
+        | %b          | 以英文缩写（jan）表示月份                   | %c          | 以数字表示月份（1, 2）                      |
+        | %D          | 以英文后缀名（1st, 2nd, 3rd）表示月份中天数 | %d          | 以 2 位数表示月份中天数（01, 02）           |
+        | %e          | 以数字形式（1, 2, 3）表示月中的天数         |             |                                             |
+        | %H          | 以 2 为数（01， 02）表示小时数（24 小时制） | %h 和 %I    | 以 2 为数（01， 02）表示小时数（12 小时制） |
+        | %k          | 以数字形式（1, 2）表示小时数（24小时制）    | %I          | 以数字形式（1, 2）表示小时数（12 小时制）   |
+        | %i          | 以两位数表示分钟数（00, 01）                | %S 和 %s    | 以两位数表示秒数（00, 01）                  |
+        | %W          | 一周中的星期名称（Sunday, Tuesday）         | %a          | 一周中星期的缩写（Sun, Mon, Tues）          |
+        | %w          | 以数字表示一周中的天数（0 = Sunday）        |             |                                             |
+
+     2. 实例
+
+        - 格式字符的使用，要看存入的时间的格式如何
+
+          1. 存入时间格式 `2020-01-01` 
+
+             ```sql
+             mysql> select date_format('2020-10-10' ,'%Y年%m月%d日');
+             +----------------------------------------------+
+             | date_format('2020-10-10' ,'%Y年%m月%d日')    |
+             +----------------------------------------------+
+             | 2020年10月10日                               |
+             +----------------------------------------------+
+             1 row in set (0.00 sec)
+             ```
+
+          2. 解析 `2020-20-10` 字符串
+
+             ```sql
+             mysql> select str_to_date('2020-10-10' ,'%Y-%m-%d');
+             +---------------------------------------+
+             | str_to_date('2020-10-10' ,'%Y-%m-%d') |
+             +---------------------------------------+
+             | 2020-10-10                            |
+             +---------------------------------------+
+             1 row in set (0.00 sec)
+             
+             ```
+
+5. 流程函数
+
+   - 如表
+
+     | 函数                                                         | 用法                                           |
+     | ------------------------------------------------------------ | ---------------------------------------------- |
+     | if(vaule, t, f)                                              | 如果 value 位真，返回 t，否则返回 f            |
+     | ifnull(value1, valude2)                                      | 如果 value1不为空，返回 value，否则返回 value2 |
+     | case where 条件1 then result1 where 条件2 result2 ... [else result] end | 相当于 if...else if...else                     |
+     | case expr where 常量1 then 值1 where 常量2 then 值2 ... [else 值n]  end | 相当于switch...case                            |
+
+6. 其它函数
+
+   - 如表
+
+     | 函数        | 用法                           |
+     | ----------- | ------------------------------ |
+     | datebase()  | 返回当前版本数据库             |
+     | version()   | 返回当前数据库版本             |
+     | user()      | 返回当前登录用户               |
+     | passwd(str) | 返回 str 加密版，41 位长字符串 |
+     | md5(str)    | 返回 str MD5 值                |
+
+### 分组函数
+
+1. 介绍
+   - 下面的聚合函数就是分组函数
 
 ## 数据查询（单表操作）
 
@@ -959,7 +1609,7 @@ mysql> select * from students;
      8 rows in set (0.01 sec)
      ```
 
-### 查询体条件 where
+### 查询体条件 where （exists 用法）
 
 说明：使用 where 子句对表中数据进行帅选，结果为 True 的行会出现在结果集中
 
@@ -1227,6 +1877,16 @@ mysql> select * from students;
       3. 比较运算符
       4. 逻辑运算符（and 比 or 先运算）
     -  可以使用 () 提高运算优先级
+    
+13. exists 用法
+
+    - 介绍
+      1. 用于判断子查询是否有记录，如果有一条或多条记录存在返回 True，否则返回 False
+      2. `not exists` 于 `exists` 作用想法
+    - 用法
+      1. 一般用法 `select 字段... from 表名1 where exists (select 字段... from 表名2 where 表名1.字段=表名2.字段);`
+      2. 子查询不返回查询记录，只返回 True\False
+      3. 运行规则是，将 __表1__ 的每一条记录带入 __子查询__中，去匹配 __相关联的字段__ ，如果匹配成功返回 True，否则返回 False。__感觉就是个 2 层循环嵌套，外层出一个记录，里层将外层这个记录与自己的记录进行比较相同返回 True，没有相同返回 False__
 
 ### 聚合函数
 
@@ -1238,13 +1898,13 @@ mysql> select * from students;
 
    - 常用 5 个聚合函数
 
-     | 函数     | 作用                                                   |
-     | -------- | ------------------------------------------------------ |
-     | count(*) | 统计总行数，不用之处具体哪一行                         |
-     | max(列)  | 表示求此列的最大值，指明具体哪一列                     |
-     | min(列)  | 表示求此列的最小值，指明具体哪一列                     |
-     | sum(列)  | 表示求此列的和，指明具体哪一列，该列数据必须为数字     |
-     | avg(列)  | 表示求此列的平均值，指明具体哪一列，该列数据必须为数字 |
+     | 函数          | 作用                                                   |
+     | ------------- | ------------------------------------------------------ |
+     | count(*/字段) | 统计总行数，不用指出具体哪一行                         |
+     | max(列)       | 表示求此列的最大值，指明具体哪一列                     |
+     | min(列)       | 表示求此列的最小值，指明具体哪一列                     |
+     | sum(列)       | 表示求此列的和，指明具体哪一列，该列数据必须为数字     |
+     | avg(列)       | 表示求此列的平均值，指明具体哪一列，该列数据必须为数字 |
 
 2. count 用法
 
@@ -1352,7 +2012,7 @@ mysql> select * from students;
 
    - 按照某些字段分组，表示这些字段相同的数据会被分在一个组中（可以多个字段一起分组，多个字段都相同会被分到一组）
    - 分组后，结果集只显示用于分组的字段，其他的字段无法显示（会有语法错误）
-   - 可以对分组的数据机型统计，做聚合运算
+   - 可以对分组的数据进行统计，做聚合运算
 
 2. 语法介绍
 
@@ -1362,15 +2022,15 @@ mysql> select * from students;
 
      `select 聚合...from 表名 group by 列1,列2,列3...` 但是此语句查询结果集不直观
 
-   - 错误语法（使用 students 表为列）
+   - 错误语法（使用 students 表为例）
 
      `select name from students group by gender` 分组字段没有出现在 select 后面
 
-     `select genser,name from students group by gender` 没有用与分组得字段出现在 select 后面
+     `select gender,name from students group by gender` 没有用于分组的字段出现在 select 后面
 
 3. 使用方式
 
-   - 查询男女生总人数
+   - 查询男女生总人数 __（使用聚合函数 `count()`）__
 
      ```sql
      mysql> select gender,count(*) from students group by gender;
@@ -1493,7 +2153,7 @@ mysql> select * from students;
 
      1. 已知：每页显示 m 条数据，当前显示第 n 页
      2. 求：第 n 页的数据（用户页数从 1 开始算，数据库中的数据除 __自增__ 是从 1 开始，其余都是 从 0 开始）
-     3. 结果：`select * from 表名 where isDelete=0 limit (n-1)*m,m`
+     3. 结果：`select * from 表名 where isDelete=0 limit (n-1)*m,m` 按用户页算
 
    - 例子
 
@@ -1540,17 +2200,18 @@ mysql> select * from students;
      limit start,count          # 分页
      ```
 
-2. 执行顺序
+2. 执行顺序 __（一个完整得 SQL 语言执行得顺序，这就解释了为什么表的别名，可以在 select 中使用 `select province.id from areas as province where title='辽宁省';` 表名为 areas 别名为 province）__
 
-   - 讲解
-     1. from 表名
-     2. where ...
-     3. group by
-     4. select distinct *
-     5. having...
-     6. order by...
-     7. limit start,count
+   - 讲解（注意表和结果集，查询得时间顺序）
+     1. from 表名 ：从哪些表中筛选
+     2. where ... ：从表中帅选得条件
+     3. group by ：表中数据分组依据
+     4. select distinct * ：选择得字段
+     5. having... ：在统计结果中再次刷选
+     6. order by... ：结果集排序
+     7. limit start,count ：结果集分页
    - 实际中，只会使用部分语句的组合，而不是全部
+   - `select` 之前是对表中数据得筛选，之后是结果集得筛选
 
 ## 高级（多表操作）
 
@@ -1710,7 +2371,7 @@ mysql> select * from students;
      3. 以上这几种做法，都不好，最好使用逻辑删除
    
 
-### 关联查询（3种）
+### 关联查询
 
 说明：查询数据存在多张表时，使用连接查询，表的属性太长，可使用 `as` 简写名称。 <br>__连接查询就是把之前查询一张表，转换为多张表一起查询，[inner, left, right] 实际就是查询字段来自（from） 多张表了，有多个字段了，其他语句执行顺序不变，其中应查询存放关系字段的表，在连接其他表__
 
@@ -1718,27 +2379,28 @@ mysql> select * from students;
 
    - 如表
 
-     | 连接方式 | 语法           | 查询结果集显示                                            |
-     | -------- | -------------- | --------------------------------------------------------- |
-     | 内连接   | A inner join B | 表 A 与 表 B 向匹配的行，会出现在结果集中                 |
-     | 左连接   | A left join B  | A 和 B 相同行，外加 A 表中独有的数据，未对应的数据用 null |
-     | 右连接   | A right join B | A 和 B 相同行，外加 B 表中独有的数据，未对应的数据用 null |
-
+     | 连接方式                     | 语法                                                         | 查询结果集显示                                               |
+     | ---------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+     | 内连接（可以多张表查询）     | A inner join B                                               | 表 A 与 表 B 的匹配的行，会出现在结果集中                    |
+     | 左（外）连接（只可以两张表） | A left join B                                                | A 和 B 相同行，外加 A 表中独有的数据，未对应的数据用 null    |
+     | 右（外）连接（只可以两张表） | A right join B                                               | A 和 B 相同行，外加 B 表中独有的数据，未对应的数据用 null    |
+   | 全（外）连接（只可以两张表） | full join                                                    | __mysql 不支持，可以使用 union 合并__                        |
+     | union                        | 将多个 select  结果，合并成一个结果集（去重，union all 不去重），__合并的 select 查询的字段得相同__ | [参考地址：菜鸟](https://www.runoob.com/mysql/mysql-union-operation.html) |
      
 
-2. 内敛查询实例
+2. 内连查询实例（没有关联条件 `on` 会出现笛卡尔积）
 
    - 查询内容
 
      | 学生姓名 | 科目名称 | 分数 |
      | -------- | -------- | ---- |
-     |          |          |      |
+     | xxx      | xxx      | xxx  |
 
    - 分析数据来源及关系
 
      1. 学生姓名 --> students（学生表），级联关系 students.id = scaores.stuid
      2. 科目名称 --> subjects（科目表），级联关系 subjects.id = scaores.subid
-     3. 分数 --> scores（分数表），同上
+     3. 分数 --> scores（分数表），没有级联，分数字段在 scores 表中
 
    - 查询语句
 
@@ -1758,17 +2420,22 @@ mysql> select * from students;
      | 孙行者 | java   |  88.62 |
      +--------+--------+--------+
      6 rows in set (2.28 sec)
+     
+     /* 另一种写法，使用 where 多表查询
+        mysql> select students.name,subjects.title,scores.score from scores,
+        -> students, subjects where scores.stuid=students.id and
+        -> scores.subid=subjects.id;
+      */
      ```
-
    - 解释
-
-     scores 表储存关系，所以 scores 表的数据没有多余数据，当实体关系为 (1: n) 时，关系存储在 n 的表中
    
+     scores 表储存关系，所以 scores 表的数据没有多余数据，当实体关系为 (1: n) 时，关系存储在 n 对应的表中
+
 3. 外联查询实例
 
    说明：使用右连接实例
 
-   - 先显示两表对应数据，在显示右表独有数据，为对应上的数据使用 null 填充
+   - 先显示两表对应数据，在显示右表独有数据，未对应上的数据使用 null 填充
 
    - 查询 score 表连接 students 表
 
@@ -1879,7 +2546,7 @@ mysql> select * from students;
 
    - 相似结构的多张表
 
-     说明：__(省: 市) 为 (1: n)关系，所以关系存放在市的表中__
+     说明：__(省: 市) 为 (1: n)关系，所以关系存放在市的表中；市、区县表也相同__
 
      ![相似结构的多张表](git_picture/相似结构的多张表.png)
 
@@ -1887,7 +2554,7 @@ mysql> select * from students;
 
      ![合成一张表](git_picture/合成一张表.png)
 
-3. 实现 __省、市、区县 合并一张表的插入_
+3. 实现 __省、市、区县 合并一张表的插入__
 
    - 代码实现
 
@@ -1898,7 +2565,8 @@ mysql> select * from students;
             -> id int auto_increment primary key not null,
             -> title varchar(20),
             -> pid int,
-            -> foreign key(pid) references areas(id));
+            -> foreign key(pid) references areas(id)
+            -> );
         Query OK, 0 rows affected (2.49 sec)
         
         mysql> desc areas;
@@ -1911,9 +2579,11 @@ mysql> select * from students;
         +-------+-------------+------+-----+---------+----------------+
         3 rows in set (2.24 sec)
         ```
-
-     2. 错误
-
+      ```
+     
+      ```
+   2. 错误 __（外键引用上注意）__
+     
         ```sql
         mysql> create table areas(
             -> id int auto_increment primary key not null,
@@ -1921,8 +2591,8 @@ mysql> select * from students;
             -> foreign key(pid) references areas(id)
             -> );
         ERROR 1072 (42000): Key column 'pid' doesn't exist in table
-        ```
-
+      ```
+     
         解释：要先创建 pid 字段，然后再用用外键
 
 4. __插入数据__
@@ -1969,8 +2639,7 @@ mysql> select * from students;
    
    - 合并表介绍
      
-   1. 合并表是 3 张表数据合在一张表，虽然存储再一张表中，但是查询时，分开查询，就是查省时，areas 表变成 province 表，查市时，areas 表变成 city 表，这样在逻辑上会显得清晰
-   
+     1. areas 表是合并表，是 3 张表数据合在一张表，虽然存储再一张表中，但是查询时，分开查询，就是查省时，areas 表变成 province 表；查市时，areas 表变成 city 表，这样在逻辑上会显得清晰。
    - 子查询
    
      查询属于辽宁省的市
@@ -2057,7 +2726,7 @@ mysql> select * from students;
    
      1. 查询语句
    
-        说明：查询存放 __关系字段__ 的表，再连接其他表
+        说明：查询存放 __关系字段__ 的表，再连接其他表 __（查询的主表 city 对应这关系最多，上对应省表、下对应区县表）__
    
         ```sql
         mysql> select province.title as protitle,city.title as cititle,county.title as cotitle from areas as city
@@ -2066,7 +2735,7 @@ mysql> select * from students;
             -> where province.title='辽宁省';
         ```
    
-     2. 查询结果
+     2. 查询结果（显示一小部分）
    
         ```sql
         +----------+----------+------------------------+
@@ -2162,42 +2831,119 @@ mysql> select * from students;
 
 ### 事物
 
-说明：当一个业务逻辑需要多条 sql 语句完成时，如果其中一条 sql 语句出现错误，则希望整个操作都退回，宝座逻辑的正确性。__表的类型必须是 InnoDB 、 BDB 类型，才可以使用事务__。<br>修改表的类型 `alter table '表名' engine=InnoDB;`
+说明：当一个业务逻辑需要多条 sql 语句完成时，如果其中一条 sql 语句出现错误，则希望整个操作都退回，保证逻辑的正确性。__表的引擎（engine）必须是 InnoDB 、 BDB 类型，才可以使用事务__。<br>修改表的类型 `alter table '表名' engine=InnoDB;`
 
 1. 介绍
 
    - 事务
 
-     所谓事务使用户定义的一个数据库操作序列，这些操作要么全做，要么全都不做，是一个不可分割的工作单位
+     1. 所谓事务是用户定义的一个数据库操作序列，这些操作要么全做，要么全都不做，是一个不可分割的工作单位
 
    - 定义事务 3 条语句
 
      1. `begin`
      2. `commit`
      3. `rollback`
-     4. 事务通常是以 `begin` 开始，以 `commit` 或 `roolback` 结束。<br>`commit` 表时提交，即提交事务所有操作，具体地说加将事务中所有对数据库的更新写回到磁盘上的物理数据中去，事务正常结束。<br> `rollback` 表时回滚，即在事务运行过程中发生某种故障，事务不能正常执行，系统将事务中对数据库的所有已完成操作全部撤回，回滚到是恶u开始执行的状态
+     
+   - 事务通常是以 `begin` 开始，以 `commit` 或 `roolback` 结束
+
+     1. `commit` 表示提交，即提交事务所有操作，具体地说：是将事务中所有对数据库的更新写回到磁盘上的物理数据中去，事务正常结束。
+     2. `rollback` 表示回滚，即在事务运行过程中发生某种故障，事务不能正常执行，系统将事务中对数据库的所有已完成操作全部撤回，回滚到数据库开始执行的状态
 
    - 事务的 4 大特性（简称 ACID）
 
      1. 原子性（Atomicity）
 
-        事务是数据库的逻辑工作单位，事务中包含诸多操作，要么都做，要么全部做，即事务的群不操作在数据库中是不可分的，
+        - 事务是数据库的逻辑工作单位，事务中包含诸多操作，要么都做，要么全部做，即事务的全部操作在数据库中是不可分的，
 
      2. 一致性（Consistency）
 
-        多个并行执行的事务，其执行结果必须与按某一顺序串行执行的结果相一致 <br> 某公司在银行有 A，B 两个账号，现在想从 A 账号中取出 1 万，存入 B 中，那么就定义一个事务，该事务包括 2 个操作，第一个操作是从 A 账号取出 1 万，第二个操作向 B 存入 1 万。这两个操作要么全做，要么全不做。全做、全不做，数据库都处于一致性状态。如果只做一个操作，则逻辑上就发生错误，减少或增加 1 万，这是数据库处于不一致状态。__可见一致性核原子性是密切相关的__
-
+        - 多个并行执行的事务，其执行结果必须与按某一顺序串行执行的结果相一致 
+        - 某公司在银行有 A，B 两个账号，现在想从 A 账号中取出 1 万，存入 B 中，那么就定义一个事务，该事务包括 2 个操作，第一个操作是从 A 账号取出 1 万，第二个操作向 B 存入 1 万。这两个操作要么全做，要么全不做。全做、全不做，数据库都处于一致性状态。如果只做一个操作，则逻辑上就发生错误，减少或增加 1 万，这是数据库处于不一致状态。__可见一致性核原子性是密切相关的__
+        
      3. 隔离性（Isolation）
-
-        一个事务执行不能被其他事务干扰。即一个事务的内被操作及使用的数据对其他并发事务时隔离的，并发执行的事务之间不能相互干扰
-
+     
+        - 数据库允许多个并发事务同时对其数据进行读写和修改的能力，隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。并发执行的事务之间不能相互干扰 [菜鸟教程](https://www.runoob.com/mysql/mysql-transaction.html)
+     
+        - __事务隔离分为不同级别__
+     
+          1. 读未提交（Read uncommitted）：允许事务读取违背其他事务提交的变更。脏读、不可重复、幻读问题都会出现
+             - 事务1，可以读取到事务2 已经修改，但是还没有提交的数据
+          2. 读提交（read committed）：只允许事务读取已被其他事务提交的变更。可以避免脏读，但不可重复和幻读问题依然会出现
+             - 事务1，只可以读取事务2 已提交的数据
+          3. 可重复读（repeatable read）：确保事务可以多次从一个字段读取相同的值，这个事务在持续期间，禁止其他事务对该字段进行更新。可以避免脏读和不可重复读，但幻读问题仍然存在（随着 mysql 的优化，次级别也可以避免幻读）。
+          4. 串行化（Serializable）：确保事务可以从一个表中读取相同行。这个事务在持续期间，禁止其他事务对该表进行更新、插入、删除。可以避免脏读、不可重复读和幻读问题，但性能超低。
+     
+        - 脏读、不可重复读、幻读现象
+     
+          1. 脏读现象（针对未提交的记录）：事务1 对表的某个记录进行修改，但还未提交，事务2 就可以查看事务1 未提交的数据。这样造成的问题是，如果事务1 回滚，那么事务2 在此之前所查看的数据就是脏数据。
+          2. 不可重复的现象（针对表中行的数据）：是指同一个事务在整个事务过程中对表中同一记录进行读取，每次读取结果都不同。事务1 对表的某个记录进行修改，并已提交。在事务1 提交之前，事务2 查询了该条记录；在提交之后，事务2 又查询该条记录。
+          3. 幻读现象（针对记录的条数）：是指同一个事务在整个事务过程中对表中的记录进行读取，查询所得的结果集是不一样的（行数不同）。在事务1 提交之前，事务2 查询了表中记录；在提交之后，事务2 又查询表中记录。__两次读取的表中记录数不同__
+          4. 不可重复与幻读的区别：不可重复针对的是表中的记录的数据不同；幻读是针对查询的结果集数量不同（记录条数不同）
+     
+        - 事务隔离级别的作用
+     
+          | 事务级别                     | 脏读 | 不可重复读 | 幻读                        |
+          | ---------------------------- | ---- | ---------- | --------------------------- |
+          | read uncommitted（读未提交） | 1    | 1          | 1                           |
+          | read committed（读提交）     | 0    | 1          | 1                           |
+          | repeatable read（可重复读）  | 0    | 0          | 1（mysql 优化后也可以避免） |
+          | serializable（串行化）       | 0    | 0          | 0                           |
+     
+        - 对事物级别和问题的理解
+     
+          1. __读未提交、读提交__ 是针对提交而言
+          2. __可重复读__ 是针对记录（行）而言，事务持续期间将操作的表中记录（行）锁住禁止更新（优化后幻读也可以解决）。
+          3. __幻读__ 是将操作的表锁住，禁止更新、插入、删除。
+     
+        - 查看 mysql 默认隔离级别
+     
+          1. 查看当前的个级别 `select @@tx_isolation;`
+     
+          2. 查看全卷隔离级别 `select @@global.tx_isolation;`
+     
+             ```sql
+             mysql> select @@tx_isolation;
+             +-----------------+
+             | @@tx_isolation  |
+             +-----------------+
+             | REPEATABLE-READ |
+             +-----------------+
+             1 row in set, 1 warning (0.00 sec)
+             ```
+     
+        - 修改事务隔离级别
+     
+          1. 修改全局 (永久有效)`set global tx_isolation = 'read-committed';`
+          2. 只对本次连接有效 `set tx_isolation = 'read-uncommitted';`
+     
      4. 持续性（Durability）
+     
+        - 持续性也称持久性，指一个事务一旦提交，他对数据库中数据的改变应该是永久性的。接下来的其他操作或者发生故障不应对其执行结果产生任何影响
 
-        持续性也称持久性，指一个事务一旦提交，他对数据库中数据的改变应该是永久性的。接下来的其他操作或者发生故障不应对其执行结果产生任何影响
+2. 开始事务与结束事务
 
-2. 使用事务的情况
+   - > MySQL 命令行的默认设置下，事务都是自动提交的，即执行 SQL 语句后就会马上执行 `commit`
+     > 操作。因此要显式地开启一个事务务须使用命令 `begin` 或 `start transaction`，或者执行命令 `set autocommit=0`，用来禁止使用当前会话的自动提交。
 
-   说明：当数据库更改时，包括：insert \ update \ delete
+   - 手动提交事务方法一
+
+     1. 关闭自动提交 `set autocommit=0[false];`
+     2. 接下来执行的 SQL 语句都需要手动提交
+     3. 手动提交 `set autocommit=1[true];` 或者回滚 `rollback;`
+     4. __此次设置只在本次连接有效__ 。缺点事务提交不灵活
+     5. JDBC 支持这种方式
+
+   - 手动提交事务方法二
+
+     1. 开启事务 `begin;` 或者 `set transaction;`
+     2. 事务描述的 SQL 语句
+     3. 手动提交 `commit;` 或者回滚 `rollback;`
+     4. 使用灵活、方便
+
+3. 使用事务的情况
+
+   __说明：数据库回滚时只对，包括：insert \ update \ delete 的语句有效。`truncate 表名` 删除整张表数据，回滚对其无效，但删除数据快（底层实现是使用 `drop` 表，再创建一张相同结构的表）。__
 
    - 事务操作流程图
 
@@ -2239,7 +2985,7 @@ mysql> select * from students;
           +----+--------+
           | id | title  |
           +----+--------+
-          |  2 | c/c++  |
+          |  2 | c/c++  |	-- 此条记录被修改
           |  3 | java   |
           |  4 | python |
           +----+--------+
@@ -2257,7 +3003,7 @@ mysql> select * from students;
           +----+--------+
           | id | title  |
           +----+--------+
-          |  2 | c      |
+          |  2 | c      |	-- 此条记录没有被修改
           |  3 | java   |
           |  4 | python |
           +----+--------+
@@ -2347,12 +3093,15 @@ mysql> select * from students;
 1. 介绍
 
    - 索引能快速定位到要查找的内容
-
    - 数据库有默认索引，数据库存储是按照主键存储
    - 索引虽然能够加快数据库查询，但需要占用一定的存储空间，当基本更新时，索引要进行相应的维护，这些都增加了数据库的负担。
    - 再没建立索引时，where 是每一行逐条数据进行查找（就算找到了，where 还是会进行逐行查找，知道找完，返回查询信息），当你建立索引时，是根据 where 条件对哪一列进行筛选（频率大），对哪一列，建立索引
    - 索引可以对单列建立索引，也可以对多列建立一个索引，索引对等值有用，对范围来说，索引没用
    - 范围、or 是终断索引的逻辑运算符
+   - __Mysql 会在主键、唯一键和外键自动创建索引，其它字段需要手动创建索引__
+     1. 删除主键，索引也会随之删除
+     2. 删除唯一键的方式是通过删除索引来实现
+     3. 删除外键时，外键索引依然存在，需另删除
 
 2. 索引数据类型
 
@@ -4969,15 +5718,81 @@ mysql> select * from students;
         stu
         ```
 
-## Redis
+## Redis 介绍
 
-### Redis 安装及配置文件
+### 技术分类
+
+1. 解决共功能性问题
+   - Java，Jsp，RDBMS，Tomcat，HTML，Linux，Jdbc，SVN（git）
+2. 扩展性的问题
+   - Struts，Spring，SpringMVC，Hibernate，Mybatis
+3. 解决性能问题
+   - NoSQL，Java 线程，Hadoop，Nginx（数据库负载均衡），MQ（消息队列），ElasticSearch
+
+### 介绍
+
+1. 行式数据库
+
+   - 按行查询数据库
+
+2. 列式数据库
+
+   - 按列查询数据
+
+3. 由于其拥有持久化能力，利用其多样的数据结构存储特定的数据
+
+   - 如表
+
+     | 作用                       | 数据格式                           |
+     | -------------------------- | ---------------------------------- |
+     | 最新 N 个数据              | 通过 list 实现按自然时间排序的数据 |
+     | 排行榜，Top N              | 利用 zset （有序集合）             |
+     | 时效性数据，比如手机验证码 | Expire 过期                        |
+     | 计数器，秒杀               | 原子性，自增方法incr，decr         |
+     | 去除大量重复数据           | 利用 set 集合                      |
+     | 构建队列                   | 利用 list 集合                     |
+     | 发布订阅消息系统           | pub/sub 模式                       |
+
+4. __Redis 是单线程 + IO 复用技术__
+
+   - 多路复用是指使用一个线程来检查多个文件描述符（Socket）的就绪状态，比如调用 select 和 poll 函数，传入多个文件描述符，如果有一个文件描述符就绪，则返回，否则阻塞直接超时。得到就绪状态后进行真正的操作可以在同一个线程里执行，也可以启动线程执行（比如线程池）
+
+### Ubuntu 安装
+
+1. 下载 redis，解压
+2. 编译
+   - 需要 `gcc/g++`
+3. 安装 `make install` 
+   - 默认安装位置 `/usr/local/bin`
+   - 自定义安装位置 `make PREFIX=/opt/databases/redis`
+   - 安装目录 `/opt/datavases/redis/bin`
+4. 安装目录介绍
+   - `Redis-benchmark` ：性能测试工具，可以在自己本上运行，看服务启动后的性能
+   - `Redis-check-aof` ：修复有问题的 `AOF` 文件
+   - `Redis-check-dump` ：修复有问题的 `dump.rdb`
+   - `Redis-sentinel` ：Redis 集群使用
+   - `Redis-server` ：服务器启动命令
+   - `Redis-cli` ：客户端，操作入口
+5. 指定自定义配置文件启动
+   - `redis-server redis.conf` (配置文件在解压目录中)
+   - 修改 `daemonize` 的 no 改为 yes，让服务后台启动
+6. 连接服务器
+   - `redis-cli -h 127.0.0.1 -p 6379`
+   - redis 没有用户之分，输入密码正确即可连上
+7. 关闭服务端
+   - 在客户端输入 `shutdwon`
+   - 系统终端 `redis-cli shutdwon` 
+8. 默认又 16 个数据（0-15）
+   - 默认使用 0 号库
+   - 选择库 `select num`
+
+### Redis 安装及配置文件（windows）
 
 说明：本人为 win10 操作系统
 
 1. Redis 安装
 
-   说明：Redis 官方网址 [网址]([https://redis.io](https://redis.io/))
+   说明：Redis 官方网址 [网址](https://redis.io)
 
    - 安装过程参考地址 [菜鸟](https://www.runoob.com/redis/redis-install.html)
    - 指出：下载压缩文件，解压即安装完成，可以将其添加环境变量中，启动方便
@@ -5034,77 +5849,191 @@ mysql> select * from students;
       # bind 127.0.0.1
       ```
 
-      解释：此配置文件，没有绑定 IP，所以任何 IP 都不限制
+      解释：此配置文件，没有绑定 IP，所以接受任何 IP 都不限制的访问，还需要将保护模式关闭（不关闭还是直接收本地访问） `protected-mode no`
 
-   3. 日志文件存放地址（修改）
+   3. 请求到达至接受处理前的队列（队列总和 = 未完成 3 次握手队列 + 已完成 3 次握手队列）
 
-      ```tex
-      # Specify the log file name. Also 'stdout' can be used to force
-      # Redis to log on the standard output. 
-      # 将日志存入文档中
-      # logfile "E:/Redis_data/Logs/redis_log.txt"
-      # 标准输出，在命令窗口
-      logfile stdout
+      ```shell
+      94 # TCP listen() backlog.
+      95 #
+      96 # In high requests-per-second environments you need an high backlog in order
+      97 # to avoid slow clients connections issues. Note that the Linux kernel
+      98 # will silently truncate it to the value of /proc/sys/net/core/somaxconn so
+      99 # make sure to raise both the value of somaxconn and tcp_max_syn_backlog
+      100 # in order to get the desired effect.
+   101 tcp-backlog 511
       ```
 
+   4. 一个空闲的客户端维持多少秒会关闭，0 永不关闭
+
+      ```shell
+       103 # Unix socket.
+       104 #
+       105 # Specify the path for the Unix socket that will be used to listen for
+       106 # incoming connections. There is no default, so Redis will not listen
+       107 # on a unix socket when not specified.
+    108 #
+       109 # unixsocket /tmp/redis.sock
+    110 # unixsocketperm 700
+       111 
+       112 # Close the connection after a client is idle for N seconds (0 to disable)
+       113 timeout 0
+      ```
+   
+   5. 对方问的客户端进行心跳检测（官方推荐 60 秒检测一次）
+   
+      ```shell
+       114 
+       115 # TCP keepalive.
+       116 #
+       117 # If non-zero, use SO_KEEPALIVE to send TCP ACKs to clients in absence
+       118 # of communication. This is useful for two reasons:
+       119 #
+       120 # 1) Detect dead peers.
+       121 # 2) Take the connection alive from the point of view of network
+       122 #    equipment in the middle.
+       123 #
+    124 # On Linux, the specified value (in seconds) is the period used to send ACKs.
+       125 # Note that to close the connection the double of the time is needed.
+    126 # On other kernels the period depends on the kernel configuration.
+       127 #
+    128 # A reasonable value for this option is 300 seconds, which is the new
+       129 # Redis default starting with Redis 3.2.1.
+    130 tcp-keepalive 300
+      ```
+   
+   6. 日志文件存放地址（修改）
+   
+   ```tex
+      # Specify the log file name. Also 'stdout' can be used to force
+   # Redis to log on the standard output. 
+      # 将日志存入文档中
+   # logfile "E:/Redis_data/Logs/redis_log.txt"
+      # 标准输出，在命令窗口
+      logfile stdout
+   ```
+   
       解释：日志文件存放位置
-
-   4. Redis 数据库的数量（默认没有名字从 0 到 15）
-
+   
+   7. Redis 数据库的数量（默认没有名字从 0 到 15）
+   
       ```tex
       # Set the number of databases. The default database is DB 0, you can select
       # a different one on a per-connection basis using SELECT <dbid> where
       # dbid is a number between 0 and 'databases'-1
       databases 16
       ```
-
-   5. Redis 是基于内存的读写，但是也会向硬盘存储
-
-      ```tex
-      #   In the example below the behaviour will be to save:
-      #   after 900 sec (15 min) if at least 1 key changed
-      #   after 300 sec (5 min) if at least 10 keys changed
-      #   after 60 sec if at least 10000 keys changed
-      #
-      #   Note: you can disable saving completely by commenting out all "save" lines.
-      #
-      #   It is also possible to remove all the previously configured save
-      #   points by adding a save directive with a single empty string argument
-      #   like in the following example:
-      #
-      #   save ""
-      
-      save 900 1
-      save 300 10
-      save 60 10000
-      ```
-
-      解释：保存形式，900 秒内，更新超过 1 次、300 秒内，更新超过 10 次、60 秒内，更新超过 10000 次，会向硬盘写入。如果不想向硬盘写入，可以将 `save 900 1` 这样的 3 个语句注释，将 `save ""` 打开。查询不算更新。
-
-   6. __物理存储数据库的名字及地址__（修改）
-
-      - 物理存储数据库名
-
-        ```tex
-        # The filename where to dump the DB
-        dbfilename dump.rdb
+   
+   8. 密码设置
+   
+      - 临时设置（客户端设置，已经开启服务）
+   
+        ```shell
+        shen@shen-Ubuntu:/opt/databases/redis/bin$ sudo ./redis-cli 
+        127.0.0.1:6379> config get requirepass
+        1) "requirepass"
+        2) ""
+        127.0.0.1:6379> config set requirepass "123"
+        OK
+        127.0.0.1:6379> auth 123
+        OK
+        127.0.0.1:6379> keys *
+        (empty array)
+        127.0.0.1:6379> 
         ```
-
-        解释：可以修改嘛
-
-      - 数据库存放位置（文件夹）
-
-        ```sql
-        # The working directory.
-        #
-        # The DB will be written inside this directory, with the filename specified
-        # above using the 'dbfilename' configuration directive.
-        #
-        # The Append Only File will also be created inside this directory.
-        #
-        # Note that you must specify a directory here, not a file name.
-        dir E:/Redis_data/db
+   
+      - 永久设置
+   
+        ```shell
+         780 # IMPORTANT NOTE: starting with Redis 6 "requirepass" is just a compatiblity
+         781 # layer on top of the new ACL system. The option effect will be just setting
+         782 # the password for the default user. Clients will still authenticate using
+         783 # AUTH <password> as usually, or more explicitly with AUTH default <password>
+         784 # if they follow the new protocol: both will work.
+         785 #
+         786 requirepass 123
         ```
+   
+   9. 最大客户端连接数
+   
+      - `maxclient 10000` 默认连接数
+   
+   10. 可以使用的内存量
+   
+       - `maxmemory` 
+       - 如果内存使用达到上线，Redis 将试图移除内部数据，移除规则可以通过 `maxmemery-policy` 来指定。
+       - 如果 Redis 无法根据移除规则来移除内存中的数据，或者设置了 `不允许移除`
+       - 那么，Redis 则会针对哪些需要申请内存的指令返回错误信息。申请内存命令 `set/lpush`
+   
+   11. 移除规则
+   
+       - `maxmemery-policy`
+   
+       - 如表
+   
+         | 参数            | 作用                                                         |
+         | --------------- | ------------------------------------------------------------ |
+         | volatile-lru    | 使用 LRU（最近最少使用原则）算法移除 key，只对设置过期时间的键 |
+         | allkeys-lru     | 使用 LRU（最近最少使用原则）算法移除 key                     |
+         | volatile-random | 在过期集合中移除随机 key，只对设置过期时间的键               |
+         | allkeys-random  | 移除随机的 key                                               |
+         | volatile-ttl    | 即将过期，移除哪些 TTL 值最小的 key，即哪些要过期的 key      |
+         | noeviction      | 不进行移除，针对写操作，返回错误信息                         |
+   
+   12. 设置样本数
+   
+       - `maxmemory-sample`
+       - 设置样本数，LRU算法和最小 TTL 算法，都不是精确的算法，而是估计算值，所以可以设置样本大小
+       - 一般设置 3到7数字，数字越小约不准确，但性能消耗也越小
+       - 样本，就是最先获取要删除的数据，然后从样本中再次比较，删除最该删除的
+   
+   13. Redis 是基于内存的读写，但是也会向硬盘存储
+   
+       ```tex
+       #   In the example below the behaviour will be to save:
+       #   after 900 sec (15 min) if at least 1 key changed
+       #   after 300 sec (5 min) if at least 10 keys changed
+       #   after 60 sec if at least 10000 keys changed
+       #
+       #   Note: you can disable saving completely by commenting out all "save" lines.
+       #
+       #   It is also possible to remove all the previously configured save
+       #   points by adding a save directive with a single empty string argument
+       #   like in the following example:
+       #
+       #   save ""
+       
+       save 900 1
+       save 300 10
+       save 60 10000
+       ```
+   
+       解释：保存形式，900 秒内，更新超过 1 次、300 秒内，更新超过 10 次、60 秒内，更新超过 10000 次，会向硬盘写入。如果不想向硬盘写入，可以将 `save 900 1` 这样的 3 个语句注释，将 `save ""` 打开。查询不算更新。
+   
+   14. __物理存储数据库的名字及地址__（修改）
+   
+       - 物理存储数据库名
+   
+         ```tex
+         # The filename where to dump the DB
+         dbfilename dump.rdb
+         ```
+   
+         解释：可以修改嘛
+   
+       - 数据库存放位置（文件夹）
+   
+         ```sql
+         # The working directory.
+         #
+         # The DB will be written inside this directory, with the filename specified
+         # above using the 'dbfilename' configuration directive.
+         #
+         # The Append Only File will also be created inside this directory.
+         #
+         # Note that you must specify a directory here, not a file name.
+         dir E:/Redis_data/db
+         ```
 
 ### Redis 启动
 
@@ -5146,6 +6075,8 @@ mysql> select * from students;
      127.0.0.1:6379>
      ```
 
+## 数据操作
+
 ###              数据格式、数据操作
 
 说明：[Redis 中文命令大全](http://www.redis.cn/commands.html)
@@ -5155,8 +6086,8 @@ mysql> select * from students;
    - __键__（key）的类型
      1. 字符串
    - __值__（value）的类型分为 5 种
-     1. string：（字符串）
-     2. hash：（哈希）
+     1. string：（字符串，最大为 512M）
+     2. hash：（哈希Map）
      3. list：（列表）
      4. set：（集合）
      5. zset：（有序集合）
@@ -5187,7 +6118,10 @@ mysql> select * from students;
      127.0.0.1:6379[1]>
      ```
 
-3. __string__
+
+### String 类型
+
+1. __string__
 
    - 介绍
 
@@ -5368,7 +6302,7 @@ mysql> select * from students;
           8
           ```
 
-4. __键的命令__
+2. __键的命令__
 
    - 查找键，参数支持正则
 
@@ -5460,7 +6394,10 @@ mysql> select * from students;
      name
      ```
 
-5. __hash__
+
+### hash 类型
+
+1. __hash__
 
    说明：hash 用于存储对象，对象的格式为键值对（json ）
 
@@ -5505,7 +6442,7 @@ mysql> select * from students;
 
      2. 获取多个属性
 
-        `hmset key filed field1..`
+        `hmget key filed field1..`
 
         ```shell
         127.0.0.1:6379> hmget stu_1 name gender
@@ -5513,7 +6450,7 @@ mysql> select * from students;
         0
         ```
 
-     3. 获取所有属性值
+     3. 获取所有属性和值
 
         `hgetall key`
 
@@ -5576,13 +6513,29 @@ mysql> select * from students;
           gender
           ```
 
+        - 增加数值（加负数实现减法）
+
+          `hincrby key field 10` ，field 字段加 10
+
+        - 有值不赋值，没有赋值
+        
+          `hsetnx key field value`
+        
         - 返回值的字符串长度
-
+        
           `hstrlen key field`
-
+        
           出错！！！
+   
+2. 存储 Java 对象的几种方式
 
-6. __list__ 
+   - 先将对象序列化，以 id 作为值，序列化的字符流（文本）作为 value（用不上 hash ，用 string 就可以）
+     1. 每次修改，需要反序列化，在序列化，开销较大
+
+
+### list  类型
+
+1. __list__ 
 
    - 介绍
 
@@ -5591,6 +6544,7 @@ mysql> select * from students;
      3. 在列表的头部或尾部添加元素
      4. 左右都可以进入数据
      5. 值没有键也会被删除
+     6. 底层是双向链表，两端操作性能高，操作中间性能较低
 
    - 设置
 
@@ -5703,42 +6657,46 @@ mysql> select * from students;
         -100
         ```
 
-     3. 获取部分 list 元素值
+     3. 从左边删除 n 个 value（list 有相同的，所以可以删除多个 value）
 
+        `lrem key n value` ，n 为整数表示从左往右删除几个；负整数从右向左删除几个；0 表示删除所有
+
+     4. 获取部分 list 元素值
+   
         `lrange key start stop`
-
+   
         ```shell
         # 获取全部元素
         127.0.0.1:6379> lrange i 0 -1
-        100
+     100
         0
-        -100
+     -100
         ```
 
    - 其他
 
      1. 返回 list 长度
-
+   
         `llen key`
-
-        ```shell
+   
+     ```shell
         127.0.0.1:6379> llen i
-        3
-        ```
+     3
+     ```
 
      2. 返回 list 索引对应的元素
-
+   
         `lindex key index`
-
-        ```shell
+   
+     ```shell
         127.0.0.1:6379> lindex i 0
-        100
-        ```
+     100
+     ```
 
      3. 裁剪列表
-
+   
         `ltrim key start stop`
-
+   
         ```shell
         # 原始 list
         127.0.0.1:6379> lrange i 0 -1
@@ -5759,13 +6717,18 @@ mysql> select * from students;
         2
         ```
 
-7. __set__（集合）
+
+### set 类型
+
+1. __set__（集合）
 
    - 介绍
 
      1. 无序集合
      2. 元素为 string 类型
-     3. 元素具有唯一性，不重复
+     3. 元素具有唯一性，不重复（没有索引值）
+     4. set 提供了判断某个成员是否是一个 set 集合内的重要接口。
+     5. 底层是一个 value 为 null 的 Hash 表（HashMap），所以添加，删除，查找的复杂度都是 O(1)
 
    - 设置
 
@@ -5804,7 +6767,7 @@ mysql> select * from students;
 
    - 其他
 
-     1. 求多个集合交集
+     1. 求多个集合交集（返回相同的元素）
 
         `sinter key1 key2 [key3...]`
 
@@ -5816,10 +6779,22 @@ mysql> select * from students;
 
         `sunion key1 key2 [key3...]`
 
-     4. 判断元素是否在集合中
+     4. 删除集合中的一些元素
 
+        `srem key value1 [value2...]`
+
+     5. 从集合中随机弹出一个元素（删除作用）
+     
+        `spop key` 
+     
+     6. 随机从该集合中去除 n 个元素（不会删除元素）
+     
+        `srandmember key n`
+     
+     7. 判断元素是否在集合中
+     
         `sismember key member`
-
+     
         ```shell
         # 集合元素
         127.0.0.1:6379> smembers set_list
@@ -5835,14 +6810,24 @@ mysql> select * from students;
         1
         ```
 
-8. __zset__
+
+### zset 类型
+
+1. zset 介绍
 
    - 介绍
 
-     1. sort set ，有序集合
+     1. sort set ，有序集合（有索引与 list 相似）
      2. 元素为 string 类型
      3. 元素具有唯一性，不重复
      4. 每个元素都会关联一个 double 类型的 score，表示权重，通过权大小将元素从小到大排序
+
+   - 特点
+
+     1. 添加元素：不同分数，相同元素，元素添加不上，但是分数可以添加上（修改分数，即修改顺序）
+     2. 相同的分数，不同的元素，正常排序
+
+   - __像一个 Map 集合，以元素为 key ，分数为 value__
 
    - 设置
 
@@ -5871,7 +6856,15 @@ mysql> select * from students;
         (2.21s)
         ```
 
-     3. 返回元素个数
+     3. 通过分数获取
+
+        `zrangebyscore key min max` ，`zrangbyscore key 100 100`
+
+     4. 通过分数将查询结果反转（默认从小到大）
+
+        `zrevrangebyscore key max min`
+
+     5. 返回元素个数
 
         `zcard key`
 
@@ -5912,6 +6905,590 @@ mysql> select * from students;
         127.0.0.1:6379> zscore zset_list 3
         2
         ```
+
+2. 使用 zset 实现文章访问量排行榜的实现
+
+   - 创建 ` zadd test 1000 java 800 python 500 c 300 c++`
+
+   - 排序
+
+     ```shell
+     127.0.0.1:6379> zrevrange test 0 -1
+     1) "java"
+     2) "python"
+     3) "c"
+     4) "c++"
+     127.0.0.1:6379> zrevrangebyscore test 1000 500
+     1) "java"
+     2) "python"
+     3) "c"
+     
+     ```
+
+### 操作总结
+
+1. 如表
+
+   | 命令                 | 作用                                  |
+   | -------------------- | ------------------------------------- |
+   | dbsize               | 查看当前数据的 key 的数量             |
+   | flushdb              | 清空当前数据库                        |
+   | flushall             | 清空全部数据库（16个库）              |
+   | incr key             | value 为数字，如果为空新增值为 1      |
+   | getrange/setrange    | 截取，包前也包后                      |
+   | setex key time value | 设置值时，设置时间                    |
+   | getset key value     | 给key复制，同时得到原来的信息（修改） |
+
+2. 原子性
+
+   - 原子操作是指不会被线程调度所打断，这种操作一旦开始，就一直执行到结束
+
+## Java 连接 Redis
+
+### 准备工作
+
+1. [菜鸟参考地址](https://www.runoob.com/redis/redis-java.html)
+2. JAR 包
+   - `jedis.jar` （与Jdbc 功能相同）
+   - 连接池 `commons-pool2-2.4.2.jar` 
+
+### 测试是否连接成功
+
+1. 连接本地主机
+
+   - 代码
+
+     ```java
+     // 连接本地主机
+     Jedis jedis = new Jedis("localhost");
+     // 非本地主机连接，在配置文件中的 bind 和 protect-model 设置
+     // Jedis jedis = new Jedis("ip", port)
+     
+     // 如果 Redis 服务设置来密码，需要下面这行，没有就不需要
+     // jedis.auth("123456"); 
+     
+     // 使用 ping() 测试连接是否成功
+     if (jedis.ping().equals("PONG")) {
+         System.out.println("success");
+     }
+     
+     // 关闭连接
+     jedis.close();
+     ```
+
+2. __Java 实际方法操作，和 redis 数据库指令名，完全相同__
+
+### 短息验证码
+
+1. 思路
+   - 前端获取 电话号
+   - 随机产生验证码
+   - 将 电话号，作为 key 的基础，验证码为 value
+     1. 拼接 key ：`verify_code:138298182:code`
+   - 存入 Redis 中，设置过期时间
+   - 前端获取，验证码，从 Redis 取出验证码，比对
+
+### 数据库连接池
+
+1. `JedisPool`
+
+## Reis 事务
+
+### 介绍
+
+1. Redis 事务定义
+
+   - Redis 事务是一个单独的隔离操作，事务中所有命令都序列化、按顺序执行。
+   - 事务在执行过程中，不会被其他客户端发来的命令请求所打断
+   - __Redis 事务的主要作用就是串联多个命令防止别的命令来打断__
+   - __Redis 更像是指令批量处理的过程__
+   - 没有隔离级别
+   - 没有原子性
+
+2. 事务命令
+
+   - `multi` ：从输入此命令开始，输入的命令都会一次进入命令队列中，但不会执行
+   - `exec` ：直到输入此命令，Redis 会将命令队列中的命令一次执行
+   - `discard` ：组队过程中可以通过此命令来放弃组队（取消事务）
+
+3. 事务的错误处理
+
+   - 组队中某个命令出现了报告错误（单词错误，输入阶段，编译异常，语法错误），执行时整个队列都会被取消
+   - 如果执行命令阶段出现错误（执行阶段），则只有报错的命令不会被执行，而其他命令队徽被执行，不会回滚
+
+4. 演示
+
+   - 正常执行代码
+
+     ```shell
+     127.0.0.1:6379> multi  # 开启事务
+     OK
+     127.0.0.1:6379> set a a
+     QUEUED
+     127.0.0.1:6379> get a
+     QUEUED
+     127.0.0.1:6379> exec # 执行队列中事务
+     1) OK
+     2) "a"
+     ```
+
+   - 编译时错误
+
+     ```shell
+     127.0.0.1:6379> multi
+     OK
+     127.0.0.1:6379> get a
+     QUEUED
+     127.0.0.1:6379> sets c b
+     (error) ERR unknown command `sets`, with args beginning with: `c`, `b`,  # 编译时错误
+     127.0.0.1:6379> exec
+     (error) EXECABORT Transaction discarded because of previous errors.  # 事务直接被取消
+     ```
+
+   - 执行是错误
+
+     ```shell
+     127.0.0.1:6379> multi	# 开启事务
+     OK
+     127.0.0.1:6379> get a
+     QUEUED
+     127.0.0.1:6379> incr a  # 非数字不可以加
+     QUEUED
+     127.0.0.1:6379> get a
+     QUEUED
+     127.0.0.1:6379> exec     # 执行事务
+     1) "a"
+     2) (error) ERR value is not an integer or out of range  # 错误没有执行
+     3) "a"
+     ```
+
+### 事务的作用
+
+1. 问题描述
+   - 网络抢购
+   - 事务冲突问题（账户金额共 1000）
+     1. 3 个请求
+     2. 一个请求想给金额减去 800
+     3. 一个请求想给金额减去 500
+     4. 一个请求想给金额减去 1000
+   - 如果三个请求并发操作，金额会成为负值
+2. 悲观锁、乐观锁
+   - 关系型数据库一般为悲观锁
+   - 非关系型数据库一般为乐观锁
+   - 悲观锁：
+     - 加锁之后，读写都不可以，只有释放锁后，才可以继续操作
+   - 乐观锁
+     - 引入版本号，每一次数据变化后版本相对应升级
+     - 乐观锁加锁后，允许读写错做，但是比较版本号不同（中间有操作，版本号升级），操作失败
+3. 监视
+   - `watch key [key1...]`
+   - 在执行 `multi` 之前，先执行 `watch key` 可以监视一个或者多个 key，如果在事务执行之前这些 key 被其他的命令所改动，那么事务将被打断
+   - 取消监视 `unwatch`
+   - 取消 watch 命令监视的所有 key，需要在 `exec/discard` 之前执行
+
+### 秒杀案例
+
+1. 思路
+
+### ab 工具并发模拟
+
+1. 安装 ab 工具
+
+2. 命令 
+
+   - 测试请求 `ab -n 请求数 -c 并发数 -p 指定请求数据文件 -T "application/x-www-form-urlencoded" 测试请求`
+
+   - 测试请求为 `form` 表单的 `action` 属性相同
+
+   - 指定请求数据文件（测试请求传输的数据）
+
+     ```tex
+     prodid=10101&prodid=10102&
+     ```
+
+### 超卖问题
+
+1. 秒杀时，可能出现超卖问题
+2. 使用事务和 `watch` 解决超卖问题
+   - 将并发的操作添加进事务中，使用 `watch` 监视商品数量，保证添加进事务的操作只有一个可以成功
+
+### 库存遗留问题
+
+1. 当使用事务和 watch （监视库存变化），可以解决超卖问题，但是当库存量大时，请求数一定（1000），并发数（200），200 个并发只有一个可以秒杀成功（因为 watch 监视的key 变化，则取消其他事务），一共1000 个请求，理想情况下，只会有 5 个秒杀成功，导致库存有剩余。
+2. 使用 `Lua` 脚本解决上述问题
+
+### Lua 脚本
+
+1. 将负责的或者是多步的 Redis 操作，写成几个脚本，一次提交给 Redis 执行，减少反复连接 Redis 的次数，提升性能
+2. Lua 脚本类似于 Redis 的事务，有一定的原子性，不会被其他命令插队，可以完成一些 Redis 事务的操作
+
+## 持久化
+
+### 介绍
+
+1. Redis 提供了两种不同形式的持久化方式（持久化，将数据存入磁盘中）
+2. RDB（Redis DataBase）
+3. AOP（append Of File）
+
+### RDB
+
+1. 在指定的时间间隔将内存的数据集快照写入磁盘中，也就是 snapshot 快照，恢复时将快照直接读入内存中
+2. 如何备份
+   - Redis 会单独创建一个 （fork）子进程进行持久化，会先将数据写入一个临时文件，带持久化过程结束，再用临时文件替换上次持久化的文件，整个过程主进程不进行任何 IO 操作。
+   - 这就确保了极高的性能，如果需要进行大规模的数据恢复，且对数据恢复完整性不是非常敏感（丢失数据），那么 RDB 比 AOP 高效
+   - RDB 的缺点是，最后一次持久化后数据可能丢失
+3. 保存（配置文件中有说明）
+   - 数据保存位置
+   - 保存策略
+4. 保存方式
+   - 满足保存策略，自动进行保存
+   - 正常关闭（`shutdown`） ，自动保存
+   - 手动保存策略（`save`），只管保存，其他不管，请求全部阻塞
+5. __注意__
+   - `stop-writes-on-bgsave-error yes`
+     1. 当 Redis 无法写入磁盘时，直接关掉 Redis 的写操作
+   - `rdbcompression yes`
+     1. 进行 rdb 保存时，将文件压缩
+   - `rdbchecksum yes`
+     1. 在存储快照时，还可以让 Redis 使用 CRC64 算法进行数据比较，但这样会增加大约 10% 的性能消耗，如果想获得最大性能可以关闭此功能
+6. rdb 备份
+   - `config get dir` 查询 rdb 目录
+   - 恢复
+     1. 将数据拷到工作目录下，启动 Redis 即可
+7. 优缺点
+   - 节省空间、恢复速度块
+   - rdb 保存的是数据、aop 保存的是操作的指令
+   - rdb 使用写时拷贝技术（执行时，才会占用父进程资源），但数据庞大还是消耗性能，以外宕机会丢失最后修改的数据
+
+### AOP
+
+1. 以日志的形式记录每一个 __写操作__ ，将 Redis 执行过的所有写命令记录下来（读操作不记录），只需追加文件，但不可以改写文件。Redis 启动时，会读取文件重构数据，换而言之，Redis 会根据日志，将指令重新执行一遍，完成数的恢复
+
+2. AOP 默认不开启，需要手动配置
+
+   - `appendonly no` 默认不开启
+   - 保存的文件名 `appendfilename "appendonly.aop"`
+   - 路径于 RDB 路径一致
+
+3. RDB 和 AOP 同时开启，则使用 AOP
+
+4. AOP 文件故障备份
+
+   - AOP 备份性能和机制虽然于 RDB 不同，但是备份和恢复的操作同 RDB 一样，都是拷贝备份文件，需要时再靠背到工作目录中
+
+5. AOP 文件故障恢复
+
+   - AOP 与 RDB 保存的路径相同
+   - 如果 AOP 文件损坏，可以恢复
+     1. `redis-check-aof --fix appendonly.aof` 恢复
+
+6. 同步频率设置
+
+   - 始终同步，每一次 Redis 的写都会立即记录日志
+
+   - 每秒同步，每秒记录日志一次，如果宕机，本秒的数据丢失
+
+   - 不主动进行同步，把同步时机交给主机
+
+   - 配置文件
+
+     ```tex
+     086 # If unsure, use "everysec".
+     1087 
+     1088 # appendfsync always
+     1089 appendfsync everysec
+     1090 # appendfsync no
+     ```
+
+7. Rewrite
+
+   - AOP 采用文件追加方式，所以文件会越来越大，避免此种情况发生。
+   - 新增重写机制，当文件大小超过阈值时，Redis 就会启动 AOP 文件内容压缩，只保留可以恢复的数据最小指令集，可以使用命令 `bgrewriteaof`
+   - 最小指令集实例
+     1. 多个 `set key` 时（同一个 key），只保留最后的修改，保证数据可以恢复。
+
+8. Redis 如何实现重写
+
+   - AOF 文件持续增长而过大时，会 fork 出一条新的进程来讲这些文件重写（也是先临时后覆盖），遍历新进程的内存数据，每条记录有 Set 语句的。
+   - 重写 aof 文件操作，并没有读取旧的 aof 文件，而是将整个内存中的数据库内容用命令的方式从写写了 aof 文件，这点和快照差不多
+
+9. 何时重写
+
+   - 重写可以节省大量磁盘空间，减少恢复时间，但每次重写都有负担，因此设定 Redis 满足条件测绘进行重写
+
+   - 实例
+
+     ```tex
+     1130 auto-aof-rewrite-percentage 100
+     1131 auto-aof-rewrite-min-size 64mb                                         
+     ```
+
+   - 系统载入时或上次重写完毕时，Redis 会记录此时的 AOF 大小，设为 base_size，如果 Redis 的 AOF 当前大小 >= base_size + base_size * 100%（默认）且当前大小 >= 64mb（默认情况），Redis会对 AOF 进行重写
+
+10. 优缺点
+
+    - 备份机制稳健，丢失数据概率低
+    - 刻度的日志文件，通过 AOF 稳健，可以处理误操作
+    - 缺点
+    - 相对于 RDB，占用磁盘空间大
+    - 备份速度慢
+    - 每一读写读同步，有性能压力
+    - 存在 bug，造成不能恢复
+
+## Redis主从复制
+
+### 主从复制介绍
+
+1. 什么时主从复制
+   - 主从复制，就是主机数据更新后，根据配置和策略，自动同步到备机的 `master/slaver` 机制
+   - Master 以写为主，Slave 以都为主
+2. 用处
+   - 读写分离，性能扩展
+   - 容灾快速回复
+
+### 如何配置
+
+1. 配置从服务器不配置主服务器
+
+   - 拷贝多个 `redis.conf` 文件，使用 `incude`
+     1. 将服务器的相同配置放入一个文件中，使用 `include` 引入即可
+   - 开启 `daemonize yes` ，后台运行
+   - Pid 文件名 `pidfile`
+   - 指定端口号 `port`
+   - Log 文件名称
+   - Dump.rdb 名字 dbfilename
+     1. 在一台机器下，相同的文件会替换
+   - Appendonly 关掉或者换名称（同理）
+
+2. 创建公共配置文件
+
+   - 其他的配置文件引入
+
+     ```tex
+     # 引入配置文件
+     include /opt/database/redis/bin/redis.conf
+     # 需要重新设定的配置
+     pidfile /var/run/redis_6379.conf
+     port 6379
+     dbfilename dump6379.rdb
+     ```
+
+   - 根据配置文件，启动不同的服务，启动 3 个服务器（依据 3 个配置文件）
+
+3. __开启服务后，如何配置主从关系__
+
+   - 打印主从复制关系
+     1. `info replication`
+   - 成为某个实例的从服务器
+     1. `slaveof ip port` 再从服务器中写 ip 为主服务的
+
+4. 主从机说明
+
+   - 功能说明
+     1. 主服务器：可以读写（一般只写） 
+     2. 从服务器：只可以读
+   - 从服务器掉线后，在上线就不是从服务器了，需要再次设置
+     1. 但是不管何时给主服务器设置从服务器，从服务器必须与主服务器保持一致
+   - 主机掉线：从机原地待命，等到主服务器上线
+   
+5. 永久配置主从服务器
+
+   - 以上的配置都是临时性的，如果服务全部重启，服务器就没有任何关系
+
+   - 修改配置文件（在公共的配置文件中）
+
+     ```tex
+     # 主服务器的 IP 和 端口号
+     slaveof masterip masterport
+     ```
+
+6. 复制原理
+
+   - 每一从机联通后，都会给主机发送 `sync` 指令
+   - 主机会立刻进行存盘操作，发送 RDB 文件，给从机
+   - 从机收到后，进行全盘加载
+   - 之后主机的每次写操作，都立刻发送给从机，从机执行相同的命令
+
+### 薪火相传
+
+1. 上一个 slave 可以是下一个 slave 的 master，slave 同样可以接受其他 slave 的连接和同步请求，那么该 slave 作为链条中的下一个 master，可以有效减少 master 的写压力，去中心化降低风险
+2. 主从关系
+   - A -> B -> C
+   - C 可以从 B 复制数据，B 是主，C 是从
+   - B 可以从 A 复制数据
+3. 反客为主
+   - 从上得知从服务器不能写操作，如果 A 宕机，B 是从服务器（主服务器宕机，从服务器原地待命），还是不能写
+   - 将 B 的主服务器去掉，不做任何服务器的从
+     1. `slave on one` 不做任何服务器的从服务器，既可以与 C 形成主从关系，从而有写全限
+
+### 哨兵模式
+
+1. 反客为主的自动版（当主机宕机，随机抽取一台从服务器，作为主机）
+
+2. 留言协议
+
+   - 确定主服务器是否可用
+
+3. 投票协议
+
+   - 确定哪个从服务器作为主服务器
+
+4. 哨兵模式是在主从复制的基础上（一主二仆模式）
+
+   - 自定义的配置文件目录，新建 `sentinel.conf`
+
+   - 在配置文件中填写
+
+     ```tex
+     # 主服务器的 IP 和端口号
+     sentinel monitor mymaster 127.0.0.1 6379 1
+     ```
+
+   - 说明
+
+     1. mymaster 为主服务器名称（自定义）
+     2. `1` 为至少有多少个哨兵同意迁移的数量（多少个哨兵认为宕机才算宕机）
+     3. 一主二从，3 个哨兵的设置，这时应为 `2`
+
+5. 启动哨兵
+
+   - 执行 `redis-sentinel sentinel.conf` 
+
+6. 故障恢复
+
+   - 当主服务器宕机，哨兵会选择新的主服务器，当主服务器再次上线，哨兵会通知其，你已经从主变为从了
+   - 选择主服务器的原则（依次选择）
+     1. 选择优先级靠前的（配置文件 redis.conf 中 `slave-priority 100`）
+     2. 选择偏移量较大的（获得源主数据最多的）
+     3. 选择 runid 最小的从服务器（每一个 redis 实例启动后都会产生随机的 40 位的 runid）
+
+## Redis 集群
+
+### 介绍
+
+1. __主从复制可以解决其读写的压力，集群则可以解决内存的压力__
+2. 问题
+   - 容量不够，redis 如何进行扩容
+   - 并发写操作，redis 如何分摊
+3. 什么是集群
+   - Redis 集群实现对 Redis 的水平扩容，即启动 N 个 Redis 节点上，将整个数据库，分布存储在 N 个节点上，每个节点存储总数据的 1/N 
+   - Redis 集群通过分区（partition）来提供一定程度的可用性（availability）：即使集群中国一部分节点无法通讯，集群也可以继续处理命令
+
+### 安装环境
+
+1. 安装`ruby` 环境
+   - `sudo apt install ruby`
+   - `sudo apt install rubygems`
+2. 前期操作
+   - 拷贝 `redis-3.2.0.gem` 到 `/opt` 目录下
+   - 执行 `gem install --local redis-3.2.0.gem`
+3. 制作实例
+   - 拷贝多个 `redis.conf` 文件，使用 `incude`
+     1. 将服务器的相同配置放入一个文件中，使用 `include` 引入即可
+   - 开启 `daemonize yes` ，后台运行
+   - Pid 文件名 `pidfile`
+   - 指定端口号 `port`
+   - Log 文件名称
+   - Dump.rdb 名字 dbfilename
+     1. 在一台机器下，相同的文件会替换
+   - Appendonly 关掉或者换名称（同理）
+4. 安装  redis cluster (与主从复制的配置文件相同，追加，在定义的配置文件中)
+   - 打开集群模式
+     1. `cluster-enabled yes`
+   - 设定节点配置文件名
+     1. `cluster-config-file nodes-6379.conf`
+   - 设定节点失联时间（毫秒），超过该时间，集群自动进行主从切换
+     1. `cluster-node-timeout 15000`
+
+### 启动
+
+1. 启动 Redis 实例（集群的多少，取决取 Redis 的实例）
+
+   - 确保 `nodes-xxx.conf` 文件生成正常
+
+2. 合体
+
+   - 将多个节点（Redis 实例）放入一个集群中
+
+   - 进入 `redis/src` 目录中（解压目录）
+
+     1. 执行 
+
+        ```shell
+        ./redis-trib.rb create --replicas 1 ip:port ip:port ip:port...
+        ```
+
+3. 以集群的方式进入客户端
+
+   - `redis-cli -c -p port` （进入一个客户端即可）
+   - 在客户端输入 `cluster nodes` 查看集群信息
+
+4. Redis cluster 如何分配这 6 个节点
+
+   - __一个集群至少有 3 个主节点__
+   - 选项 `--replicas 1` 表示我们希望为集群的每一个主节点创建一个从节点
+   - 分配原则尽量保证每一个主数据库运行在不同的 IP 地址，每一个主库和从库不在一个 IP 地址上
+
+5. 什么是 `slots` （插槽）
+
+   - 一个 Redis 集群包含 16384 个插槽（hash slot），数据库中的每一个键都属于这 16384 个插槽的其中一个
+   - 集群使用 `CRC16(key) % 16384` 来计算 key 属于哪个槽。
+   - 集群中每一个节点负责一部分插槽（主节点分配，从节点跟随）
+     1. 主节点 A 负责 0-5500
+     2. 主节点 B 负责  5501-11000
+     3. 主节点 C 分则 11001-16384
+   - 插入数据，查询数据时，会计算每一个 key 属于哪一个插槽，将其重定向到这个主节点上（客户端也随即切换），查询也一样
+
+6. 在集群中录入值
+
+   - 使用 `redis-cli` 开启客户端，插入、查询时，Redis 都会计算出 key 所属的槽，如果不是本客户端对应的槽，Redis 会报错，并告知应前往 Redis 的哪个实例
+
+   - 使用 `redis-cli -c -p port` 开启客户端，插入、查询时，会自动从定向的指定的服务器客户端
+
+   - 不在一个槽（slot）下的键，不能使用 `mget` `mset` 等多值操作
+
+   - 可以使用 `{}` 来定义组的概念，从而使 key 中的 `{}` 内相同内容的键值对放入到一个 `slot` 中去
+
+     ```shell
+     set a{user} 1
+     set b{user} 2
+     # 这样可以保证 a b 在一个组，即以在同一个服务器上
+     ```
+
+7. 查询集群中的值
+
+   - `cluster keyslot key` 计算 key 的 slot
+   - `cluster countkeysinslot 槽` 返回槽目前包含的键的数量
+   - `cluster getkeysinslot slot count` 返回槽中的 count 个键
+
+### 故障恢复
+
+1. 主节点下线，从节点是否自动成为主节点
+   - 从节点会自动成为主节点，主节点再上线，即为从节点
+2. 如果某一段的主从节点都下线，redis 服务是否继续
+   - 其他的主从节点正常，下线的主从节点负责的插槽不能继续工作（没有从新分配）
+   - redis.conf 中的参数 
+     1. `clustre-require-full-coverage yes` 16384 个 slot 都正常才对外提供服务
+     2. 改成 `no` ，部分不正常也可以提供服务
+
+### 集群的 Jedis 开发
+
+1. 配置
+
+   - 集群
+   - `commons-pool2.-2.4.2.jar`
+
+2. 实例
+
+   ```java
+   Set<HostAndPort> nodes = new HashSet<>();
+   node.add(new HostAndPort("ip", port)); // 使用集群的一个 ip port 即可（自动重定向）
+   // 通过 ip 和 port 创建集群连接，可以自动重定向
+   JedisCluster cluster = new JedisCluster(nodes);
+   
+   cluster.set("username", "tom");
+   cluster.close(); // 关闭
+   ```
 
 ## Redis 高级操作
 
@@ -6024,7 +7601,6 @@ mysql> select * from students;
 ### 待续......
 
    
-
 
 
 
