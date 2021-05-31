@@ -243,16 +243,17 @@
         1.  不进入方法体（进入自定义方法体）
         2.  进入方法体
         3.  强行进入方法体（是方法就进入）
-        4.  直接跳至第二个断电
+        4.  步出：从步入的方法内退出到方法调用处，此时方法已执行完毕，只是还没有完成赋值
+        5.  直接跳至第二个断电
         
     -   左侧（debug 下方）
+        
         1.  重新 debug 运行
-    2.  跳至第二个断点
-    
--   如下图
-    
-        ![debug 控制台](git_picture/debug控制台.png)
+        2.  跳至第二个断点
+        
+    -   如下图
 
+        ![debug 控制台](git_picture/debug控制台.png)
 ## 创建 Web 工程
 
 ### 修改 Idea 默认启动开启最近的项目
@@ -269,7 +270,7 @@
 
 ### 创建 Web 项目
 
-1.  社区版，不支持 JavaEE（包含 Web 项目），所以一下是，专业版对应的内容
+1.  社区版，不支持 JavaEE（包含 Web 项目），所以以下是，专业版对应的内容
 
 2.  创建 Web 项目，选择 `Servlet` 版本
 
@@ -421,6 +422,25 @@
     -   如下图
 
         ![maven菜单项](git_picture/maven菜单项.png)
+    
+7.  使用 `mvn install` 仓库中安装 maven 项目
+
+    -    如下项目结构
+
+        ```tex
+        |- com
+            ├── shen
+               └── model01
+                   └── idea-maven-test
+                       ├── 1.0-SNAPSHOT
+                       │   ├── _remote.repositories
+                       │   ├── idea-maven-test-1.0-SNAPSHOT.jar
+                       │   ├── idea-maven-test-1.0-SNAPSHOT.pom
+                       │   └── maven-metadata-local.xml
+                       └── maven-metadata-local.xml
+        ```
+
+        
 
 ### 使用 maven 创建 JavaEE 项目（Web 项目）
 

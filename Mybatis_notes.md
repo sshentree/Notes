@@ -1154,8 +1154,8 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
 ### 缓存机制
 
 1. 介绍
-   - 系统默认定义了两级huancun
-   - 默认情况，只有一级缓存（SqlSession 级别的缓存，也成为本地缓存）开启
+   - 系统默认定义了两级缓存
+   - 默认情况，只有一级缓存（SqlSession 级别的缓存，也称为本地缓存）开启
    - 二级缓存需要手动配置，基于 `namespace` 级别的缓存
    - 为了提高扩展性，Mybatis 定义了缓存接口，可以通过实现 `Cache` 接口来定义二级缓存
 
@@ -1190,7 +1190,7 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
 
 2. Mybatis 提供二级缓存的接口一级实现，缓存实现要求 POJO 实现 `Serializable` 接口
 
-3. 二级缓存是在 `SqlSession` 关闭后提交后生效。__二级缓存时映射文件级别的，不管创建几个 `SqlSession` 只要访问 `XXXMapper.xml` 相同的 SQL 语句，就会使用二级缓存__
+3. 二级缓存是在 `SqlSession` 关闭后提交后生效。__二级缓存是映射文件级别的，不管创建几个 `SqlSession` 只要访问 `XXXMapper.xml` 相同的 SQL 语句，就会使用二级缓存__
 
 4. 二级缓存使用步骤：
 
