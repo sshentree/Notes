@@ -59,10 +59,9 @@
 
    - 在原 Tomcat 目录中部署项目
 
-     1. 项目目录位置 `Webapp`
+     1. 项目目录位置 `webapps`
      2. 创建目录 `TomcatDemo` ，此文件夹就是项目名称
      3. 访问项目中的 `index.html`页面方式 `http://localhost:8080/TomcatDemo/index.html`
-
 
 ### 在开发环境中部署开发 Web 项目
 
@@ -181,7 +180,7 @@ __说明：[参考地址](https://blog.csdn.net/asty9000/article/details/9020532
    - 特点
 
      1. Servlet 是 Java 编写的（`java.servlet.Servlet` 接口），用于 HTML 的特点
-     2. Servlet 对象由 Servlet 容器创建
+     2. Servlet 对象由 Servlet 容器创建（tomcat 就是一个 servlet 容器）
 
    - 使用 Servlet（`Servlet.jar` 在 Tomcat 的 lib 中）
 
@@ -243,6 +242,7 @@ __说明：[参考地址](https://blog.csdn.net/asty9000/article/details/9020532
 2. 方法作用
    - 方法 `destroy()` ，Servlet 消亡时执行
    - 方法 `init()` ，创建对象后执行，初始化 Servlet 对象的一些参数值
+       1. 参数是在 web.xml 文件中配置的
    - 方法 `service()` ，处理请求
 3. 创建 Servlet 过程
    - 构造器 -》 `init()` -》 `service()` -》 `destroy()`
@@ -260,7 +260,7 @@ __说明：[参考地址](https://blog.csdn.net/asty9000/article/details/9020532
      2. 执行时机：关闭服务器时执行
 4. __总结__
    - 构造器只执行一次，所以 Servlet 是单例，整个服务器中只有一个 Servlet
-   - init() 也值初始化一次 Servlet 的参数
+   - init() 也只初始化一次 Servlet 的参数
 
 ### ServletConfig 与 ServletContext
 
@@ -2020,7 +2020,7 @@ __说明：[参考地址](https://blog.csdn.net/asty9000/article/details/9020532
      ```java
      String url = request.getHeader("Referer");
      // 跳转
-response.sendRedirect(url);
+     response.sendRedirect(url);
      ```
      
 
