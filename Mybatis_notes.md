@@ -2,6 +2,25 @@
 
 __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)__
 
+## Mybatis 介绍
+
+### 和其他持久层技术对比
+
+1.   JDBC
+     -   SQL 夹杂在 java 代码中耦合读高，导致硬编码内伤
+     -   维护不易且实际开发中 SQL 有变化，频繁修改的情况多见
+     -   代码冗余，开发效率低
+2.   Hibernate 和 JPA
+     -   操作简单，开发效率高
+     -   程序中长难的 SQL 需要绕过框架
+     -   框架自动生成的 SQL ，不容易做特殊优化
+     -   基于全映射的自动框架，大量字段的 POJO （Plain Old Java Object，简单的对象）进行部分映射时比较困难
+     -   反射操作太多，导致数据库性能下降
+3.   Mybatis
+     -   轻量级，性能出色
+     -   SQL 和 java 编码分开，功能边界清晰。java专注业务，SQL 专注数据
+     -   开发效率略低于 Hibrenate，但是完全可以接受
+
 ## 环境搭建
 
 ### 导入 `jar` 包
@@ -39,12 +58,20 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
          
          <!-- 设置或引用 jdbc.properties 文件，连接数据的配置信息-->
          <!-- resource 引用类路径下，url 引用磁盘或磁盘路径下访问-->
-         <properties resource="jdbc.properties"></properties>
+         <properties resource="jdbc.properties"/>
+         <!-- 或者配置变量-->
          <!--
      	<properties>
          	<property name="jdbc.driver" value="com.mysql.jdbc.Driver"></property>
          </properties>
      	-->
+         <!-- 部分引用jdbc.properties，部分使用配置变量 -->
+         <!--
+         <properties resource="jdbc.properties">
+             <property name="username" value="xxx"/>
+             <property name="password" value="xxx"/>
+         </properties>
+         -->
          
          <!-- 用来设置连接数据库的环境，属性 default 设置默认使用的数据库。标签 envitonment 可以有多个，id 就是 environments 的属性 default 的值-->
          <environments default="development">
@@ -53,24 +80,31 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
              <environment id="development">
                  
                  <!-- type=(JDBC|MANAGED)-->
-                 <!--事务管理，type 生命是谁管理：JDBC 是使用最原始的事务管理方式管理 autocommit()；MANANGED 是能管理谁管理，提交回滚自己完成-->
+                 <!--事务管理器，type 生命是谁管理：JDBC 是使用最原始的事务管理方式管理手动提交（ autocommit();）MANANGED 是能管理谁管理，提交回滚自己完成-->
                  <transactionManager type="JDBC" />
                  
                  <!-- type=(POOLED|UNPOOLED|JNDI)-->
-                 <!-- 使用缓冲池，不使用缓冲池，使用上下文-->
+                 <!-- 使用数据库连接池，不使用数据库连接池，使用上下文中的数据源-->
                  <dataSource type="POOLED">
                      
-                     <!-- 使用上述引用 .properties 文件的值-->
+                     <!-- 使用上述引用 .properties 文件的值，或者使用变量 -->
+                     <!-- 使用的是 .properties 文件的值 -->
                      <property name="driver" value="${jdbc.driver}" />
                      <property name="url" value="${jdb.url}" />
                      <property name="username" value="${jdbc.username}" />
                      <property name="password" value="${jdbc.password}" />
                      
+                     <!-- 使用配置变量 -->
+                     <!--
+                     <property name="username" value="${username}" />
+                     <property name="password" value="${password}" />
+     				-->
+                     
                  </dataSource>
              </environment>
          </environments>
          <mappers>
-             <!-- 根据以后的 XXXMapper 对应书写-->
+             <!-- 引入配置文件，根据以后的 XXXMapper 对应书写-->
              <mapper resource="org/mybatis/example/BlogMapper.xml" />
          </mappers>
      </configuration>
@@ -81,6 +115,16 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
      1. 在 `mybatis.jar -> bulider -> XML` 复制 `mybatis-3-config.dtd` ，这是此配置文件的标签库（`/org/apache/ibatis/builder/xml/mybatis-3-mapper.dtd` 是 映射文件的标签库）
      2. 在 window 中设置查询 `XML Catalog` 配置标签库(加在 user 标签库中)
   3. 一种加入 `public id` `-//mybatis.org//DTD Config 3.0//EN` ；一种加入 `URI` `http://mybatis.org/dtd/mybatis-3-config.dtd` 。
+  
+- mybatis 配置文件中的配置的顺序性
+  
+     -   ```xml
+         <!--
+          properties?,settings?,typeAliases?,typeHandlers?,objectFactory?,
+          objectWrapperFactory?,reflectorFactory?,plugins?,environments?,
+          databaseIdProvider?,mappers?)".
+          -->
+      ```
   
 - 配置数据库连接池
   
@@ -108,14 +152,19 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
          </settings>
      ```
 
-- `tyepAliases` 为 Java 类型起别名（不建议使用）
+- `tyepAliases` 为 Java 类型起别名，用别名代替全类名（不建议使用）
 
      ```xml
      <typeAliases>
          <!-- type 为 Java 类型-->
          <!-- 这样写就可以，默认别名是（user\User），不区分大小写-->
          <!-- 可以在映射文件中（UserMapper.xml），使用别名-->
-         <typeAlias type="model.bean.User"/>
+         <typeAlias type="model.bean.User" />
+         
+         <!-- 指定别名（指定的是什么加） -->
+         <!--
+         <typeAlias type="model.bean.User" alias="User"/>
+     	-->
          
          <!-- 包下所有的类都有别名-->
          <package name="model.bean"/>
@@ -243,13 +292,32 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
 
 4. __修改核心配置文件的映射对象__
 
-   - 代码
+   - 实例（以单个映射文件引入）
 
      ```xml
      <mappers>
-         <mapper resource="UserMapper.xml" />
+         <!--映射文件全路径 src/main/resources/mapper/UserMapper.xml-->
+         <mapper resource="mapper/UserMapper.xml" />
      </mappers>
      ```
+     
+   - 实例（以包为单位引入映射文件）
+   
+     ```xml
+     <mappers>
+         <!--
+     		以包为单位引入映射文件，要求：
+     			1.mapper接口所在的包要和映射文件所在的包一致
+     			2.mapper接口要和映射文件的名字一致
+     		映射文件的两种存放方式：
+     			1.将mapper映射文件放在mapper包下
+     			2.将mapper映射文件放入resource中，再起一个与mapper接口包路径一致的文件加
+     	-->
+         <package name="com.sshen.mapper"/>
+     </mappers>
+     ```
+   
+     
 
 ### 获取 Mybatis 操作数据库的会话对象 `Sqlsession` 并测试
 
@@ -387,12 +455,12 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
 
 1. 测试代码
 
-   - 更新数据库，必须自己手动提交（因为 `mybatis-config.xml` 设定的事务管理为 `JDBC` ，原生的事务管理）
+   - 更新数据库，必须自己手动提交（因为 `mybatis-config.xml` 设定的事务管理为 `JDBC` ，原生的事务管理），**如果没有提交事物，并且主键是自增，那么没有提交的数据也会占用主键，下次的数据会跳过已被占用的主键向后顺延**
 
      1. 提交代码
 
         ```java
-        sqlSession.commit; // 提交事务
+        sqlSession.commit(); // 提交事务
         ```
 
      2. 创建 `SqlSession` 时，开启自动处理事务
@@ -520,10 +588,12 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
 
 1. 方式（`XXXMapper.xml`）
 
-   - `#{}`
+   -   `${}`
+       1. 当传递参数为单个 String 或字面量和包装类，名称必须相同，如果不同则可以使用 `${value/_parameter}`
+       2. 本质：字符串拼接 （Statement）
+   - `#{}` 
      1. 当传递参数为单个 String 或 字面量和包装类时，通配符的名称与参数的名称不同没有关系
-   - `${}`
-     1. 当传递参数为单个 String 或字面量和包装类，名称必须相同，如果不同则可以使用 `${value/_parameter}`
+     1. 本质：占位符赋值（PreparedStatement）
    - 当传递参数为 `bean` 时，`#{}/${}` 都可以根据属性名直接获取值
    - 当传递的参数为多个形参时，如 （String， String）
      1. 可以使用 `#{0}` `#{1}` 获取两个参数，还可以使用 `#{param1/param2}`
@@ -538,9 +608,144 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
    - 当传递参数为 `List/Array` 时，也会将其放入 `Map` 中
      1. 键值 `key` 为 `list/array`
    
+1. 举例说明（5 种方式）
+
+   -   mapper 接口方法的参数为单个的字面量类型
+   
+       1.   可以通过 `${}` 或者 `#{}` 以任意名称获取数值（建议：见名释义），但是需要注意 `${}` 的单引号问题
+   
+       2.   `${}` 如下，字符串拼接
+   
+            ```xml
+            <!-- TUser getTUserByName(String userName); -->
+            <select id="getTUserByName" resultType="com.sshen.bean.TUser">
+                <!-- userName也可以换成aa -->
+                select * from t_user where username = '${userName}'
+            </select>
+            
+            <!-- 控制台日志 -->
+            debug(BaseJdbcLogger.java:135) - ==>  Preparing: select * from t_user where username = 'admin'
+            debug(BaseJdbcLogger.java:135) - ==> Parameters: 
+            debug(BaseJdbcLogger.java:135) - <==      Total: 1
+            TUser{id=26, userName='admin', password='123456', age=23, sex='man', email='admin@163.com'}
+            ```
+   
+       3.   `#{}` 如下，占位符
+   
+            ```xml
+            <!-- TUser getTUserByName(String userName); -->
+            <select id="getTUserByName" resultType="com.sshen.bean.TUser">
+                <!-- userName也可以换成aa -->
+                select * from t_user where username = #{userName}
+            </select>
+            
+            <!-- 控制台日志 -->
+            debug(BaseJdbcLogger.java:135) - ==>  Preparing: select * from t_user where username = ?
+            debug(BaseJdbcLogger.java:135) - ==> Parameters: admin(String)
+            debug(BaseJdbcLogger.java:135) - <==      Total: 1
+            TUser{id=26, userName='admin', password='123456', age=23, sex='man', email='admin@163.com'}
+            ```
+   
+   -   **mapper 接口方式的参数为多个，此时 Mybatis 会将这些参数放在一个 map 中（以两种方式进行存储）<br> `{arg0 : value1, arg1:vaule2, param1 : value1, param2 : value2}` ，因此只需要通过 `${}` 或者 `#{}` 以键的方式访问即可，但是需要注意 `${}` 的单引号问题**
+   
+       1.   `${}` 如下，字符串拼接
+   
+            ```xml
+            <!-- TUser checkLogin(String userName, String password); -->
+            <select id="checkLogin" resultType="com.sshen.bean.TUser">
+                <!-- wrong -->
+                <!-- select * from t_user where username = `${userName}` and password = `${password}` -->
+                <!-- right -->
+                select * from t_user where username = '${arg0}' and password = '${arg1}'
+            </select>
+            
+            <!-- 控制台 -->
+            debug(BaseJdbcLogger.java:135) - ==>  Preparing: select * from t_user where username = 'admin' and password = '123456'
+            debug(BaseJdbcLogger.java:135) - ==> Parameters: 
+            debug(BaseJdbcLogger.java:135) - <==      Total: 1
+            TUser{id=26, userName='admin', password='123456', age=23, sex='man', email='admin@163.com'}
+            ```
+   
+       2.   `#{}` 如下，占位符
+   
+            ```xml
+            <!-- TUser checkLogin(String userName, String password); -->
+            <select id="checkLogin" resultType="com.sshen.bean.TUser">
+                <!-- wrong -->
+                <!-- select * from t_user where username = #{userName} and password = #{password} -->
+            
+                <!-- right -->
+                <!-- select * from t_user where username = #{param1} and password = #{[param2} -->
+                <!-- select * from t_user where username = #{arg0} and password = #{arg1} -->
+            </select>
+            
+            <!--控制台 -->
+            debug(BaseJdbcLogger.java:135) - ==>  Preparing: select * from t_user where username = ? and password = ?
+            debug(BaseJdbcLogger.java:135) - ==> Parameters: admin(String), 123456(String)
+            debug(BaseJdbcLogger.java:135) - <==      Total: 1
+            TUser{id=26, userName='admin', password='123456', age=23, sex='man', email='admin@163.com'}
+            ```
+   
+   -   接上回知识点，“mapper 接口方式的参数为多个，Mybatis 将参数设置成 `map` “ 其中 key 为 Mybatis 自动设置。我们也可以手动设置 key，将参数手动封装成 map，通过`#{}` 或者 `${}` 以键的方式访问。
+   
+       1.   都参数时，手动封装成map
+   
+            ```xml
+            <!-- TUser checkLoginByMap(Map<String, Object> map); -->
+            <select id="checkLoginByMap" resultType="com.sshen.bean.TUser">
+                select * from t_user where username = #{userName} and password = #{password}
+            </select>
+            
+            <!--
+            		// 获取Session
+                    SqlSession sqlSession = SqlSessionUtil.getSqlSession();
+            		// mapper接口
+                    ParameterMapper parameterMapper = sqlSession.getMapper(ParameterMapper.class);
+            		// 定义参数，封装成map
+                    Map<String, Object> map = new HashedMap<>();
+                    map.put("userName", "admin");
+                    map.put("password", "123456");
+            		// 接口调用
+                    TUser tUser = parameterMapper.checkLoginByMap(map);
+                    System.out.println(tUser);
+            -->
+            ```
+   
+   -   mapper 接口方式的参数是**实体类**类型的参数，只需要通过 `#{}` 或者 `${}`  以属性名称访问属性即可
+   
+       1.   实体类类型参数，通过属性名访问属性值（屏蔽属性的 `set/get` 方法后，不受影响）
+   
+            ```xml
+            <!-- int insertTUser(TUser tUser); -->
+            <insert id="insertTUser">
+                insert into t_user values(null, #{userName}, #{password}, #{age}, #{sex}, #{email})
+            </insert>
+            
+            <!--
+            	参数为实体类对象，使用#{属性名}
+            -->
+            ```
+   
+   -   使用 `@Param` 注解命名参数
+   
+       1.   **mapper 接口定义接口时，使用 `@Param` 注解，Mybatis 会以 `@Param` 注解变量 `value` 的值当 map 的 key，参数 `userName` 的值作为 value，注意：还是会以 `param1` 作为 key**
+   
+            ```java
+            TUser checkLoginByParam(@Param(value = "userName") String userName, @Param(value = "password") String password);
+            ```
+   
+       2.   mapper 的 xml 文件
+   
+            ```xml
+            <!-- TUser checkLoginByParam(@Param(value = "userName") String userName, @Param(value = "password") String password); -->
+            <select id="checkLoginByParam" resultType="com.sshen.bean.TUser">
+                select * from t_user where username = #{userName} and password = #{password}
+            </select>
+            ```
+   
 2. `#{}` 可以使用通配符设置 SQL 语句的参数，所以此方式获取 SQL 语句的是 `PreparedStatement`
 
-3. `${}` 使用 `Statement` ，预编译 SQL 语句
+3. `${}` 使用 `Statement` 
 
    - __只支持拼接 SQL，注意引号的使用__
    - 模糊查询、批量删除必须使用此方法
@@ -700,7 +905,7 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
      <select id="getAllEmp" resultMap="empMap">
          select eid, ename, age, sex, did from emp
      </select>
-    <!-- 返回结果 [Emp [eid=1, ename=张三, age=20, sex=男, dept=Dept [did=1, dname=人事部]]}-->
+      <!-- 返回结果 [Emp [eid=1, ename=张三, age=20, sex=男, dept=Dept [did=1, dname=人事部]]}-->
      ```
    
 
@@ -1830,6 +2035,8 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
         ```
 
         
+
+
 
 
 
