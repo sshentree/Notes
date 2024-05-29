@@ -142,13 +142,18 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
      ```xml
      <configuration>
          <settings>
-             
              <!-- 将下划线的命名，转换为驼峰命名，不怎么需要使用-->
              <!-- 解决属性与字段不匹配问题-->
              <setting name="mapUnderscoreToCamelCase" value="true"></setting>
              
              <!-- 优先使用 log4j 日志-->
              <setting name="logImpl" value="LOG4J"/>
+             
+             <!-- 多对一分步查询 -->
+             <!-- 开启延迟加载 默认为 false -->
+         	<setting name="lazyLoadingEnable" value="true"/>
+         	<!-- 当开启懒加载时，是否还查询所有的信息，默认为 true -->
+         	<setting name="aggressiveLazyLoading" value="false"/>
          </settings>
      ```
 
@@ -161,7 +166,7 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
          <!-- 可以在映射文件中（UserMapper.xml），使用别名-->
          <typeAlias type="model.bean.User" />
          
-         <!-- 指定别名（指定的是什么加） -->
+         <!-- 指定别名，不区分大小写 -->
          <!--
          <typeAlias type="model.bean.User" alias="User"/>
      	-->
@@ -170,6 +175,10 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
          <package name="model.bean"/>
      </typeAliases>
      ```
+     
+- Mybatis 默认使用的别名（基本数据类型别名：`_基本数据类型`）
+
+     <img src="../css-notes/pictures/mybatis默认别名.png" alt="mybatis默认别名" style="zoom:67%;" />
 
 
 ### 创建映射文件，并配置
@@ -768,6 +777,197 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
      </update>
      ```
 
+### Mybatis 各种基础查询查询
+
+1.   查询一条或者多条数据（这里的接受是指，mapper 接口中的返回值类型）
+
+     -   mapper 接口
+
+         ```java
+         // 查询一条数据
+         TUser getUserById(@Param(value = "id") Integer id);
+         // 查询多条数据
+         List<TUser> getAllUsers();
+         ```
+
+     -   xml 配置文件
+
+         ```xml
+         <!--  TUser getUserById(@Param(value = "id") Integer id) -->
+         <select id="getUserById" resultType="com.sshen.bean.TUser">
+             select * from t_user a where a.id = #{id}
+         </select>
+         
+         <!-- List<TUser> getAllUsers() -->
+         <select id="getAllUsers" resultType="com.sshen.bean.TUser">
+             select * from t_user a
+         </select>
+         ```
+
+     -   查询一条数据时，可以使用通过以下方式接受
+         1.   可以通过实体类对象接受
+         2.   可以通过 `List<实体类>` 集合接受
+         3.   可以通过 `Map<String, Object>`接受
+         3.   可以使用 `List<Map<String, Object>>` 来接收
+         
+     -   查询出多条数据时，可以通过以下方式接受
+         1.   可以通过 `List<实体对象>`集合接受
+         2.   可以通过 `List<Map<String, Object>>` 接受
+
+2.   使用聚合函数查询数据
+
+     -   mapper 接口
+     
+         ```java
+         // 查询用户信息的总记录数
+         Integer getCount();
+         ```
+     
+     -   xml 配置文件
+     
+         ```xml
+         <!-- Integer getCount(); -->
+         <select id="getCount" resultType="Integer">
+             select count(*) from t_user a
+         </select>
+         ```
+     
+     -   返回类型使用说明
+     
+         1.   Mybatis 默认自带一些别名（别名不区分大小写），所以 XML 配置文件中返回值类型可以使用 `Integer / int / integer`
+     
+3.   返回值为 Map
+
+     -   mapper 接口
+
+         ```java
+         // 根据用户id查询用户转换成map
+         Map<String, Object> getUserById2Map(@Param(value = "userId") Integer userId);
+         // 查询所有用户转换成map
+         List<Map<String, Object>> getAllUsers2ListINMap();
+         ```
+
+     -   XML 配置文件
+
+         ```xml
+         <!-- Map<String, Object> getUserById2Map(@Param(value = "userId") String userId); -->
+         <select id="getUserById2Map" resultType="map">
+             select * from t_user a where a.id = #{userId}
+         </select>
+         
+         <!-- List<Map<String, Object>> getAllUsers2ListINMap(); -->
+         <select id="getAllUsers2ListINMap" resultType="map">
+             select * from t_user a
+         </select>
+         ```
+
+     -   返回数据中说明
+
+         1.   **返回值类型中 map 的 key 为数据库表中的字段名称**
+         2.   查询一条数据时也可以使用 `List<Map<String, Object>>` 来接收
+
+4.   注解 `@MapKey(value = "")` 使用
+
+     -   mapper 接口
+
+         ```java
+         // 查询所有用户转换成map，并以id字段值为key，每一条数据为value存储
+         @MapKey(value = "id")
+         Map<String, Object> getAllUser2Map();
+         ```
+
+     -   XML 配置文件
+
+         ```xml
+         <!-- Map<String, Object> getAllUser2Map(); -->
+         <select id="getAllUser2Map" resultType="map">
+             select * from t_user a
+         </select>
+         ```
+
+     -   返回数据结构
+
+         ```json
+         {
+             1={password=126, sex=man, id=1, age=16, email=tom@163.com, class_num=1, username=tom}, 
+         	26={password=16, sex=man, id=26, age=23, email=admin@163.com, class_num=2, username=admin}, 	29={password=126, sex=man, id=29, age=23, email=jack@163.com, class_num=3, username=jack}
+         }
+         ```
+
+     -   使用说明
+
+         1.   支持点条数据转换成 Map
+         2.   支持多条数据转换成 Map
+
+### 特殊 SQL 的执行
+
+1.   模糊查询
+
+     -   mapper 接口
+
+         ```java
+         // 通过$字符串拼接模糊查询
+         List<TUser> getUsersByName$(@Param(value = "userName") String userName);
+         // 通过#预编译和字符串函数（concat）模糊查询
+         List<TUser> getUsersByNameNot$1(@Param(value = "userName") String userName);
+         // 通过#预编译模糊查询（常用）
+         List<TUser> getUsersByNameNot$2(@Param(value = "userName") String userName);
+         ```
+
+     -   XML 配置文件
+
+         ```xml
+         <select id="getUsersByName$" resultType="com.sshen.bean.TUser">
+             select * from t_user a where a.username like '%${userName}%'
+         </select>
+         
+         <!-- List<TUser> getUsersByNameNot$1(@Param(value = "userName") String userName); -->
+         <select id="getUsersByNameNot$1" resultType="com.sshen.bean.TUser">
+             select * from t_user a where a.username like concat('%', #{userName}, '%')
+         </select>
+         
+         <!-- List<TUser> getUsersByNameNot$2(@Param(value = "userName") String userName); -->
+         <select id="getUsersByNameNot$2" resultType="com.sshen.bean.TUser">
+             select * from t_user a where a.username like "%"#{userName}"%"
+         </select>
+         ```
+
+2.   批量删除
+
+     -   mapper 接口
+
+         ```java
+         // 批量删除（字段为数值型传值："1, 2, 3"；字段是字符串传值："'tom', 'jack'"）
+         int batchDelete1(@Param(value = "ids") String ids);
+         // 批量删除（根据字段的类型的不同，改变集合中的类型）
+         int batchDelete2(@Param(value = "ids")  List<Integer> ids);
+         ```
+
+     -   XML 配置文件
+
+         ```xml
+         <!-- int batchDelete1(@Param(value = "ids") String ids); -->
+         <!-- 字段为数值型传值："1, 2, 3"；字段是字符串传值："'tom', 'jack'" -->
+         <!-- 字段为字符串sql解析：Preparing: delete from t_user a where a.class_num in ('tom', 'jack') -->
+         <!-- 字段为数值sql解决：Preparing: delete from t_user where id in (2, 3) -->
+         <delete id="batchDelete1">
+             delete from t_user where id in (${ids})
+         </delete>
+         
+         <!--  int batchDelete2(@Param(value = "ids")  List<Integer> ids); -->
+         <delete id="batchDelete2">
+             delete from t_user where id in
+             <foreach collection="ids" open="(" close=")" separator="," item="id">
+                 #{id}
+             </foreach>
+         </delete>
+         ```
+
+3.   动态设置表名（只能使用 `${}` 设置表名）
+
+     -   mapper 接口
+     -   XML 配置文件
+
 
 ### 主键生成方式，获取主键值
 
@@ -811,10 +1011,10 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
      // 添加员工
      Emp emp = new Emp(null, "jack", 201, "男");
      empMapper.addEmp(emp);
-     System.out.println(emp.getEname());		
+     System.out.println(emp);		
      ```
 
-## 表关系
+## 表关系（自定义映射）
 
 ### 表的建立
 
@@ -830,47 +1030,92 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
    - 查询结果返回值中，如果使用 emp 类接受，则部门的名称不能匹配
    - 所以待解决问题
 
-2. 解决方案
+2. **单表查询时字段不同时如何进行映射**
+
+   -   别名：SQL 查询结果使用别名，其中别名和 JAVA 属性名不一致，完成 SQL 结果和 JAVA 对象进行映射
+
+   -   全局配置（解决：下划线映射成驼峰）
+
+       ```xml
+       <settings>
+           <setting name="mapUnderscoreToCamelCase" value="true" />
+       </settings>
+       ```
+
+   -   使用 `resultMap` 标签进行设置
+
+       1.   `id` 设置主键映射；`result` 设置普通字段映射。其实值时解决 `emp_name` 和 `empName`  之间的映射，只写 `<result property="empName" column="emp_name"/>` 标签也可以
+
+       2.   示例
+
+            ```xml
+            <resultMap id="empResultMap" type="com.sshen.advance.bean.Emp">
+                <id property="eid" column="eid"/>
+                <result property="empName" column="emp_name"/>
+                <result property="age" column="age"/>
+                <result property="sex" column="sex"/>
+                <result property="email" column="email"/>
+            </resultMap>
+            <!-- List<Emp> getAllEmpsTwo(); -->
+            <select id="getAllEmpsTwo" resultMap="empResultMap">
+                select * from t_emp;
+            </select>
+            ```
+            
+       3.   示例（可以以成表和JAVA之间的映射）
+       
+            ```xml
+            <resultMap id="empResultMap" type="com.sshen.advance.bean.Emp">
+                <result property="empName" column="emp_name"/>
+            </resultMap>
+            <!-- List<Emp> getAllEmpsTwo(); -->
+            <select id="getAllEmpsTwo" resultMap="empResultMap">
+                select * from t_emp;
+            </select>
+            ```
+   
+2. 多对一关联查询时解决方案
 
    - 自定义定义映射关系，使用 `<resultMap>`  标签 ，处理复杂的表关系
 
-     1. 代码
+     1. 代码，多对以映射关系（**级联属性赋值**）用的不多
 
         ```xml
-        <resultMap type="model.bean.Emp" id="empMap">
-            <!-- 主要表的主键-->
-            <id column="eid" property="eid"/>
-            <result column="ename" property="ename"/>
-            <result column="age" property="age"/>
-            <result column="sex" property="sex"/>
-            <!-- dept 表的映射 dept 为java bean属性-->
-            <result column="did" property="dept.did"/>
-            <result column="dname" property="dept.dname"/>
+        <resultMap id="empAndDeptResultMapOne" type="com.sshen.advance.bean.Emp">
+            <id property="eid" column="eid"/>
+            <result property="empName" column="emp_name"/>
+            <result property="age" column="age"/>
+            <result property="sex" column="sex"/>
+            <result property="email" column="email"/>
+            <!-- 级联属性 -->
+            <result property="dept.did" column="did" />
+            <result property="dept.deptName" column="dept_name" />
         </resultMap>
-        
-        <select id="getAllEmp" resultMap="empMap">
-            select e.eid, e.ename, e.age, e.sex, d.did d.dname from emp e left join dept d on e.did = d.did 
+        <!-- List<Emp> getEmpByDeptNameOne(@Param(value = "deptName") String deptName); -->
+        <select id="getEmpByDeptNameOne" resultMap="empAndDeptResultMapOne">
+            select * from t_emp a left join t_dept b on a.did = b.did where b.dept_name like concat('%', #{deptName}, '%')
         </select>
         ```
         
-     2. 方案二
+     2. 方案二，多对以映射关系（**association**）用的不多
      
         ```xml
-        <resultMap type="model.bean.Emp" id="empMap">
-            <!-- 主要表的主键-->
-            <id column="eid" property="eid"/>
-            <result column="ename" property="ename"/>
-            <result column="age" property="age"/>
-            <result column="sex" property="sex"/>
-            <!-- dept 表的映射-->
-        	<association property="dept" javaType="model.bean.Dept">
-                <id column="did" property="did"/>
-                <result column="dname" property="did"/>
+        <resultMap id="empAndDeptResultMapTwo" type="com.sshen.advance.bean.Emp">
+            <id property="eid" column="eid"/>
+            <result property="empName" column="emp_name"/>
+            <result property="age" column="age"/>
+            <result property="sex" column="sex"/>
+            <result property="email" column="email"/>
+            <!-- property为属性名称；javaType该属性类型 -->
+            <association property="dept" javaType="com.sshen.advance.bean.Dept">
+                <!-- 主键 -->
+                <id property="did" column="did" />
+                <result property="deptName" column="dept_name" />
             </association>
         </resultMap>
-        
-        <select id="getAllEmp" resultMap="empMap">
-            select e.eid, e.ename, e.age, e.sex, d.did d.dname from emp e left join dept d on e.did = d.did 
+        <!-- List<Emp> getEmpByDeptNameTwo(@Param(value = "deptName") String deptName); -->
+        <select id="getEmpByDeptNameTwo" resultMap="empAndDeptResultMapTwo">
+            select * from t_emp a left join t_dept b on a.did = b.did where b.dept_name like concat('%', #{deptName}, '%')
         </select>
         ```
    
@@ -894,7 +1139,7 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
          <result column="ename" property="ename"/>
          <result column="age" property="age"/>
          <result column="sex" property="sex"/>
-         <!-- select 接口的权限命名 + 方法名；column 的分步查询的条件-->
+         <!-- select 接口的器 + 方法名；column 的分步查询的条件-->
      	<association property="dept" select="model.mapper.DeptMapper.方法名" column="did">
              <id column="did" property="did"/>
              <result column="dname" property="dname"/>
@@ -909,9 +1154,109 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
      ```
    
 
+### 多对一分步查询
+
+1.   分步查：先查询主表信息，再根据关联字段查询字表信息
+
+     -   现有员工表和部门表（多对一关系）
+     -   查询员工信息（包括员工的部门信息），先查询员工信息，再根据员信息中包含的部门id，查询部门信息
+     -   分步查询，即有先查和后查，分为两个独立的 SQL
+
+2.   分步查询的优点
+
+     -   可以实现延迟加载，但是必须在核心配置文件中设置全局信息
+
+         1.   `lazyLoadingEnabled` 延迟加载的全局开关。当开启时，所有关联的对象都会延迟加载
+         2.   `agressiveLazyLoading` 开启时，任何方法的调用都会加载该对象的所有属性，否则每一个属性会按需加载
+         3.   当开启延迟加载时（有效）：**还可以通过 `association` 和 `collection` 标签中的`fetchType` 属性设置当前的分步查询是否延迟加载，`fetchType = lazy` 延迟加载；`fetchType = eager` 立即加载**（可以单独控制是否延迟加载）
+
+     -   延迟加载配置信息（mybatis 核心配置文件）
+
+         ```xml
+         <settings>
+             <setting name="lazyLoadingEnabled" value="true"/>
+             <setting name="aggressiveLazyLoading" value="false"/>
+         </settings>
+         ```
+
+2.   根据部门id获取部门
+
+     -   xml 配置
+
+         ```xml
+         <!-- Dept getDeptByDid(@Param(value = "did") Integer did); -->
+         <select id="getDeptByDid" resultType="com.sshen.advance.bean.Dept">
+             select * from t_dept where did = #{did}
+         </select>
+         ```
+
+4.   根据用户id查询用户信息（包括部门信息）
+
+     -   xml 配置
+
+         ```xml
+         <resultMap id="empAndDeptByStepResultMapOne" type="com.sshen.advance.bean.Emp">
+             <id property="eid" column="eid"/>
+             <result property="empName" column="emp_name"/>
+             <result property="age" column="age"/>
+             <result property="sex" column="sex"/>
+             <result property="email" column="email"/>
+             <association property="dept"
+                          select="com.sshen.advance.mapper.DeptMapper.getDeptByDid"
+                          column="did">
+             </association>
+         </resultMap>
+         <!--  Emp getEmpAndDeptByStepOne(Integer eid); -->
+         <select id="getEmpAndDeptByStepOne" resultMap="empAndDeptByStepResultMapOne">
+             select * from t_emp where eid = #{eid}
+         </select>
+         ```
+
+5.   延迟加载效果
+
+     -   按需加载（没有使用到部门信息，则不会调用回去部门的 SQL）
+
+         ```java
+         SqlSession sqlSession = SqlSessionUtil.getSqlSession();
+         EmpMapper empMapper = sqlSession.getMapper(EmpMapper.class);
+         Emp emp = empMapper.getEmpAndDeptByStepOne(5);
+         // 只获取用的年龄，所以不会调用获取部门的 SQL
+         System.out.println(emp.getAge());
+         ```
+
+4.   sql 执行
+
+     -   通过用户id查询
+
+         ```shell
+         - ==>  Preparing: select * from t_emp where eid = ?
+         - ==> Parameters: 5(Integer)
+         - ====>  Preparing: select * from t_dept where did = ?
+         - ====> Parameters: 9(Integer)
+         - <====      Total: 1
+         - <==      Total: 1
+         ```
+
+     -   通过年龄范围查询（子查询，当参数相同时不会多次查询）
+
+         ```shell
+         - ==>  Preparing: select * from t_emp where age >= ?
+         - ==> Parameters: 16(Integer)
+         - ====>  Preparing: select * from t_dept where did = ?
+         - ====> Parameters: 7(Integer)
+         - <====      Total: 1
+         - ====>  Preparing: select * from t_dept where did = ?
+         - ====> Parameters: 9(Integer)
+         - <====      Total: 1
+         - ====>  Preparing: select * from t_dept where did = ?
+         - ====> Parameters: 8(Integer)
+         - <====      Total: 1
+         - <==      Total: 4
+         ```
+
 ### 分步查询延迟加载
 
-1. 延迟加载，只对分布查询有效
+1. 延迟加载，只对分步查询有效
    
    - 懒加载不可用，默认为 `false`
    
@@ -1033,7 +1378,25 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
    - 上面的 `Setting` 是全局的设置
    - 可以在 `<collection>` 或者 `<ass……>` 设置属性 `fetchType="lazy"` 延迟，不延迟 `fetchType="eager"`
 
-   
+4. xml 配置文件
+
+   -   如下
+
+       ```xml
+       <resultMap id="deptAndEmpByStepOneResultMap" type="com.sshen.advance.bean.Dept">
+           <id property="did" column="did"/>
+           <result property="deptName" column="dept_name"/>
+           <collection property="emps"
+                       select="com.sshen.advance.mapper.EmpMapper.getEmpByDid"
+                       column="did"
+                       fetchType="lazy">
+           </collection>
+       </resultMap>
+       <!--  Dept getDeptAndEmpByStepOne(@Param(value = "did") Integer did); -->
+       <select id="getDeptAndEmpByStepOne" resultMap="deptAndEmpByStepOneResultMap">
+           select * from t_dept where did = #{did}
+       </select>
+       ```
 
 ## 动态 SQL 语句
 
@@ -1127,8 +1490,12 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
 
         `where 1 = 1` 即可
 
-     2. 也可以使用 `<where></where>` 标签，增加 `where` 关键字和去掉 `where`  后多余 `and` 如 `where and` 去掉 `and` 但是 `where 1=1 and` 则不会去掉
+     2. 也可以使用 `<where></where>` 标签，当`where` 条件存在条件时，会自动生成`where` 关键字，并且将 where 后多余的 `and` 或 `or` 去掉，如果 `where` 条件多不存在时，便不会生成 `where` 关键字。
 
+        -   如 `where and` 去掉 `and` 
+        -   如 `where or` 去掉 `or` 
+        -   **但是 `where 条件1 and 条件2 and` 则不会去掉最后的 `and` **
+        
         ```xml
         <where>
             <if test="sex == 1 or sex == 0">
@@ -1137,22 +1504,22 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
         </where>
         ```
 
-   - 使用 `<trim>` 标签去掉其包含的 SQL 片段的指定前缀和后缀
+   - 使用 `<trim>` 标签可使其包含的 SQL 片段的指定增加前缀和后缀、或者去掉指定的前缀和后缀
 
      1. `<trim prefix="" suffix="" prefixOverrides="" suffixOverrides="">`
 
-        - 前缀、后缀、重现前缀、重写后缀
-
+        - 增加前缀、增加后缀、去除前缀、去除后缀
+   
      2. 代码
-
+   
         ```xml
         <trim prefix="where" suffixOverrides="and|or">
         
         </trim>
         ```
-
-     3. 在截取的 SQL 语句片段中，前增加 `where` ，后去掉 `and` 或者 `or`
-
+   
+     3. 在截取的 SQL 语句片段中，增加前缀 `where` ，去掉后缀 `and` 或者 `or`
+   
    - `<set>` 解决方法
 
 ### choose（when 、otherwise）
@@ -1293,7 +1660,7 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
      </update>
      ```
 
-   - 预编译对象 `PreparedState` 只能预编译一条 SQL 语句，不能有一次预编译多条 SQL 语句
+   - 预编译对象 `PreparedStatement` 只能预编译一条 SQL 语句，不能有一次预编译多条 SQL 语句
 
    - 解决办法
 
@@ -1371,33 +1738,137 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
    - 相同的 `SqlSession` 会使用相同的缓存内容
    - 对同一个 `SqlSession` 执行相同的 SQL 语句，会直接使用缓存
 
-2. 一级缓存失效情况
+2. **一级缓存失效情况**
 
    - 不同的 `SqlSession` 对应的不同的缓存
 
-   - 同一个 `SqlSession` 单查询条件不同
+   - 同一个 `SqlSession` 查询条件不同
 
    - 同一个 `SqlSession` 两次查询期间执行了任意一次增删改操作
 
      1. 不管增删改操作是否成功，都会清空缓存
-
+     1. 不管操作的是哪一张表，只要存在增删改操作都会清空缓存
+     1. `sqlSession.commit()` 也会清空一级缓存
+   
    - 同一个 `SqlSession` 两次查询期间手动清空缓存
-
-     1. 代码
-
+   
+     1. 示例
+   
         ```java
         sqlSession.clearCache(); // 手动清空缓存
         ```
+   
+3. Java 使用同一个 Session
+
+   -   示例
+
+       ```java
+       // 获取Session
+       SqlSession sqlSession = SqlSessionUtil.getSqlSession();
+       // 根据eid=1获取员工（设置Session缓存）
+       CacheMapper cacheMapperOne = sqlSession.getMapper(CacheMapper.class);
+       Emp empOne = cacheMapperOne.getEmpByEid(1);
+       // 根据eid=1获取员工，走缓存
+       CacheMapper cacheMapperTwo = sqlSession.getMapper(CacheMapper.class);
+       Emp empTwo = cacheMapperTwo.getEmpByEid(1);
+       // 根据eid=6获取员工（查询条件不同），不走缓存
+       CacheMapper cacheMapperThree = sqlSession.getMapper(CacheMapper.class);
+       Emp empThree = cacheMapperThree.getEmpByEid(6);
+       ```
+       
+   -   示例（两个查询使用相同的 `sqlSession` ，并且 `sqlSession` 没有被关闭，所以 `sqlSessionOne` 的两次查询走了一次库）
+   
+       ```java
+       // SessionOne
+       SqlSession sqlSessionOne = SqlSessionUtil.getSqlSession();
+       // SessionTwo
+       SqlSession sqlSessionTwo = SqlSessionUtil.getSqlSession();
+       
+       // SessionOne走库（设置Session one缓存）
+       CacheMapper cacheMapperOne = sqlSessionOne.getMapper(CacheMapper.class);
+       Emp empOne = cacheMapperOne.getEmpByEid(10);
+       // SessionTwo删除（清空SessionTwo一级缓存）
+       CacheMapper cacheMapperTwo = sqlSessionTwo.getMapper(CacheMapper.class);
+       cacheMapperTwo.deleteEmpByEid(10);
+       // SessionOne走缓存
+       CacheMapper cacheMapperThree = sqlSessionOne.getMapper(CacheMapper.class);
+       Emp empThree = cacheMapperThree.getEmpByEid(10);
+       ```
+       
+   -   示例（`sqlSession.commit()` 可以清空一级缓存，下面查询了两次数据库）
+   
+       ```java
+       SqlSession sqlSessionOne = SqlSessionUtil.getSqlSession();
+       
+       CacheMapper cacheMapperOne = sqlSessionOne.getMapper(CacheMapper.class);
+       Emp empOne = cacheMapperOne.getEmpByEid(13);
+       System.out.println(empOne);
+       // 查询自提交也可清空一级缓存
+       sqlSessionOne.commit();
+       
+       CacheMapper cacheMapperThree = sqlSessionOne.getMapper(CacheMapper.class);
+       Emp empThree = cacheMapperThree.getEmpByEid(13);
+       System.out.println(empThree);
+       ```
+       
+   -   示例（一级缓存,开始事物自动提交，执行更新、删除、添加后，一级缓存失效，不需在要执行 `session.commit()`）
+   
+       ```java
+       SqlSession sqlSession = SqlSessionUtil.getSqlSession();
+       
+       // 没有走缓存
+       LevelOneCacheMapper cacheMapperOne = sqlSession.getMapper(LevelOneCacheMapper.class);
+       Emp empOne = cacheMapperOne.getEmpByEid(14);
+       System.out.println(empOne);
+       
+       //走一级缓存
+       LevelOneCacheMapper cacheMapperTwo = sqlSession.getMapper(LevelOneCacheMapper.class);
+       Emp empTwo = cacheMapperTwo.getEmpByEid(14);
+       System.out.println(empTwo);
+       
+       // 清空一级缓存
+       int count = cacheMapperOne.deleteDeptByDid(14);
+       System.out.println("affect count = " + count);
+       
+       //没有走缓存
+       LevelOneCacheMapper cacheMapperThree = sqlSession.getMapper(LevelOneCacheMapper.class);
+       Emp empThree = cacheMapperThree.getEmpByEid(14);
+       System.out.println(empThree);
+       ```
 
 ### 二级缓存
 
 1. 默认不开启（需要手动开启）
 
+2. 二级缓存解释：二级缓存是 SqlSessionFactory 级别，通过同一个 SqlSessionFactory 创建的 Sqlession 查询同一个命名空间（namespace：同一个 XxxMapper.xml 文件下的 sql）的结果会被缓存，以后再执行相同的查询语句，结果就会从缓存中获取
+
+3. 二级缓存开启的条件
+
+    -   在核心配置文件中，设置全局配置属性 `cacheEnabled="true"` 默认是 `true`，不需要设置
+
+    -   在映射文件（XxxMapper.xml）中设置 `<cache />` 标签
+
+    -   二级缓存必须在 SqlSession 关闭或提交之后有效
+
+        1.   示例（更新的提交二级缓存会失效）
+
+             ```java
+             sqlSession.close();
+             // 查询自提交
+             sqlSession.commit();
+             ```
+
+    -   查询数据转换的实体类类型必须实现序列化接口 `implements Serializable`
+
+4. 二级缓存失效
+
+    -   同一个 `SessionFactory` 创建的 `SqlSession` 的两次查询（同一个命名空间）之间执行了任意的增删改查（同一个命名空间），无论是否开启了事物自动提交，想要二级缓存失效都必须手动调用 `sqlSession.commit()` 会使一级二级缓存同时失效
+
 2. Mybatis 提供二级缓存的接口一级实现，缓存实现要求 POJO 实现 `Serializable` 接口
 
-3. 二级缓存是在 `SqlSession` 关闭后提交后生效。__二级缓存是映射文件级别的，不管创建几个 `SqlSession` 只要访问 `XXXMapper.xml` 相同的 SQL 语句，就会使用二级缓存__
+6. 二级缓存是在 `SqlSession` 关闭后提交后生效。__二级缓存是映射文件级别的，不管创建几个 `SqlSession` 只要访问 `XXXMapper.xml` 相同的 SQL 语句，就会使用二级缓存__
 
-4. 二级缓存使用步骤：
+7. 二级缓存使用步骤：
 
    - 全局配置文件中，开启二级缓存（全局配置文件）
 
@@ -1413,19 +1884,113 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
 
    - 被查询的实体类需要实现 `Serializable` 接口
 
-5. 二级缓存相关属性
+8. 几种不同的使用场景
 
-   - `eviction=FIFO`  缓存回收策略
-     1. `LRU` 最近最少使用原则，移除最长时间不被使用的对象
+   -   示例
+
+       ```java
+       // 同一个SessionFactory创建的两个Sesssion
+       // 第一个Session
+       SqlSession sqlSessionOne = SqlSessionUtil.getSqlSessionBySameFactory();
+       // 第二个Session
+       SqlSession sqlSessionTwo = SqlSessionUtil.getSqlSessionBySameFactory();
+       
+       // 查询同一个XxxMapper
+       // 查询第一次没有走缓存（一、二级），并设置一级缓存
+       LevelOneCacheMapper cacheMapperOne = sqlSessionOne.getMapper(LevelOneCacheMapper.class);
+       Emp empOne = cacheMapperOne.getEmpByEid(13);
+       System.out.println(empOne);
+       
+       // Session关闭或提交，并设二级缓存，但是一级缓存失效
+       sqlSessionOne.close();// sqlSessionOne.commit();
+       
+       // 查询第二次走缓存（二级缓存）
+       LevelOneCacheMapper cacheMapperTwo = sqlSessionTwo.getMapper(LevelOneCacheMapper.class);
+       Emp empThree = cacheMapperTwo.getEmpByEid(13);
+       System.out.println(empThree)
+       ```
+
+   -   示例
+
+       ```java
+       // 同一个SessionFactory创建的三个Sesssion
+       // 第一个Session
+       SqlSession sqlSessionOne = SqlSessionUtil.getSqlSessionBySameFactory();
+       // 第二个Session
+       SqlSession sqlSessionTwo = SqlSessionUtil.getSqlSessionBySameFactory();
+       // 第三个Session
+       SqlSession sqlSessionThree = SqlSessionUtil.getSqlSessionBySameFactory();
+       
+       // 查询两个不同的XxxMapper
+       // 使用第一个Session查询LevelOneCacheMapper没有走缓存（一、二级缓存），设置一级缓存
+       LevelOneCacheMapper cacheMapperOne = sqlSessionOne.getMapper(LevelOneCacheMapper.class);
+       Emp empOne = cacheMapperOne.getEmpByEid(13);
+       System.out.println(empOne);
+       // 第一个Session一级缓存清空，并设置LevelOneCacheMapper二级缓存
+       sqlSessionOne.commit();
+       
+       // 第二个Session查询LevelTwoCacheMapper没有走缓存（一、二级缓存），设置一级缓存
+       LevelTwoCacheMapper cacheMapperTwo = sqlSessionTwo.getMapper(LevelTwoCacheMapper.class);
+       Emp empTwo = cacheMapperTwo.getEmpByEid(13);
+       System.out.println(empTwo);
+       
+       // 第三个Session查询LevelOneCacheMapper走二级缓存，并设置一级缓存
+       LevelOneCacheMapper cacheMapperThree = sqlSessionThree.getMapper(LevelOneCacheMapper.class);
+       Emp empThree = cacheMapperThree.getEmpByEid(13);
+       System.out.println(empThree);
+       ```
+
+   -   示例（更新、删除、新增时，只有手动地调用 `session.commit()` （无论是否开启事物自动提交）二级缓存才会被清空）
+
+       ```java
+       // 同一个SessionFactory创建的三个Sesssion
+       // 第一个Session
+       SqlSession sqlSessionOne = SqlSessionUtil.getSqlSessionBySameFactory();
+       // 第二个Session
+       SqlSession sqlSessionTwo = SqlSessionUtil.getSqlSessionBySameFactory();
+       // 第三个Session
+       SqlSession sqlSessionThree = SqlSessionUtil.getSqlSessionBySameFactory();
+       // 第四个Session
+       SqlSession sqlSessionFour = SqlSessionUtil.getSqlSessionBySameFactory();
+       
+       // 第一个Session查询LevelOneCacheMapper没有走缓存（一、二级），并设置一级缓存
+       LevelOneCacheMapper cacheMapperOne = sqlSessionOne.getMapper(LevelOneCacheMapper.class);
+       Emp empOne = cacheMapperOne.getEmpByEid(11);
+       System.out.println(empOne);
+       // 第一个Session设置二级缓存，并清空一级缓存
+       sqlSessionOne.commit();
+       
+       // 第二个Session查询LevelOneCacheMapper走二级缓存
+       LevelOneCacheMapper cacheMapperTwo = sqlSessionTwo.getMapper(LevelOneCacheMapper.class);
+       Emp empThree = cacheMapperTwo.getEmpByEid(11);
+       System.out.println(empThree);
+       
+       // 第三个Session更新LevelOneCacheMapper
+       LevelOneCacheMapper cacheMapperThree = sqlSessionThree.getMapper(LevelOneCacheMapper.class);
+       int count = cacheMapperThree.deleteEmpByEid(11);
+       // 第三个Session提交设置二级缓存，并清空一级缓存
+       sqlSessionThree.commit();
+       System.out.println("affect count = " + count);
+       
+       // 第四个Session没有走缓存（一、二级），并设置一级缓存
+       LevelOneCacheMapper cacheMapperFour = sqlSessionFour.getMapper(LevelOneCacheMapper.class);
+       Emp empFour = cacheMapperFour.getEmpByEid(11);
+       System.out.println(empFour);
+       ```
+
+5. 二级缓存配置 `<cache></cache>` 相关属性
+
+   - `eviction=LRU`  缓存回收策略
+     1. `LRU` 最近最少使用原则，移除最长时间不被使用的对象（默认）
      2. `FIFO` 先进先出，按对象进入缓存的顺序移除
      3. `SOFT` 软引用，移除基于垃圾回收器状态和软引用规则的对象
      4. `WEAK` 弱引用，更积极移除基于垃圾回收器状态和弱引用规则的对象
    - `flushInterval` 刷新间隔，单位毫秒（刷新内存）
-     1. 默认情况不设置，也就是没有刷新间隔，缓存仅仅是调用语句时刷新
-   - `size` 引用数目，正整数
+     1. 默认情况不设置，也就是没有刷新间隔，缓存仅仅是调用语句时刷新（增删改后的提交操作）
+   - `size` 引用数目，正整数，默认是1024
      1. 代表缓存可以存储多少个对象，太大容易内存溢出
    - `readOnly` 只读 `true/false`
-     1. `true` 只读缓存，会给所有调用者返回相同的实例对象，因此这些对象不能被修改（加入修改了实体对象，内存的没有被修改，造成数据脏读），提供了重要的性能优势
+     1. `true` 只读缓存，会给所有调用者返回相同的实例对象，因此这些对象不能被修改（假如修改了实体对象，内存的没有被修改，造成数据脏读），提供了重要的性能优势
      2. `false` 读写缓存，返回对象的拷贝。这回慢一些，但是安全，默认值
    - `type` 设置第三方缓存
 
@@ -1447,12 +2012,31 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
      1. 增删改默认为 true，sql 执行完成，同时清空一级二级缓存
      2. 查询为 false
    - SqlSession.clearCache() 只用来清空一级缓存
+   
+12. 缓存查询顺学
+
+    -   先查询二级缓存，因为二级缓存可能有其他程序已经查询出来的数据，可以拿来直接使用
+    -   如果二级缓存没有命中，在查询一级缓存
+    -   如果一级缓存没有命中，则查询数据库
+    -   Session 关闭和查询的 Session 提交，一级缓存的数据会写入二级缓存
 
 ### 整合第三方缓存
 
-1. 为了提供扩展性，Mybatis 定义了缓存接口 `Cache` ，我们可以通过实现 `Cache` 接口来自定义二级缓存
+#### 介绍
 
-2. `EhCache` 是一个纯 Java 的进程内缓存框架，具有快速精干等特点，是 Hibernate 中默认的 `CacheProvider`
+1. 为了提供扩展性，Mybatis 定义了缓存接口`Cache` ，我们可以通过实现 `Cache` 接口来自定义二级缓存
+2. 第三方缓存与Mybatis二级缓存不同之处
+    -   Mybatis二级缓存是SqlSessionFactory级别，通过同一个 SqlSessionFactory 创建的 Sqlession 查询同一个命名空间（namespace：同一个 XxxMapper.xml 文件下的 sql）的结果会被缓存，以后再执行相同的查询语句，结果就会从缓存中获取
+    -   第三方缓存的key与SqlSessionFactory无关，只要查询同一个命名空间（namespace：同一个 XxxMapper.xml 文件下的 sql）的结果会被缓存，以后再执行相同的查询语句，结果就会从缓存中获取
+3. 使用第三方缓存
+    -   redis：支持集群
+    -   Ehcahce：支持集集群（不友好）
+
+#### Ehcahe 缓存
+
+1. `EhCache` 是一个纯 Java 的进程内缓存框架，具有快速精干等特点，是 Hibernate 中默认的 `CacheProvider`
+
+2. [分布式 Ehcahe 配置信息](https://www.cnblogs.com/hoojo/archive/2012/07/19/2599534.html)
 
 3. 整合 `EhCache` 的缓存步骤
 
@@ -1462,6 +2046,23 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
      2. `mybatis-ehcache-1.0.3.jar` 整合包（Mybatis 开发的）
      3. `slf4j-api-1.6.1.jar` 日志包
      4. `sl4j-log4j12-1.6.2.jar` 日志包
+
+   - 项目以使用 `slf4j+log4j2` 时，引入Ehcahe依赖
+
+     ```xml
+     <!-- ehcache -->
+     <dependency>
+         <groupId>org.mybatis.caches</groupId>
+         <artifactId>mybatis-ehcache</artifactId>
+         <version>1.2.3</version>
+         <exclusions>
+             <exclusion>
+                 <groupId>org.slf4j</groupId>
+                 <artifactId>slf4j-api</artifactId>
+             </exclusion>
+         </exclusions>
+     </dependency>
+     ```
 
    - 编写 `ehcache.xml` 配置文件
 
@@ -1530,9 +2131,97 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
    - 当内存放的条数超过规定条目，就会向磁盘中写入数据
    - 其他的不需要添加，正常设置即可
 
-### 逆向工程
+#### Redis缓存
 
-1. 逆向工程配置文件 [参考地址](http://mybatis.org/generator/configreference/xmlconfig.html)
+1.   依赖
+
+     -   项目以使用 `slf4j+log4j2` 时，引入Redis依赖
+
+         ```xml
+         <!--redis -->
+         <dependency>
+             <groupId>org.mybatis.caches</groupId>
+             <artifactId>mybatis-redis</artifactId>
+             <version>1.0.0-beta2</version>
+         </dependency>
+         ```
+
+2.   配置redis配置文件
+
+     -   redis.properties
+
+         ```properties
+         host=localhost
+         port=6379
+         connectionTimeout=5000
+         password=123456
+         database=0
+         ```
+
+3.   使用 `type` 属性，指定 `Cache` 实现类即可（映射文件 `.XXXMapper.xml`）
+
+     - `<cache type="org.mybatis.caches.redis.RedisCache"/>`
+     - mybatis 的二级缓存交由Redis管理
+
+## 逆向工程
+
+### 逆向生成内容
+
+1.   **正向工程**：创建Java实体类，由框架负责根据实体类生成数据库表（Hibernate支持正向工程）
+     -   生成数据库表
+2.   **逆向工程**：先创建数据库表，由框架负责根据数据库表，反向生成如下资源
+     -   Java实体类
+     -   Mapper接口
+     -   Mapper映射文件
+
+### 逆向工程配置
+
+1.   引入插件和插件的依赖
+
+     -   其中插件的依赖，并不会在idea中的maven中展示，插件的引入会在idea的maven中的plugins中展示
+
+         <img src="../css-notes/pictures/逆向生成插件依赖.png" alt="逆向生成插件依赖" style="zoom:50%;" />
+
+     -   其中`mysql-connector-java`和`c3p0`是数据库连接依赖，也可以写在`<dependencies><dependencies/>`标签中
+
+     -   如下
+
+         ```xml
+         <build>
+             <plugins>
+                 <!-- 具体插件，逆向工程的操作是以构建过程中插件形式出现的 -->
+                 <plugin>
+                     <groupId>org.mybatis.generator</groupId>
+                     <artifactId>mybatis-generator-maven-plugin</artifactId>
+                     <version>1.4.2</version>
+                     <!-- 插件的依赖 -->
+                     <dependencies>
+                         <!-- 逆向工程的核心依赖 -->
+                         <dependency>
+                             <groupId>org.mybatis.generator</groupId>
+                             <artifactId>mybatis-generator-core</artifactId>
+                             <version>1.4.2</version>
+                         </dependency>
+                         <!-- mysql数据库驱动 -->
+                         <dependency>
+                             <groupId>mysql</groupId>
+                             <artifactId>mysql-connector-java</artifactId>
+                             <version>8.0.27</version>
+                         </dependency>
+                         <!--数据库连接-->
+                         <dependency>
+                             <groupId>com.mchange</groupId>
+                             <artifactId>c3p0</artifactId>
+                             <version>0.9.5.5</version>
+                         </dependency>
+                     </dependencies>
+                 </plugin>
+             </plugins>
+         </build>
+         ```
+         
+
+2. 逆向工程配置文件 [参考地址](http://mybatis.org/generator/configreference/xmlconfig.html)
 
    - 实例（`generatorConfig.xml`）
 
@@ -1540,7 +2229,12 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
      <?xml version="1.0" encoding="UTF-8"?>
      <!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
      <generatorConfiguration>
-         <!-- mybatis-generator:generate -->
+         <!-- 
+     	mybatis-generator:generate，根据数据库表逆向生成java代码
+     	targetRuntime：执行生成的逆向工程版本
+     	MyBatis3：生成带条件的CRUD
+     	MyBatis3Simple：生成基本的CRUD（简介版），增删改和根据id查询
+     	-->
          <context id="DB2Tables" targetRuntime="MyBatis3">
              <commentGenerator>
                  <!-- 是否去除自动生成的注释 true:是;false:否 -->
@@ -1577,13 +2271,72 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
                  <!-- enableSubPackages:是否让 schema 作为包的后缀 -->
                  <property name="enableSubPackages" value="false" />
              </javaClientGenerator>
-             <!-- 数据库表名字和 entity 类对应的映射指定 -->
+             <!-- 
+     		数据库表名字和 entity 类对应的映射指定
+     		tableName：设置为 * 号，可以对应所有表，此时不需要写 domainObjectName
+     		domainObjectName：指定生成出实体
+     		-->
              <table tableName="table" domainObjectName="Class" />
          </context>
      </generatorConfiguration>
      ```
 
-2. 生成实体类、Mapper接口、映射文件 [参考地址](http://mybatis.org/generator/running/runningWithJava.html)
+### 逆向工程生成内容
+
+1.   简洁版生成内容
+
+     -   单表的增加、删除（通过主键）、查询（通过主键）、查询所有、更新（通过主键）
+
+     -   Mapper接口
+
+         ```java
+         public interface DeptMapper {
+             int deleteByPrimaryKey(Integer did);
+         
+             int insert(Dept row);
+         
+             Dept selectByPrimaryKey(Integer did);
+         
+             List<Dept> selectAll();
+         
+             int updateByPrimaryKey(Dept row);
+         }
+         ```
+
+     -   xml配置文件
+
+         ```xml
+         <mapper namespace="com.sshen.crowd.mapper.DeptMapper">
+           <resultMap id="BaseResultMap" type="com.sshen.crowd.entity.Dept">
+             <id column="did" jdbcType="INTEGER" property="did" />
+             <result column="dept_name" jdbcType="VARCHAR" property="deptName" />
+           </resultMap>
+           <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+             delete from t_dept
+             where did = #{did,jdbcType=INTEGER}
+           </delete>
+           <insert id="insert" parameterType="com.sshen.crowd.entity.Dept">
+             insert into t_dept (did, dept_name)
+             values (#{did,jdbcType=INTEGER}, #{deptName,jdbcType=VARCHAR})
+           </insert>
+           <update id="updateByPrimaryKey" parameterType="com.sshen.crowd.entity.Dept">
+             update t_dept
+             set dept_name = #{deptName,jdbcType=VARCHAR}
+             where did = #{did,jdbcType=INTEGER}
+           </update>
+           <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+             select did, dept_name
+             from t_dept
+             where did = #{did,jdbcType=INTEGER}
+           </select>
+           <select id="selectAll" resultMap="BaseResultMap">
+             select did, dept_name
+             from t_dept
+           </select>
+         </mapper>
+         ```
+
+1. 生成实体类、Mapper接口、映射文件 [参考地址](http://mybatis.org/generator/running/runningWithJava.html)
 
    - 执行代码
 
@@ -1598,12 +2351,12 @@ __说明：[参考地址](https://mybatis.org/mybatis-3/zh/getting-started.html)
      myBatisGenerator.generate(null);
      ```
 
-3. 生成方式不同
+2. 生成方式不同
 
    - `Mybatis3` ：有 QBC 查询
    - `Mybatis3Simple` 简单 SQL 语句
 
-4. QBC 查询
+3. QBC 查询
 
    - 代码（and 连接）
 
